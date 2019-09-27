@@ -15,27 +15,27 @@ for i=1:d1
         for k=1:4
             
             %x coordinates
-            x_phi(1:(r+1),(i-1)*d1+j,k)=x_e(i)+(1+x)/2*hx;
+            x_phi(1:(r+1),(i-1)*d2+j,k)=x_e(i)+(1+x)/2*hx;
             %y coordinates
-            x_phi((r+1)+1:2*(r+1),(i-1)*d1+j,k)=y_e(j)+(1+x)/2*hy;
+            x_phi((r+1)+1:2*(r+1),(i-1)*d2+j,k)=y_e(j)+(1+x)/2*hy;
             
             %correct based on the face where I am sitting
             switch k
                 %bottom -> fix y coordinate
                 case 1
-                    x_phi((r+1)+1:2*(r+1),(i-1)*d1+j,k)=y_e(j)*ones(r+1,1);
+                    x_phi((r+1)+1:2*(r+1),(i-1)*d2+j,k)=y_e(j)*ones(r+1,1);
                     
                 %right -> fix x coordinate
                 case 2
-                    x_phi(1:(r+1),(i-1)*d1+j,k)=(x_e(i)+hx)*ones(r+1,1); 
+                    x_phi(1:(r+1),(i-1)*d2+j,k)=(x_e(i)+hx)*ones(r+1,1); 
                     
                 %top -> fix y coordinate
                 case 3
-                    x_phi((r+1)+1:2*(r+1),(i-1)*d1+j,k)=(y_e(j)+hy)*ones(r+1,1);
+                    x_phi((r+1)+1:2*(r+1),(i-1)*d2+j,k)=(y_e(j)+hy)*ones(r+1,1);
                 
                 %left -> fix x coordinate
                 case 4
-                    x_phi(1:(r+1),(i-1)*d1+j,k)=x_e(i)*ones(r+1,1);
+                    x_phi(1:(r+1),(i-1)*d2+j,k)=x_e(i)*ones(r+1,1);
             end
             
         end
