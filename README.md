@@ -61,3 +61,6 @@ u0_fun=@(x,y) sin(2*pi*x).*sin(2*pi*y);
  * `"adv_sphere"`: Spherical linear advection equation. The space-dependent advection field is parametrized by an angle `alpha`. To modify its value, the files `flux_function.m` and `get_maximum_eig.m` have to be changed.
  * `"swe_sphere"`: Shallow water equations in spherical geometry.
 * Once the program terminates, the modal solution values can be accessed. A plot of all conserved variables is also shown.
+
+## Known issues
+- Even though the qualitative behavior in spherical coordinates is correct, the convergence analysis gives a sub-optimal order (approximately first order for the linear advection on the sphere).
