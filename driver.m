@@ -5,7 +5,7 @@ set(0,'defaultAxesFontSize',20); set(0,'defaultLineLineWidth',2);
 a=0; b=1; c=0; d=1;
 
 %number of elements in x and y direction
-d1=40; d2=40; 
+d1=20; d2=20; 
 
 %length of the 1D intervals
 hx=(b-a)/d1; hy=(d-c)/d2;
@@ -18,6 +18,9 @@ dim=(r+1)^2;
 
 %equation type
 eq_type="linear";
+
+%type of quadrature rule (Gauss-Legendre or Gauss-Legendre-Lobatto)
+quad_type="lob";
 
 %time interval, initial and final time
 t=0;
@@ -45,7 +48,11 @@ unif2d_phi=map2phi(unif2d,r,x_e,y_e,d1,d2,hx,hy);
 
 %create quadrature points and weights in reference and physical domain,
 %both internally and on the boundary of the elements
-[pts,wts]=gauss_legendre(r+1,-1,1); pts=flipud(pts); wts=flipud(wts); 
+if quad_type=="leg"
+    [pts,wts]=gauss_legendre(r+1,-1,1); pts=flipud(pts); wts=flipud(wts);
+elseif quad_type=="lob"
+    [pts,wts]=gauss_legendre_lobatto(r); 
+end
 [pts2d,wts2d]=tensor_product(pts,pts,wts);
 pts2d_phi=map2phi(pts2d,r,x_e,y_e,d1,d2,hx,hy);
 pts2d_phi_bd=map2phi_bd(pts,r,x_e,y_e,d1,d2,hx,hy);
