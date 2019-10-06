@@ -72,12 +72,9 @@ if eq_type=="swe" || eq_type=="swe_sphere"
 	rhsu(:,:,3)=rhsu(:,:,3)-radius*phi_val(:,:)'*(fact_int.*coriolis.*u_qp(:,:,2).*wts2d)*determ;
 end
 
-%invert the local mass matrix and divide by radius
+%invert the (local) mass matrix and divide by radius
 for n=1:size(u,3)
-    for i=1:d1*d2
-        rhsu(:,i,n)=1/radius*(mass(:,:,i)\rhsu(:,i,n)); 
-    end
+    rhsu(:,:,n)=1/radius*reshape(mass\reshape(rhsu(:,:,n),dim*d1*d2,1),dim,d1*d2);
 end
-
 
 end

@@ -3,6 +3,7 @@ set(0,'defaultAxesFontSize',20); set(0,'defaultLineLineWidth',2);
 
 %definition of the domain [a,b]x[c,d]
 a=0; b=1; c=0; d=1;
+%a=0; b=2*pi; c=-pi/2; d=pi/2;
 
 %number of elements in x and y direction
 d1=20; d2=20; 
@@ -120,7 +121,7 @@ end
 %initial condition (cartesian linear advection) - specified as function
 if eq_type=="linear"
     %u0_fun=@(x,y) sin(2*pi*x).*sin(2*pi*y);
-    h0=0; h1=1; R=(b-a)/2/5; u0_fun=@(x,y) h0+h1/2*(1+cos(pi*sqrt((x-(a+b)/2).^2+(y-(c+d)/2).^2)/R)).*(sqrt((x-(a+b)/2).^2+(y-(c+d)/2).^2)<R);
+    h0=0; h1=1; R=(b-a)/2/5; x_c=(a+b)/2; y_c=(c+d)/2; u0_fun=@(x,y) h0+h1/2*(1+cos(pi*sqrt((x-x_c).^2+(y-y_c).^2)/R)).*(sqrt((x-x_c).^2+(y-y_c).^2)<R);
     %u0_fun=@(x,y) 5*ones(size(x));
     
     %set initial condition in the uniformly spaced quadrature points
@@ -189,6 +190,11 @@ end
 %compute mass matrix
 mass=compute_mass(phi_val,wts2d,d1,d2,hx,hy,fact_int);
 
+%convert to global matrices instead of tensors
+idx_r=repelem(reshape((1:dim*d1*d2),dim,d1*d2),1,dim);
+idx_c=repmat(1:dim*d1*d2,dim,1);
+mass=sparse(idx_r(:),idx_c(:),mass(:));
+
 %temporal loop parameters
 Courant=dt/min(hx,hy);
 N_it=ceil(T/dt);
@@ -256,13 +262,8 @@ end
 
 %compute discretization error, assuming that solution did one complete rotation
 if eq_type=="linear" || eq_type=="adv_sphere"
-    errL2=0; normL2_sol=0;
-    for i=1:d1*d2
-        errL2=errL2+(u(:,i,1)-V\u0(:,i,1))'*mass(:,:,i)*(u(:,i,1)-V\u0(:,i,1)); 
-    end
-    for i=1:d1*d2
-        normL2_sol=normL2_sol+(V\u0(:,i,1))'*mass(:,:,i)*(V\u0(:,i,1));
-    end
+    errL2=reshape(u(:,:,1)-V\u0(:,:,1),dim*d1*d2,1)'*mass*reshape(u(:,:,1)-V\u0(:,:,1),dim*d1*d2,1);
+    normL2_sol=reshape(V\u0(:,:,1),dim*d1*d2,1)'*mass*reshape(V\u0(:,:,1),dim*d1*d2,1);
     fprintf('L2 error is %f, and after normalization is %f\n',sqrt(errL2),sqrt(errL2/normL2_sol));
 end
 
