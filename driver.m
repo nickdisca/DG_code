@@ -20,7 +20,13 @@ dim=(r+1)^2;
 eq_type="linear";
 
 %type of quadrature rule (Gauss-Legendre or Gauss-Legendre-Lobatto)
-quad_type="lob";
+quad_type="leg";
+
+%number of quadrature points in one dimension
+n_qp_1D=(r+1);
+
+%number of quadrature points
+n_qp=n_qp_1D^2;
 
 %time interval, initial and final time
 t=0;
@@ -49,13 +55,13 @@ unif2d_phi=map2phi(unif2d,r,x_e,y_e,d1,d2,hx,hy);
 %create quadrature points and weights in reference and physical domain,
 %both internally and on the boundary of the elements
 if quad_type=="leg"
-    [pts,wts]=gauss_legendre(r+1,-1,1); pts=flipud(pts); wts=flipud(wts);
+    [pts,wts]=gauss_legendre(n_qp_1D,-1,1); pts=flipud(pts); wts=flipud(wts);
 elseif quad_type=="lob"
-    [pts,wts]=gauss_legendre_lobatto(r); 
+    [pts,wts]=gauss_legendre_lobatto(n_qp_1D-1); 
 end
 [pts2d,wts2d]=tensor_product(pts,pts,wts);
-pts2d_phi=map2phi(pts2d,r,x_e,y_e,d1,d2,hx,hy);
-pts2d_phi_bd=map2phi_bd(pts,r,x_e,y_e,d1,d2,hx,hy);
+pts2d_phi=map2phi(pts2d,n_qp_1D-1,x_e,y_e,d1,d2,hx,hy);
+pts2d_phi_bd=map2phi_bd(pts,n_qp_1D-1,x_e,y_e,d1,d2,hx,hy);
 
 %Vandermonde matrix, needed to switch from modal to nodal: u_nod=V*u_mod,
 %i.e. V(i,j)=Phi_j(x_i) for i,j=1:dim. The x_i are the uniform points
@@ -69,18 +75,18 @@ for i=1:dim
 end
 
 %values and grads of basis functions in internal quadrature points, i.e.
-%phi_val(i,j)=Phi_j(x_i) for i,j=1:dim. The x_i are the quadrature points,
+%phi_val(i,j)=Phi_j(x_i) for i=1:dim_qp,j=1:dim. The x_i are the quadrature points,
 %the gradient has two components due to the x and y derivatives
-phi_val=nan(dim,dim);
-for i=1:dim
+phi_val=nan(n_qp,dim);
+for i=1:n_qp
     for j=1:dim
         j_x=floor((j-1)/(r+1))+1;
         j_y=mod(j-1,(r+1))+1;
         phi_val(i,j)=JacobiP(pts2d(i,1),0,0,j_x-1)*JacobiP(pts2d(i,2),0,0,j_y-1);
     end
 end
-phi_grad=nan(dim,dim,2);
-for i=1:dim
+phi_grad=nan(n_qp,dim,2);
+for i=1:n_qp
     for j=1:dim
         j_x=floor((j-1)/(r+1))+1;
         j_y=mod(j-1,(r+1))+1;
@@ -92,8 +98,8 @@ end
 %values of basis functions in boundary quadrature points, repeating for
 %each face
 %dimensions: (num_quad_pts_per_face)x(cardinality)x(num_faces)
-phi_val_bd=nan(r+1,dim,4);
-for i=1:r+1
+phi_val_bd=nan(n_qp_1D,dim,4);
+for i=1:n_qp_1D
     for j=1:dim
         j_x=floor((j-1)/(r+1))+1;
         j_y=mod(j-1,(r+1))+1;
@@ -109,7 +115,7 @@ for i=1:r+1
 end
 
 %compute factor (cosine for sphere, 1 for cartesian)
-[fact_int,fact_bd,complem_fact,radius]=compute_factor(eq_type,pts2d_phi(dim+1:2*dim,:),pts2d_phi_bd((r+1)+1:2*(r+1),:,:));
+[fact_int,fact_bd,complem_fact,radius]=compute_factor(eq_type,pts2d_phi(n_qp+1:2*n_qp,:),pts2d_phi_bd(n_qp_1D+1:2*n_qp_1D,:,:));
 
 %initial condition (cartesian linear advection) - specified as function
 if eq_type=="linear"
@@ -195,27 +201,27 @@ fprintf('Time integration: order %d, T=%f, dt=%f, N_iter=%d\n',RK,T,dt,N_it);
 for i=1:N_it
 
     if RK==1
-        u=u+dt*compute_rhs(u,r,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+        u=u+dt*compute_rhs(u,r,n_qp_1D,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
     end
 
     if RK==2
-        k1=compute_rhs(u,r,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-        k2=compute_rhs(u+dt*k1,r,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+        k1=compute_rhs(u,r,n_qp_1D,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+        k2=compute_rhs(u+dt*k1,r,n_qp_1D,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
         u=u+dt*1/2*k1+dt*1/2*k2;   
     end
     
     if RK==3
-        k1=compute_rhs(u,r,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-        k2=compute_rhs(u+dt*k1,r,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-        k3=compute_rhs(u+dt*(1/4*k1+1/4*k2),r,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+        k1=compute_rhs(u,r,n_qp_1D,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+        k2=compute_rhs(u+dt*k1,r,n_qp_1D,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+        k3=compute_rhs(u+dt*(1/4*k1+1/4*k2),r,n_qp_1D,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
         u=u+dt*1/6*k1+dt*1/6*k2+dt*2/3*k3;   
     end
     
     if RK==4
-        k1=compute_rhs(u,r,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-        k2=compute_rhs(u+dt*k1/2,r,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-        k3=compute_rhs(u+dt*(1/2*k2),r,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-        k4=compute_rhs(u+dt*(1*k3),r,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+        k1=compute_rhs(u,r,n_qp_1D,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+        k2=compute_rhs(u+dt*k1/2,r,n_qp_1D,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+        k3=compute_rhs(u+dt*(1/2*k2),r,n_qp_1D,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+        k4=compute_rhs(u+dt*(1*k3),r,n_qp_1D,mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
         u=u+dt*1/6*k1+dt*1/3*k2+dt*1/3*k3+dt*1/6*k4;   
     end
     
