@@ -2,7 +2,7 @@ clear all; colors=get(gca,'ColorOrder'); close all; clc;
 set(0,'defaultAxesFontSize',20); set(0,'defaultLineLineWidth',2);
 
 %definition of the domain [a,b]x[c,d]
-a=0; b=2*pi; c=-pi/2; d=pi/2;
+a=0; b=1; c=0; d=1;
 
 %number of elements in x and y direction
 d1=40; d2=40; 
@@ -11,27 +11,28 @@ d1=40; d2=40;
 hx=(b-a)/d1; hy=(d-c)/d2;
 
 %polynomial degree of DG
-r=1; 
+r=2; 
 
 %cardinality
 dim=(r+1)^2;
 
 %equation type
-eq_type="adv_sphere";
+eq_type="linear";
 
 %time interval, initial and final time
 t=0;
-%T=1;
+T=1*(b-a);
 %T=36000;
-T=12*86400;
+%T=12*86400;
 
 %order of the RK scheme (1,2,3,4)
 RK=3; 
 
 %time step
-%dt=1/r^2*min(hx,hy)*0.05; 
-dt=50;
+dt=1/r^2*min(hx,hy)*0.1; 
+%dt=100;
 %dt=50;
+%dt=0.01;
 
 %beginning and end of the intervals
 x_e=linspace(a,b,d1+1); 
@@ -56,7 +57,7 @@ for i=1:dim
     for j=1:dim
         j_x=floor((j-1)/(r+1))+1;
         j_y=mod(j-1,(r+1))+1;
-        V(i,j)=legendreP(j_x-1,unif2d(i,1))*legendreP(j_y-1,unif2d(i,2));
+        V(i,j)=JacobiP(unif2d(i,1),0,0,j_x-1)*JacobiP(unif2d(i,2),0,0,j_y-1);
     end
 end
 
@@ -68,7 +69,7 @@ for i=1:dim
     for j=1:dim
         j_x=floor((j-1)/(r+1))+1;
         j_y=mod(j-1,(r+1))+1;
-        phi_val(i,j)=legendreP(j_x-1,pts2d(i,1))*legendreP(j_y-1,pts2d(i,2));
+        phi_val(i,j)=JacobiP(pts2d(i,1),0,0,j_x-1)*JacobiP(pts2d(i,2),0,0,j_y-1);
     end
 end
 phi_grad=nan(dim,dim,2);
@@ -76,10 +77,8 @@ for i=1:dim
     for j=1:dim
         j_x=floor((j-1)/(r+1))+1;
         j_y=mod(j-1,(r+1))+1;
-        %the pre-factor comes from normalization: GradJacobi returns
-        %normalized, while legendreP gives not normalized ones
-        phi_grad(i,j,1)=1/sqrt((2*(j_x-1)+1)/2)*GradJacobiP(pts2d(i,1),0,0,j_x-1)*legendreP(j_y-1,pts2d(i,2));
-        phi_grad(i,j,2)=1/sqrt((2*(j_y-1)+1)/2)*GradJacobiP(pts2d(i,2),0,0,j_y-1)*legendreP(j_x-1,pts2d(i,1));
+        phi_grad(i,j,1)=GradJacobiP(pts2d(i,1),0,0,j_x-1)*JacobiP(pts2d(i,2),0,0,j_y-1);
+        phi_grad(i,j,2)=GradJacobiP(pts2d(i,2),0,0,j_y-1)*JacobiP(pts2d(i,1),0,0,j_x-1);
     end
 end
 
@@ -92,13 +91,13 @@ for i=1:r+1
         j_x=floor((j-1)/(r+1))+1;
         j_y=mod(j-1,(r+1))+1;
         %right
-        phi_val_bd(i,j,2)=legendreP(j_x-1,1)*legendreP(j_y-1,pts(i)); 
+        phi_val_bd(i,j,2)=JacobiP(1,0,0,j_x-1)*JacobiP(pts(i),0,0,j_y-1);
         %left
-        phi_val_bd(i,j,4)=legendreP(j_x-1,-1)*legendreP(j_y-1,pts(i)); 
+        phi_val_bd(i,j,4)=JacobiP(-1,0,0,j_x-1)*JacobiP(pts(i),0,0,j_y-1);
         %bottom
-        phi_val_bd(i,j,1)=legendreP(j_x-1,pts(i))*legendreP(j_y-1,-1); 
+        phi_val_bd(i,j,1)=JacobiP(pts(i),0,0,j_x-1)*JacobiP(-1,0,0,j_y-1); 
         %top
-        phi_val_bd(i,j,3)=legendreP(j_x-1,pts(i))*legendreP(j_y-1,1); 
+        phi_val_bd(i,j,3)=JacobiP(pts(i),0,0,j_x-1)*JacobiP(1,0,0,j_y-1);
     end
 end
 
@@ -131,7 +130,7 @@ elseif eq_type=="swe"
     
 %initial condition (spherical linear advection) - specified as function
 elseif eq_type=="adv_sphere"
-    th_c=0; lam_c=3/2*pi; h0=1000; 
+    th_c=pi/2; lam_c=3/2*pi; h0=1000; 
     rr=@(lam,th) radius*acos(sin(th_c)*sin(th)+cos(th_c)*cos(th).*cos(lam-lam_c)); 
     u0_fun=@(lam,th) h0/2*(1+cos(pi*rr(lam,th)/radius)).*(rr(lam,th)<radius/3);
     
