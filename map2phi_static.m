@@ -1,4 +1,4 @@
-function [x_phi] = map2phi(x,r,x_e,y_e,d1,d2,hx,hy)
+function [x_phi] = map2phi_static(x,r,x_e,y_e,d1,d2,hx,hy)
 %given points in the reference element, maps them in the physical domain,
 %and returns a matrix containing the x and y coordinates stacked
 
