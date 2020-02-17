@@ -7,7 +7,7 @@ set(0,'defaultAxesFontSize',20); set(0,'defaultLineLineWidth',2);
 a=0; b=2*pi; c=-pi/2; d=pi/2;
 
 %number of elements in x and y direction
-d1=20; d2=20; 
+d1=7; d2=5; 
 
 %length of the 1D intervals
 hx=(b-a)/d1; hy=(d-c)/d2;
@@ -35,7 +35,7 @@ eq_type="adv_sphere";
 quad_type="leg";
 
 %number of quadrature points in one dimension
-n_qp_1D=8;
+n_qp_1D=4;
 
 %number of quadrature points
 n_qp=n_qp_1D^2;
@@ -43,8 +43,8 @@ n_qp=n_qp_1D^2;
 %time interval, initial and final time
 t=0;
 %T=1*(b-a);
-%T=36000;
-T=12*86400;
+T=36000;
+%T=12*86400;
 %T=5*86400;
 
 %order of the RK scheme (1,2,3,4)
@@ -62,6 +62,11 @@ plot_freq=100;
 x_e=linspace(a,b,d1+1); 
 y_e=linspace(c,d,d2+1);
 
+half_cell_x = (b-a)/d1/2;
+half_cell_y = (d-c)/d2/2;
+x_c=linspace(a+half_cell_x,b-half_cell_x,d1); % Cell centers in X
+y_c=linspace(c+half_cell_y,d-half_cell_y,d2); % Cell centers in Y
+
 %create uniformly spaced points in reference and physical domain, and
 %repeat for each degree
 unif2d=cell(r_max,1);
@@ -69,6 +74,7 @@ for k=1:r_max
     unif=linspace(-1,1,k+1)';
     [unif2d{k},~]=tensor_product(unif,unif,nan(size(unif)));
 end
+
 %map to physical domain
 unif2d_phi=map2phi_adaptive(unif2d,r,r_max,x_e,y_e,d1,d2,hx,hy);
 
@@ -80,6 +86,8 @@ elseif quad_type=="lob"
     [pts,wts]=gauss_legendre_lobatto(n_qp_1D-1); 
 end
 [pts2d,wts2d]=tensor_product(pts,pts,wts);
+pts2d_x = pts2d(:,1);
+pts2d_y = pts2d(:,2);
 pts2d_phi=map2phi_static(pts2d,n_qp_1D-1,x_e,y_e,d1,d2,hx,hy);
 pts2d_phi_bd=map2phi_bd(pts,n_qp_1D-1,x_e,y_e,d1,d2,hx,hy);
 
@@ -97,6 +105,9 @@ for k=1:r_max
     end
 end
 
+V_1=V{1};  % TODO: calculate explicitly later
+V_2=V{2};  % TODO: calculate explicitly later
+
 %Vandermonde matrix, needed to switch from modal to nodal: u_nod=V*u_mod
 %only, as this is a rectangular matrix. Repeat for each degree
 unif_visual=linspace(-1,1,n_qp_1D)';
@@ -111,6 +122,9 @@ for k=1:r_max
         end
     end
 end
+
+V_rect_1 = V_rect{1};
+V_rect_2 = V_rect{2};
 
 %values and grads of basis functions in internal quadrature points, i.e.
 %phi_val(i,j)=Phi_j(x_i) for i=1:dim_qp,j=1:dim. The x_i are the quadrature points,
@@ -170,6 +184,7 @@ if eq_type=="linear"
     %set initial condition in the uniformly spaced quadrature points
     u0=u0_fun(unif2d_phi(1:dim,:),unif2d_phi(dim+1:2*dim,:));
 
+
 %initial condition (cartesian swe) - specified as function
 elseif eq_type=="swe"
     h0=1000; h1=5; L=1e7; sigma=L/20;
@@ -190,11 +205,17 @@ elseif eq_type=="swe"
 elseif eq_type=="adv_sphere"
     th_c=pi/2; lam_c=3/2*pi; h0=1000; 
     rr=@(lam,th) radius*acos(sin(th_c)*sin(th)+cos(th_c)*cos(th).*cos(lam-lam_c)); 
-    u0_fun=@(lam,th) h0/2*(1+cos(pi*rr(lam,th)/radius)).*(rr(lam,th)<radius/3);
-    
+        
     %set initial condition in the uniformly spaced quadrature points
     u0=u0_fun(unif2d_phi(1:dim,:),unif2d_phi(dim+1:2*dim,:));  
-    
+    u0_new=cell(d1,d2);
+    for i=1:d1
+        for j=1:d2
+            local_pos_x = x_c(i) + pts2d_x/(2*pi)/d1;
+            local_pos_y = y_c(j) + pts2d_y/pi/2/d2;
+            u0_new{i,j} = u0_fun(local_pos_x,local_pos_y);
+        end
+    end
 %initial condition (spherical swe) - specified as function
 elseif eq_type=="swe_sphere"
     g=9.80616; h0=2.94e4/g; Omega=7.292e-5; uu0=2*pi*radius/(12*86400); angle=0;
