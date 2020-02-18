@@ -20,6 +20,7 @@ dim=(r_max+1)^2;
 
 %degree distribution
 r=degree_distribution("y_dep",d1,d2,r_max);
+r_new = r';  % r_new(i,j) instead of r(j,i)
 
 %dynamic adaptivity
 dyn_adapt=false;
@@ -70,9 +71,13 @@ y_c=linspace(c+half_cell_y,d-half_cell_y,d2); % Cell centers in Y
 %create uniformly spaced points in reference and physical domain, and
 %repeat for each degree
 unif2d=cell(r_max,1);
+unif2d_x=cell(r_max);
+unif2d_y=cell(r_max);
 for k=1:r_max
     unif=linspace(-1,1,k+1)';
     [unif2d{k},~]=tensor_product(unif,unif,nan(size(unif)));
+    unif2d_x{k} = unif2d{k}(:,1);
+    unif2d_y{k} = unif2d{k}(:,2);
 end
 
 %map to physical domain
@@ -205,14 +210,15 @@ elseif eq_type=="swe"
 elseif eq_type=="adv_sphere"
     th_c=pi/2; lam_c=3/2*pi; h0=1000; 
     rr=@(lam,th) radius*acos(sin(th_c)*sin(th)+cos(th_c)*cos(th).*cos(lam-lam_c)); 
+    u0_fun=@(lam,th) h0/2*(1+cos(pi*rr(lam,th)/radius)).*(rr(lam,th)<radius/3);
         
     %set initial condition in the uniformly spaced quadrature points
     u0=u0_fun(unif2d_phi(1:dim,:),unif2d_phi(dim+1:2*dim,:));  
     u0_new=cell(d1,d2);
     for i=1:d1
         for j=1:d2
-            local_pos_x = x_c(i) + pts2d_x/(2*pi)/d1;
-            local_pos_y = y_c(j) + pts2d_y/pi/2/d2;
+            local_pos_x = x_c(i) + unif2d_x{r_new(i,j)}/(2*pi)/d1;
+            local_pos_y = y_c(j) + unif2d_y{r_new(i,j)}/pi/2/d2;
             u0_new{i,j} = u0_fun(local_pos_x,local_pos_y);
         end
     end
@@ -241,8 +247,21 @@ end
 
 %do modal-nodal conversion check
 u0_check=modal2nodal(nodal2modal(u0(:,:,1),V,r),V,r);
-if max(max(abs(u0_check-u0(:,:,1))))>1e-10
-    error('Wrong modal-nodal conversion: %e\n',max(max(abs(u0_check-u0(:,:,1)))));
+max_error = max(max(abs(u0_check-u0(:,:,1))));
+if max_error>1e-10
+    error('Wrong modal-nodal conversion: error %e \n',max_error);
+end
+
+% n2m = nodal2modal_new(u0_new,V,r_new);
+u0_check_new=modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V,r_new);
+
+for i=1:d1
+    for j=1:d2
+        error_2 = norm(u0_check_new{i,j} - u0_new{i,j});
+        if error_2 >1e-10
+            error('Wrong modal-nodal conversion: %d %d error: %e \n',i,j,error_2);
+        end 
+    end
 end
 
 %visualize solution at initial time - only first component
@@ -250,14 +269,17 @@ x_u=x_e(1:end-1)+(unif_visual+1)/2*hx;
 y_u=y_e(1:end-1)+(unif_visual+1)/2*hy;
 
 figure(1); 
-plot_solution( modal2nodal(nodal2modal(u0(:,:,1),V,r),V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
+%plot_solution( modal2nodal(nodal2modal(u0(:,:,1),V,r),V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 
-
+to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new)
+plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 %convert nodal to modal: the vector u will contain the modal coefficient
 u=zeros(dim,d1*d2,size(u0,3)); 
 for i=1:size(u0,3)
     u(:,:,i)=nodal2modal(u0(:,:,i),V,r); 
 end
+
+u_new=nodal2modal_new(u0_new,V,r_new) % Only for adv_sphere in this case
 
 %compute mass matrix and its inverse
 [mass_tensor, inv_mass_tensor]=compute_mass(phi_val_cell,wts2d,d1,d2,r,hx,hy,fact_int);
@@ -341,8 +363,8 @@ end
 
 %plot all components of the solution
 for i=1:size(u,3)
-    figure(200); 
-    plot_solution(modal2nodal(u(:,:,i),V_rect,r),x_u,y_u,n_qp_1D-1,d1,d2,"surf"); 
+%    figure(200); 
+%    plot_solution(modal2nodal(u(:,:,i),V_rect,r),x_u,y_u,n_qp_1D-1,d1,d2,"surf"); 
 end
 
 %compute discretization error, assuming that solution did one complete rotation
