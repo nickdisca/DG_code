@@ -279,10 +279,13 @@ for i=1:size(u0,3)
     u(:,:,i)=nodal2modal(u0(:,:,i),V,r); 
 end
 
-u_new=nodal2modal_new(u0_new,V,r_new) % Only for adv_sphere in this case
+u_new=nodal2modal_new(u0_new,V,r_new); % Only for adv_sphere in this case
 
 %compute mass matrix and its inverse
 [mass_tensor, inv_mass_tensor]=compute_mass(phi_val_cell,wts2d,d1,d2,r,hx,hy,fact_int);
+
+%compute mass matrix and its inverse
+%[mass_tensor_new, inv_mass_tensor_new]=compute_mass_new(phi_val_cell,wts2d,d1,d2,r_new,hx,hy,fact_int_new);
 
 %convert to global matrices instead of tensors
 idx_r=repelem(reshape((1:dim*d1*d2),dim,d1*d2),1,dim);
