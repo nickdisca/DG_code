@@ -1,7 +1,9 @@
-function [rhsu] = compute_rhs_new(u,u_new,r,r_new,n_qp_1D,mass,inv_mass,phi_val_cell,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_x,pts2d_y,x_e,y_e,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type)
+function [rhsu] = compute_rhs_new(u,u_new,r,r_new,n_qp_1D,mass,inv_mass,phi_val_cell,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_x,pts2d_y,x_c,y_c,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type)
 %compute rsh of the ode
 
 %dimension: (cardinality)*(num_elems)*(num_eqns)
+d1=size(u,1);
+d2=size(u,2);
 rhsu=zeros(size(u));
 
 %cardinality and qp
@@ -29,10 +31,10 @@ end
 
 %INTERNAL INTEGRALS
 
+% TODO:  why calculate physical fluxes here in the inside of the element?
 %compute physical fluxes
 [flux_fun_x, flux_fun_y]=flux_function(u_qp,eq_type,radius,pts2d_phi(1:n_qp,:),pts2d_phi(n_qp+1:2*n_qp,:));    
-
-[flux_fun_x_new, flux_fun_y_new]=flux_function_new(u_qp_new,eq_type,radius,pts2d_x,pts2d_y);
+[flux_fun_x_new, flux_fun_y_new]=flux_function_new(u,eq_type,radius,hx,hy,x_c,y_c,pts2d_x,pts2d_y);
 
 %compute internal integral and add it to the rhs
 %det_internal*inverse_of_jacobian_x_affine*sum(dPhi/dr*f_x*weights)+
@@ -43,6 +45,34 @@ for i=1:size(u,3)
     %rhsu(:,:,i)=phi_grad(:,:,1)'*(flux_fun_x(:,:,i).*wts2d)*(2/hx)*determ +...
         %phi_grad(:,:,2)'*(fact_int.*flux_fun_y(:,:,i).*wts2d)*(2/hy)*determ;
 end
+
+rhsu_new=cell(size(u));
+
+if eq_type=="linear" || eq_type=="swe"
+    for i=1:d1
+        for j=1:d2
+            rhsu{i,j}=phi_grad_cell_x{r_new(i,j)}'*(flux_fun_x{i,j}.*wts2d)*(2/hx)*determ +...
+                      phi_grad_cell_y{r_new(i,j)}'*(flux_fun_y{i,j}.*wts2d)*(2/hy)*determ;
+        end
+    end
+end
+
+%
+% fact_int created on the fly -- but this needs an IF statement
+
+%spherical geometry
+if eq_type=="adv_sphere" || eq_type=="swe_sphere"
+    for i=1:d1
+        for j=1:d2
+%calculate qp_y on the fly
+            qp_y=y_c(j)+pts2d_y/2*hy;
+            rhsu{i,j}=phi_grad_cell_x{r_new(i,j)}'*(flux_fun_x{i,j}.*wts2d)*(2/hx)*determ +...
+                      phi_grad_cell_y{r_new(i,j)}'*(cos(qp_y).*flux_fun_y{i,j}.*wts2d)*(2/hy)*determ;
+        end
+    end
+end
+
+
 
 %BOUNDARY INTEGRALS
 
@@ -57,8 +87,24 @@ for n=1:size(u,3)
     end
 end
 
+u_qp_bd_n=cell{size(u));
+u_qp_bd_s=cell{size(u));
+u_qp_bd_e=cell{size(u));
+u_qp_bd_w=cell{size(u));
+
+for i=1:d1
+    for j=1:d2
+        u_qp_bd_n{i,j} = phi_val_bd_cell_n{i}*u_new{i,j}; 
+        u_qp_bd_s{i,j} = phi_val_bd_cell_s{i}*u_new{i,j}; 
+        u_qp_bd_e{i,j} = phi_val_bd_cell_e{i}*u_new{i,j}; 
+        u_qp_bd_w{i,j} = phi_val_bd_cell_w{i}*u_new{i,j}; 
+    end
+end
+
+
 %compute LF fluxes
 num_flux=compute_numerical_flux(u_qp_bd,d1,d2,fact_bd,eq_type,radius,pts2d_phi_bd(1:n_qp_1D,:,:),pts2d_phi_bd(n_qp_1D+1:2*n_qp_1D,:,:));
+num_flux_new=compute_numerical_flux_new(u_qp_bd_n,u_qp_bd_s,u_qp_bd_e,u_qp_bd_w,pts2d_x,pts2d_y,eq_type,radius,pts,x_c,y_c)
 
 %compute boundary integrals and subtract them to the rhs
 bd_term=zeros(size(u));

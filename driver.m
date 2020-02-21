@@ -94,6 +94,7 @@ end
 pts2d_x = pts2d(:,1);
 pts2d_y = pts2d(:,2);
 pts2d_phi=map2phi_static(pts2d,n_qp_1D-1,x_e,y_e,d1,d2,hx,hy);
+[pts2d_phi_x,pts2d_phi_y]=map2phi_static_new(pts2d_x,pts2d_y,n_qp,x_c,y_c,d1,d2,hx,hy);
 pts2d_phi_bd=map2phi_bd(pts,n_qp_1D-1,x_e,y_e,d1,d2,hx,hy);
 
 %Vandermonde matrix, needed to switch from modal to nodal: u_nod=V*u_mod,
@@ -271,7 +272,7 @@ y_u=y_e(1:end-1)+(unif_visual+1)/2*hy;
 figure(1); 
 %plot_solution( modal2nodal(nodal2modal(u0(:,:,1),V,r),V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 
-to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new)
+to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new);
 plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 %convert nodal to modal: the vector u will contain the modal coefficient
 u=zeros(dim,d1*d2,size(u0,3)); 
