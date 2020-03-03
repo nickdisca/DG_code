@@ -1,4 +1,4 @@
-function [fact_int,fact_bd,complem_fact,radius] = compute_factor(d1,d2,eq_type,y_qp,y_qp_bd)
+function [fact_int,fact_bd,complem_fact,radius] = compute_factor_new(d1,d2,eq_type,y_qp,y_qp_bd)
 %compute metric factor due to integration over sphere, i.e. cosine of the latitude. 
 %This is needed for both internal and boundary integrals. 
 %A complementary factor is needed for SWE on the sphere (only internal ints).

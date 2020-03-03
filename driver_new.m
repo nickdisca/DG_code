@@ -19,15 +19,12 @@ r_max=2;
 dim=(r_max+1)^2;
 
 %degree distribution
-r=degree_distribution("y_dep",d1,d2,r_max);
+r=degree_distribution("unif",d1,d2,r_max);
 r_new = r';  % r_new(i,j) instead of r(j,i)
 
-%dynamic adaptivity
-dyn_adapt=false;
-
 %plot the degree distribution
-figure(100);
-imagesc(1:d1,1:d2,flipud(r)); colormap jet; colorbar;
+%%%figure(100);
+%%%imagesc(1:d1,1:d2,flipud(r)); colormap jet; colorbar;
 
 %equation type
 eq_type="adv_sphere";
@@ -49,7 +46,7 @@ T=36000;
 %T=5*86400;
 
 %order of the RK scheme (1,2,3,4)
-RK=3; 
+RK=1; 
 
 %time step
 %dt=1/r_max^2*min(hx,hy)*0.1; 
@@ -75,13 +72,8 @@ unif2d_x=cell(r_max);
 unif2d_y=cell(r_max);
 for k=1:r_max
     unif=linspace(-1,1,k+1)';
-    [unif2d{k},~]=tensor_product(unif,unif,nan(size(unif)));
-    unif2d_x{k} = unif2d{k}(:,1);
-    unif2d_y{k} = unif2d{k}(:,2);
+    [unif2d_x{k},unif2d_y{k},~]=tensor_product_new(unif,unif,nan(size(unif)));
 end
-
-%map to physical domain
-unif2d_phi=map2phi_adaptive(unif2d,r,r_max,x_e,y_e,d1,d2,hx,hy);
 
 %create quadrature points and weights in reference and physical domain,
 %both internally and on the boundary of the elements
@@ -90,12 +82,7 @@ if quad_type=="leg"
 elseif quad_type=="lob"
     [pts,wts]=gauss_legendre_lobatto(n_qp_1D-1); 
 end
-[pts2d,wts2d]=tensor_product(pts,pts,wts);
-pts2d_x = pts2d(:,1);
-pts2d_y = pts2d(:,2);
-pts2d_phi=map2phi_static(pts2d,n_qp_1D-1,x_e,y_e,d1,d2,hx,hy);
-[pts2d_phi_x,pts2d_phi_y]=map2phi_static_new(pts2d_x,pts2d_y,n_qp,x_c,y_c,d1,d2,hx,hy);
-pts2d_phi_bd=map2phi_bd(pts,n_qp_1D-1,x_e,y_e,d1,d2,hx,hy);
+[pts2d_x,pts2d_y,wts2d]=tensor_product_new(pts,pts,wts);
 
 %Vandermonde matrix, needed to switch from modal to nodal: u_nod=V*u_mod,
 %i.e. V(i,j)=Phi_j(x_i) for i,j=1:dim. The x_i are the uniform points.
@@ -106,7 +93,7 @@ for k=1:r_max
         for j=1:(k+1)^2
             j_x=floor((j-1)/(k+1))+1;
             j_y=mod(j-1,(k+1))+1;
-            V{k}(i,j)=JacobiP(unif2d{k}(i,1),0,0,j_x-1)*JacobiP(unif2d{k}(i,2),0,0,j_y-1);
+            V{k}(i,j)=JacobiP(unif2d_x{k}(i),0,0,j_x-1)*JacobiP(unif2d_y{k}(i),0,0,j_y-1);
         end
     end
 end
@@ -117,14 +104,14 @@ V_2=V{2};  % TODO: calculate explicitly later
 %Vandermonde matrix, needed to switch from modal to nodal: u_nod=V*u_mod
 %only, as this is a rectangular matrix. Repeat for each degree
 unif_visual=linspace(-1,1,n_qp_1D)';
-[unif2d_visual,~]=tensor_product(unif_visual,unif_visual,nan(size(unif_visual)));
+[unif2d_visual_x,unif2d_visual_y,~]=tensor_product_new(unif_visual,unif_visual,nan(size(unif_visual)));
 V_rect=cell(r_max,1);
 for k=1:r_max
     for i=1:n_qp
         for j=1:(k+1)^2
             j_x=floor((j-1)/(k+1))+1;
             j_y=mod(j-1,(k+1))+1;
-            V_rect{k}(i,j)=JacobiP(unif2d_visual(i,1),0,0,j_x-1)*JacobiP(unif2d_visual(i,2),0,0,j_y-1);
+            V_rect{k}(i,j)=JacobiP(unif2d_visual_x(i),0,0,j_x-1)*JacobiP(unif2d_visual_y(i),0,0,j_y-1);
         end
     end
 end
@@ -141,18 +128,21 @@ for k=1:r_max
         for j=1:(k+1)^2
             j_x=floor((j-1)/(k+1))+1;
             j_y=mod(j-1,(k+1))+1;
-            phi_val_cell{k}(i,j)=JacobiP(pts2d(i,1),0,0,j_x-1)*JacobiP(pts2d(i,2),0,0,j_y-1);
+            phi_val_cell{k}(i,j)=JacobiP(pts2d_x(i),0,0,j_x-1)*JacobiP(pts2d_y(i),0,0,j_y-1);
         end
     end
 end
-phi_grad_cell=cell(r_max,1);
+phi_grad_cell_x=cell(r_max,1);
+phi_grad_cell_y=cell(r_max,1);
 for k=1:r_max
+    phi_grad_cell_x{k} = zeros(n_qp,(k+1)^2);
+    phi_grad_cell_y{k} = zeros(n_qp,(k+1)^2);
     for i=1:n_qp
         for j=1:(k+1)^2
             j_x=floor((j-1)/(k+1))+1;
             j_y=mod(j-1,(k+1))+1;
-            phi_grad_cell{k}(i,j,1)=GradJacobiP(pts2d(i,1),0,0,j_x-1)*JacobiP(pts2d(i,2),0,0,j_y-1);
-            phi_grad_cell{k}(i,j,2)=GradJacobiP(pts2d(i,2),0,0,j_y-1)*JacobiP(pts2d(i,1),0,0,j_x-1);
+            phi_grad_cell_x{k}(i,j)=GradJacobiP(pts2d_x(i),0,0,j_x-1)*JacobiP(pts2d_y(i),0,0,j_y-1);
+            phi_grad_cell_y{k}(i,j)=GradJacobiP(pts2d_y(i),0,0,j_y-1)*JacobiP(pts2d_x(i),0,0,j_x-1);
         end
     end
 end
@@ -160,29 +150,34 @@ end
 %values of basis functions in boundary quadrature points, repeating for
 %each face and degree
 %dimensions: (num_quad_pts_per_face)x(cardinality)x(num_faces)
-phi_val_bd_cell=cell(r_max,1);
+phi_val_bd_cell_n=cell(r_max,1);
+phi_val_bd_cell_s=cell(r_max,1);
+phi_val_bd_cell_e=cell(r_max,1);
+phi_val_bd_cell_w=cell(r_max,1);
 for k=1:r_max
+    phi_val_bd_cell_n{k} = zeros(n_qp_1D,(k+1)^2);
+    phi_val_bd_cell_s{k} = zeros(n_qp_1D,(k+1)^2);
+    phi_val_bd_cell_e{k} = zeros(n_qp_1D,(k+1)^2);
+    phi_val_bd_cell_w{k} = zeros(n_qp_1D,(k+1)^2);
     for i=1:n_qp_1D
         for j=1:(k+1)^2
             j_x=floor((j-1)/(k+1))+1;
             j_y=mod(j-1,(k+1))+1;
-            %right
-            phi_val_bd_cell{k}(i,j,2)=JacobiP(1,0,0,j_x-1)*JacobiP(pts(i),0,0,j_y-1);
-            %left
-            phi_val_bd_cell{k}(i,j,4)=JacobiP(-1,0,0,j_x-1)*JacobiP(pts(i),0,0,j_y-1);
-            %bottom
-            phi_val_bd_cell{k}(i,j,1)=JacobiP(pts(i),0,0,j_x-1)*JacobiP(-1,0,0,j_y-1);
             %top
-            phi_val_bd_cell{k}(i,j,3)=JacobiP(pts(i),0,0,j_x-1)*JacobiP(1,0,0,j_y-1);
+            phi_val_bd_cell_n{k}(i,j)=JacobiP(pts(i),0,0,j_x-1)*JacobiP(1,0,0,j_y-1);
+            %bottom
+            phi_val_bd_cell_s{k}(i,j)=JacobiP(pts(i),0,0,j_x-1)*JacobiP(-1,0,0,j_y-1);
+            %right
+            phi_val_bd_cell_e{k}(i,j)=JacobiP(1,0,0,j_x-1)*JacobiP(pts(i),0,0,j_y-1);
+            %left
+            phi_val_bd_cell_w{k}(i,j)=JacobiP(-1,0,0,j_x-1)*JacobiP(pts(i),0,0,j_y-1);
         end
     end
 end
 
-%compute factor (cosine for sphere, 1 for cartesian)
-[fact_int,fact_bd,complem_fact,radius]=compute_factor(eq_type,pts2d_phi(n_qp+1:2*n_qp,:),pts2d_phi_bd(n_qp_1D+1:2*n_qp_1D,:,:));
-
 %initial condition (cartesian linear advection) - specified as function
 if eq_type=="linear"
+    radius = 1.0;
     h0=0; h1=1; R=(b-a)/2/5; x_c=(a+b)/2; y_c=(c+d)/2; u0_fun=@(x,y) h0+h1/2*(1+cos(pi*sqrt((x-x_c).^2+(y-y_c).^2)/R)).*(sqrt((x-x_c).^2+(y-y_c).^2)<R);
     
     %set initial condition in the uniformly spaced quadrature points
@@ -197,6 +192,7 @@ if eq_type=="linear"
     end
 
 elseif eq_type=="swe"
+    radius = 1.0;
 
 %initial condition (cartesian swe) - specified as function
 %
@@ -206,6 +202,8 @@ elseif eq_type=="swe"
 
 %initial condition (spherical linear advection) - specified as function
 elseif eq_type=="adv_sphere"
+
+    radius=6.37122e6;
     th_c=pi/2; lam_c=3/2*pi; h0=1000; 
     rr=@(lam,th) radius*acos(sin(th_c)*sin(th)+cos(th_c)*cos(th).*cos(lam-lam_c)); 
     u0_fun=@(lam,th) h0/2*(1+cos(pi*rr(lam,th)/radius)).*(rr(lam,th)<radius/3);
@@ -219,7 +217,10 @@ elseif eq_type=="adv_sphere"
             u0_new{i,j,1} = u0_fun(local_pos_x,local_pos_y);
         end
     end
+
 elseif eq_type=="swe_sphere"
+
+    radius=6.37122e6;
 
 %initial condition (spherical swe) - specified as function
 %
@@ -227,6 +228,8 @@ elseif eq_type=="swe_sphere"
 
 
 end
+
+neq = size(u0_new,3);   % Number of equations
 
 %if coriolis function is not defined (possibly because not needed), set it
 %to zero
@@ -239,9 +242,11 @@ u0_check_new=modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V,r_new);
 
 for i=1:d1
     for j=1:d2
-        error_2 = norm(u0_check_new{i,j} - u0_new{i,j});
-        if error_2 >1e-10
-            error('Wrong modal-nodal conversion: %d %d error: %e \n',i,j,error_2);
+        for n=1:neq
+            error_2 = norm(u0_check_new{i,j,n} - u0_new{i,j,n});
+            if error_2 >1e-10
+                error('Wrong modal-nodal conversion: %d %d %d error: %e \n',i,j,n,error_2);
+            end
         end 
     end
 end
@@ -250,30 +255,14 @@ end
 x_u=x_e(1:end-1)+(unif_visual+1)/2*hx;
 y_u=y_e(1:end-1)+(unif_visual+1)/2*hy;
 
-figure(1); 
+%%%figure(1); 
 
-to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new);
-plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
+%%% to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new);
+%%% plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 
 u_new=nodal2modal_new(u0_new,V,r_new); % Only for adv_sphere in this case
 
-%compute mass matrix and its inverse
-[mass_tensor, inv_mass_tensor]=compute_mass(phi_val_cell,wts2d,d1,d2,r,hx,hy,fact_int);
-
-%compute mass matrix and its inverse
 %[mass_tensor_new, inv_mass_tensor_new]=compute_mass_new(phi_val_cell,wts2d,d1,d2,r_new,hx,hy,fact_int_new);
-
-%convert to global matrices instead of tensors
-idx_r=repelem(reshape((1:dim*d1*d2),dim,d1*d2),1,dim);
-idx_c=repmat(1:dim*d1*d2,dim,1);
-mass=sparse(idx_r(:),idx_c(:),mass_tensor(:));
-inv_mass=sparse(idx_r(:),idx_c(:),inv_mass_tensor(:));
-
-%convert to global matrices instead of cell array
-phi_val=convert_cell_2_global(phi_val_cell,r,n_qp,dim,d1,d2);
-phi_grad=convert_cell_2_global(phi_grad_cell,r,n_qp,dim,d1,d2);
-phi_val_bd=convert_cell_2_global(phi_val_bd_cell,r,n_qp_1D,dim,d1,d2);
-
 
 %temporal loop parameters
 Courant=dt/min(hx,hy);
@@ -284,15 +273,22 @@ fprintf('Space discretization: order %d, elements=%d*%d, domain=[%f,%f]x[%f,%f]\
 fprintf('Time integration: order %d, T=%f, dt=%f, N_iter=%d\n',RK,T,dt,N_it);
 
 %start temporal loop
-%%%for iter=1:N_it
-%%%    
-%%%    if dyn_adapt
-%%%        error('Dynamic adpativity is not supported');
-%%%    end
+for iter=1:N_it
 
-%%%    if RK==1
+    if RK==1
+
+        u_temp = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                                    phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,...
+                                    hx,hy,wts,wts2d,radius,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+        for i=1:d1
+            for j=1:d2
+                for n=1:neq
+                    u_new{i,j,n} = u_new{i,j,n}+dt*u_temp{i,j,n};
+                end
+            end
+        end
 %%%        u=u+dt*compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-%%%    end
+    end
 
 %%%    if RK==2
 %%%        k1=compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
@@ -338,6 +334,7 @@ fprintf('Time integration: order %d, T=%f, dt=%f, N_iter=%d\n',RK,T,dt,N_it);
 %%%        fprintf('Iteration %d/%d\n',i,N_it); error('Solution is diverging'); 
 %%%    end
 %%%    
-%%%end
+
+end
 
 fprintf('End of program\n');

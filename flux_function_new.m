@@ -2,16 +2,19 @@ function [flux_x, flux_y] = flux_function_new(u,eq_type,radius,hx,hy,x_c,y_c,pts
 
 d1=size(u,1);
 d2=size(u,2);
-flux_x=cell(d1,d2);
-flux_y=cell(d1,d2);
+neq=size(u,3);
+flux_x=cell(size(u));
+flux_y=cell(size(u));
 
 switch eq_type
     
     case "linear"
         for i=1:d1
             for j=1:d2
-                flux_x{i,j}=u{i,j};
-                flux_y{i,j}=u{i,j};
+                for n=1:neq
+                    flux_x{i,j,n}=u{i,j,n};
+                    flux_y{i,j,n}=u{i,j,n};
+                end
             end
         end
 
@@ -34,12 +37,14 @@ switch eq_type
         
         for i=1:d1
             for j=1:d2
-                qp_x=x_c(i)+pts2d_x/2*hx;
-                qp_y=y_c(j)+pts2d_y/2*hy;
-                beta_x=2*pi*radius/(12*86400)*(cos(qp_y)*cos(angle)+sin(qp_y).*cos(qp_x)*sin(angle));
-                beta_y=-2*pi*radius/(12*86400)*sin(angle)*sin(qp_x);
-                flux_x{i,j}=beta_x.*u{i,j};
-                flux_y{i,j}=beta_y.*u{i,j};
+                for n=1:neq
+                    qp_x=x_c(i)+pts2d_x/2*hx;
+                    qp_y=y_c(j)+pts2d_y/2*hy;
+                    beta_x=2*pi*radius/(12*86400)*(cos(qp_y)*cos(angle)+sin(qp_y).*cos(qp_x)*sin(angle));
+                    beta_y=-2*pi*radius/(12*86400)*sin(angle)*sin(qp_x);
+                    flux_x{i,j,n}=beta_x.*u{i,j,n};
+                    flux_y{i,j,n}=beta_y.*u{i,j,n};
+                end
             end
         end
 
