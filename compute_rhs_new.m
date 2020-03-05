@@ -112,6 +112,8 @@ end
 
 %compute LF fluxes
 %%%num_flux_new=compute_numerical_flux_new(u_qp_bd_n,u_qp_bd_s,u_qp_bd_e,u_qp_bd_w,pts2d_x,pts2d_y,eq_type,radius,pts,x_c,y_c)
+[flux_n,flux_s,flux_e,flux_w]=compute_numerical_flux_new(u_qp_bd_n,u_qp_bd_s,u_qp_bd_e,u_qp_bd_w,...
+                                                         pts2d_x,pts2d_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
 
 %compute boundary integrals and subtract them to the rhs
 %%%bd_term=zeros(size(u));
