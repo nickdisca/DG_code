@@ -1,6 +1,6 @@
 function [rhsu] = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
                                   phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,...
-                                  hx,hy,wts,wts2d,radius,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type)
+                                  hx,hy,wts,wts2d,radius,pts_x,pts_y,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type)
 %compute rsh of the ode
 
 %dimension: (cardinality)*(num_elems)*(num_eqns)
@@ -49,16 +49,6 @@ end
 %compute internal integral and add it to the rhs
 %det_internal*inverse_of_jacobian_x_affine*sum(dPhi/dr*f_x*weights)+
 %det_internal*inverse_of_jacobian_y_affine*sum(dPhi/ds*f_y*weights)
-for i=1:d1
-    for j=1:d2
-        for n=1:neq
-            rhsu{i,j,n} = phi_grad_cell_x{r_new(i,j)}'*(flux_fun_x_new{i,j,n}.*wts2d)*(2/hx)*determ +...
-                          phi_grad_cell_y{r_new(i,j)}'*(flux_fun_y_new{i,j,n}.*wts2d)*(2/hy)*determ;
-    %rhsu(:,:,i)=phi_grad(:,:,1)'*(flux_fun_x(:,:,i).*wts2d)*(2/hx)*determ +...
-        %phi_grad(:,:,2)'*(fact_int.*flux_fun_y(:,:,i).*wts2d)*(2/hy)*determ;
-        end
-    end
-end
 
 if eq_type=="linear" || eq_type=="swe"
 % Cartesian geometry
@@ -111,9 +101,8 @@ end
 
 
 %compute LF fluxes
-%%%num_flux_new=compute_numerical_flux_new(u_qp_bd_n,u_qp_bd_s,u_qp_bd_e,u_qp_bd_w,pts2d_x,pts2d_y,eq_type,radius,pts,x_c,y_c)
 [flux_n,flux_s,flux_e,flux_w]=compute_numerical_flux_new(u_qp_bd_n,u_qp_bd_s,u_qp_bd_e,u_qp_bd_w,...
-                                                         pts2d_x,pts2d_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
+                                                         pts_x,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
 
 %compute boundary integrals and subtract them to the rhs
 %%%bd_term=zeros(size(u));

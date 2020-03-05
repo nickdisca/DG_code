@@ -83,7 +83,7 @@ elseif quad_type=="lob"
     [pts,wts]=gauss_legendre_lobatto(n_qp_1D-1); 
 end
 [pts2d_x,pts2d_y,wts2d]=tensor_product_new(pts,pts,wts);
-
+ 
 %Vandermonde matrix, needed to switch from modal to nodal: u_nod=V*u_mod,
 %i.e. V(i,j)=Phi_j(x_i) for i,j=1:dim. The x_i are the uniform points.
 %Repeat for each degree
@@ -278,8 +278,8 @@ for iter=1:N_it
     if RK==1
 
         u_temp = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
-                                    phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,...
-                                    hx,hy,wts,wts2d,radius,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+                                 phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,...
+                                 hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
         for i=1:d1
             for j=1:d2
                 for n=1:neq
