@@ -1,5 +1,5 @@
 function [rhsu] = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
-                                  phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,...
+                                  phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass,...
                                   hx,hy,wts,wts2d,radius,pts_x,pts_y,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type)
 %compute rsh of the ode
 
@@ -103,12 +103,15 @@ end
 %  First cut: calculate all edges simultaneously
 %%%% [flux_n,flux_s,flux_e,flux_w]=compute_numerical_flux_new(u_qp_bd_n,u_qp_bd_s,u_qp_bd_e,u_qp_bd_w,...
 %%%%                                                         pts_x,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
+
+% Better: calculate each edge separately using a generic boundary flux computation
+
 flux_n = comp_flux_generic_bd(u_qp_bd_n,0,1,pts_x,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
 flux_s = comp_flux_generic_bd(u_qp_bd_s,0,-1,pts_x,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
 flux_e = comp_flux_generic_bd(u_qp_bd_e,1,0,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
 flux_w = comp_flux_generic_bd(u_qp_bd_w,-1,0,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
 
-%compute boundary integrals and subtract them to the rhs
+%compute boundary integrals and subtract them from the rhs
 %%%bd_term=zeros(size(u));
 for n=1:neq
     for i=1:4
@@ -119,11 +122,22 @@ for n=1:neq
 %%%    rhsu(:,:,n)=rhsu(:,:,n)-bd_term(:,:,n);
 end
 
-%add corrective internal term for the divergence, only in spherical
-%coordinates for swe
+for i=1:d1
+    for j=1:d2
+        for n=1:neq
+            rhsu{i,j,n} = rhsu{i,j,n} - phi_val_bd_cell_n{r_new(i,j)}'*(flux_n{i,j,n}.*wts)... 
+                                      - phi_val_bd_cell_s{r_new(i,j)}'*(flux_s{i,j,n}.*wts)...
+                                      - phi_val_bd_cell_e{r_new(i,j)}'*(flux_e{i,j,n}.*wts)...
+                                      - phi_val_bd_cell_w{r_new(i,j)}'*(flux_w{i,j,n}.*wts);
+        end
+    end
+end
+
+%add corrective internal term for the divergence, only in SWE spherical coordinates
 if eq_type=="swe_sphere"
-%%%    rhsu(:,:,2)=rhsu(:,:,2)+reshape(phi_val{1}'*reshape(complem_fact.*flux_fun_y(:,:,2).*wts2d,n_qp*d1*d2,1),dim,d1*d2)*determ;
-%%%    rhsu(:,:,3)=rhsu(:,:,3)-reshape(phi_val{1}'*reshape(complem_fact.*flux_fun_x(:,:,2).*wts2d,n_qp*d1*d2,1),dim,d1*d2)*determ;
+
+						 % NOT CURRENTLY SUPPORTED
+						 
     %rhsu(:,:,2)=rhsu(:,:,2)+phi_val'*(complem_fact.*flux_fun_y(:,:,2).*wts2d)*determ;
     %rhsu(:,:,3)=rhsu(:,:,3)-phi_val'*(complem_fact.*flux_fun_x(:,:,2).*wts2d)*determ;
 end
@@ -131,17 +145,22 @@ end
 
 %add coriolis term to second and third equation of the swe
 if eq_type=="swe" || eq_type=="swe_sphere"
+
+						 % NOT CURRENTLY SUPPORTED
+
 %%%    coriolis=coriolis_fun(pts2d_phi(1:n_qp,:),pts2d_phi(n_qp+1:2*n_qp,:));
-%%%    rhsu(:,:,2)=rhsu(:,:,2)+radius*reshape(phi_val{1}'*reshape(fact_int.*coriolis.*u_qp(:,:,3).*wts2d,n_qp*d1*d2,1),dim,d1*d2)*determ;
-%%%    rhsu(:,:,3)=rhsu(:,:,3)-radius*reshape(phi_val{1}'*reshape(fact_int.*coriolis.*u_qp(:,:,2).*wts2d,n_qp*d1*d2,1),dim,d1*d2)*determ;
     %rhsu(:,:,2)=rhsu(:,:,2)+radius*phi_val(:,:)'*(fact_int.*coriolis.*u_qp(:,:,3).*wts2d)*determ;
 	%rhsu(:,:,3)=rhsu(:,:,3)-radius*phi_val(:,:)'*(fact_int.*coriolis.*u_qp(:,:,2).*wts2d)*determ;
 end
 
 %invert the (local) mass matrix and divide by radius
-%%%for n=1:size(u,3)
-%%%    rhsu(:,:,n)=1/radius*reshape(inv_mass*reshape(rhsu(:,:,n),dim*d1*d2,1),dim,d1*d2);
-%%%end
 
+for i=1:d1
+    for j=1:d2
+        for n=1:neq
+            rhsu{i,j,n} = 1/radius * inv_mass{i,j}*rhsu{i,j,n};
+        end
+    end
+end
 
 end

@@ -46,7 +46,7 @@ T=36000;
 %T=5*86400;
 
 %order of the RK scheme (1,2,3,4)
-RK=1; 
+RK=2; 
 
 %time step
 %dt=1/r_max^2*min(hx,hy)*0.1; 
@@ -255,14 +255,14 @@ end
 x_u=x_e(1:end-1)+(unif_visual+1)/2*hx;
 y_u=y_e(1:end-1)+(unif_visual+1)/2*hy;
 
-%%%figure(1); 
+figure(1); 
 
-%%% to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new);
-%%% plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
+to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new);
+plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 
 u_new=nodal2modal_new(u0_new,V,r_new); % Only for adv_sphere in this case
 
-%[mass_tensor_new, inv_mass_tensor_new]=compute_mass_new(phi_val_cell,wts2d,d1,d2,r_new,hx,hy,fact_int_new);
+[mass_new, inv_mass_new]=compute_mass_new(phi_val_cell,wts2d,d1,d2,r_new,hx,hy,y_c,pts2d_y,eq_type);
 
 %temporal loop parameters
 Courant=dt/min(hx,hy);
@@ -277,25 +277,54 @@ for iter=1:N_it
 
     if RK==1
 
-        u_temp = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
-                                 phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,...
+%%%        u=u+dt*compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+
+        rhs_u = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                                 phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
                                  hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
         for i=1:d1
             for j=1:d2
                 for n=1:neq
-                    u_new{i,j,n} = u_new{i,j,n}+dt*u_temp{i,j,n};
+                    u_new{i,j,n} = u_new{i,j,n}+dt*rhs_u{i,j,n};
                 end
             end
         end
-%%%        u=u+dt*compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
     end
 
-%%%    if RK==2
+    if RK==2
+
 %%%        k1=compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
 %%%        k2=compute_rhs(u+dt*k1,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
 %%%        u=u+dt*1/2*k1+dt*1/2*k2;   
 %%%    end
-%%%    
+
+        k1 = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                             phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
+                             hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+
+% This nasty trick avoids the need for a temporary variable for input to compute_rhs_new
+        for i=1:d1
+            for j=1:d2
+                for n=1:neq
+                    u_new{i,j,n} = u_new{i,j,n}+dt*k1{i,j,n};
+                end
+            end
+        end
+
+        k2 = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                             phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
+                             hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+
+        for i=1:d1
+            for j=1:d2
+                for n=1:neq
+                    u_new{i,j,n} = u_new{i,j,n} - dt/2*k1{i,j,n} + dt/2*k2{i,j,n};  % Subtract the unwanted dt/2*k1;
+                end
+            end
+        end
+
+    end
+
 %%%    if RK==3
 %%%        k1=compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
 %%%        k2=compute_rhs(u+dt*k1,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
@@ -315,19 +344,20 @@ for iter=1:N_it
 %%%        error('RK scheme not implemented');
 %%%    end
 %%%    
-%%%    %plot solution
-%%%    if (mod(iter-1,plot_freq)==0) || iter==N_it
-%%%        fprintf('Iteration %d/%d\n',iter,N_it); 
-%%%        figure(1);
-%%%        pause(0.05);
-%%%        plot_solution( modal2nodal(u,V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
-%%%    end
-%%%    
-%%%    %next iteration
-%%%    if t+dt>T
-%%%        dt=T-t; 
-%%%    end
-%%%    t=t+dt;
+%plot solution
+    if (mod(iter-1,plot_freq)==0) || iter==N_it
+        fprintf('Iteration %d/%d\n',iter,N_it); 
+        figure(1);
+        pause(0.05);
+        to_plot = modal2nodal_new(nodal2modal_new(u_new,V,r_new),V_rect,r_new);
+        plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
+    end
+
+%next iteration
+    if t+dt>T
+        dt=T-t; 
+    end
+    t=t+dt;
 %%%    
 %%%    %avoid useless iterations if solution is already diverging
 %%%    if max(abs(u(:)))>=1e8
