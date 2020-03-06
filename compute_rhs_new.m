@@ -42,8 +42,7 @@ end
 
 %INTERNAL INTEGRALS
 
-% TODO:  why calculate physical fluxes here in the inside of the element?
-%compute physical fluxes
+%compute physical value of F(x) inside the region 
 [flux_fun_x_new, flux_fun_y_new]=flux_function_new(u_qp_new,eq_type,radius,hx,hy,x_c,y_c,pts2d_x,pts2d_y);
 
 %compute internal integral and add it to the rhs
@@ -100,9 +99,14 @@ for i=1:d1
 end
 
 
-%compute LF fluxes
-[flux_n,flux_s,flux_e,flux_w]=compute_numerical_flux_new(u_qp_bd_n,u_qp_bd_s,u_qp_bd_e,u_qp_bd_w,...
-                                                         pts_x,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
+%compute LF fluxes on all four edges
+%  First cut: calculate all edges simultaneously
+%%%% [flux_n,flux_s,flux_e,flux_w]=compute_numerical_flux_new(u_qp_bd_n,u_qp_bd_s,u_qp_bd_e,u_qp_bd_w,...
+%%%%                                                         pts_x,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
+flux_n = comp_flux_generic_bd(u_qp_bd_n,0,1,pts_x,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
+flux_s = comp_flux_generic_bd(u_qp_bd_s,0,-1,pts_x,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
+flux_e = comp_flux_generic_bd(u_qp_bd_e,1,0,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
+flux_w = comp_flux_generic_bd(u_qp_bd_w,-1,0,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
 
 %compute boundary integrals and subtract them to the rhs
 %%%bd_term=zeros(size(u));
