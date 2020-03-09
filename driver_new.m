@@ -41,7 +41,8 @@ n_qp=n_qp_1D^2;
 %time interval, initial and final time
 t=0;
 %T=1*(b-a);
-T=36000;
+T=100;
+%T=36000;
 %T=12*86400;
 %T=5*86400;
 
@@ -185,8 +186,8 @@ if eq_type=="linear"
 
     for i=1:d1
         for j=1:d2
-            local_pos_x = x_c(i) + unif2d_x{r_new(i,j)}/(2*pi)/d1;
-            local_pos_y = y_c(j) + unif2d_y{r_new(i,j)}/pi/2/d2;
+            local_pos_x = x_c(i) + unif2d_x{r_new(i,j)}*hx/2;
+            local_pos_y = y_c(j) + unif2d_y{r_new(i,j)}*hy/2;
             u0_new{i,j,1} = u0_fun(local_pos_x,local_pos_y);
         end
     end
@@ -252,15 +253,15 @@ for i=1:d1
 end
 
 %visualize solution at initial time - only first component
-x_u=x_e(1:end-1)+(unif_visual+1)/2*hx;
-y_u=y_e(1:end-1)+(unif_visual+1)/2*hy;
+x_u=x_e(1:end-1)+(unif_visual+1)*hx/2;
+y_u=y_e(1:end-1)+(unif_visual+1)*hy/2;
 
 figure(1); 
 
-to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new);
-plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
-
 u_new=nodal2modal_new(u0_new,V,r_new); % Only for adv_sphere in this case
+
+to_plot = modal2nodal_new(u_new,V_rect,r_new);
+%plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 
 [mass_new, inv_mass_new]=compute_mass_new(phi_val_cell,wts2d,d1,d2,r_new,hx,hy,y_c,pts2d_y,eq_type);
 
@@ -349,7 +350,7 @@ for iter=1:N_it
         fprintf('Iteration %d/%d\n',iter,N_it); 
         figure(1);
         pause(0.05);
-        to_plot = modal2nodal_new(nodal2modal_new(u_new,V,r_new),V_rect,r_new);
+        to_plot = modal2nodal_new(u_new,V_rect,r_new);
         plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
     end
 

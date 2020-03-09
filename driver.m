@@ -19,7 +19,7 @@ r_max=2;
 dim=(r_max+1)^2;
 
 %degree distribution
-r=degree_distribution("y_dep",d1,d2,r_max);
+r=degree_distribution("unif",d1,d2,r_max);
 r_new = r';  % r_new(i,j) instead of r(j,i)
 
 %dynamic adaptivity
@@ -44,7 +44,8 @@ n_qp=n_qp_1D^2;
 %time interval, initial and final time
 t=0;
 %T=1*(b-a);
-T=36000;
+T=1000;
+%T=36000;
 %T=12*86400;
 %T=5*86400;
 
@@ -301,7 +302,7 @@ phi_val_bd=convert_cell_2_global(phi_val_bd_cell,r,n_qp_1D,dim,d1,d2);
 
 
 %temporal loop parameters
-Courant=dt/min(hx,hy);
+Courant=dt/min(hx,hy)
 N_it=ceil(T/dt);
 
 %print information
@@ -316,7 +317,8 @@ for iter=1:N_it
     end
 
     if RK==1
-        u=u+dt*compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+        rhs_u=u+dt*compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+        u = u + dt*rhs_u;
     end
 
     if RK==2

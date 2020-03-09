@@ -52,14 +52,14 @@ switch eq_type
         for i=1:d1
             for j=1:d2
                 in = mod(i-1+off_x,d1)+1; jn=mod(j-1+off_y,d2)+1;   % Find the index of neighbor sharing this edge  -- wrap around
-                qp_x=x_c(i)+abs(off_y)*pts*hx/2 + off_x*hx/2;
-                qp_y=y_c(j)+abs(off_x)*pts*hy/2 + off_y*hx/2;
+                qp_x=x_c(i)+abs(off_y)*pts*hx/2 + off_x*hx/2;       % Vector of x-indices of boundary quadrature points
+                qp_y=y_c(j)+abs(off_x)*pts*hy/2 + off_y*hy/2;       % Vector of y-indices of boundary quadrature points
                 beta_x=2*pi*radius/(12*86400)*(cos(qp_y)*cos_angle+sin(qp_y).*cos(qp_x)*sin_angle);      % Vector
-                beta_y=-2*pi*radius/(12*86400)*sin_angle*sin(qp_x);     % Vector
-                alpha = max( sqrt(beta_x.^2+beta_y.^2), [], 1); 
+                beta_y=-2*pi*radius/(12*86400)*sin_angle*sin(qp_x);                                      % Vector
+                alpha = max( sqrt(beta_x.^2+beta_y.^2), [], 1);                                          % Scalar
 
 %%%%		fact_bd = cos(qp_y);   % TODO: this definitely does not look right!
-                fact_bd = cos(y_c(j)+off_y*hx/2);
+                fact_bd = cos(y_c(j)+off_y*hy/2);
 % TODO: confirm the signs for each face (5.3.20: looks correct to me)
 % TODO: check the fact_bd factor...  Why is this not simply a scalar???  Why does it not apply to EW fluxes??
                 for n=1:neq

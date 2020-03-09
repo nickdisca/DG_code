@@ -70,6 +70,7 @@ if eq_type=="adv_sphere" || eq_type=="swe_sphere"
                 qp_y=y_c(j)+pts2d_y/2*hy;
                 rhsu{i,j,n}=phi_grad_cell_x{r_new(i,j)}'*(flux_fun_x_new{i,j,n}.*wts2d)*(2/hx)*determ +...
                             phi_grad_cell_y{r_new(i,j)}'*(cos(qp_y).*flux_fun_y_new{i,j,n}.*wts2d)*(2/hy)*determ;
+                max_rhs_u=[i j max(rhsu{i,j,n})]
             end
         end
     end

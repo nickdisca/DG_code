@@ -16,7 +16,7 @@ if eq_type=="linear" || eq_type=="swe"
     for i=1:d1
         for j=1:d2
             r_loc=r(i,j);
-            mass{i,j} = zeros((rloc+1)^2);
+            mass{i,j} = eye((rloc+1)^2);
             for m=1:(r_loc+1)^2
                 for n=1:(r_loc+1)^2
                     %det*sum(i-th basis function in qp * j-th basis function in qp * metric
@@ -35,7 +35,7 @@ if eq_type=="adv_sphere" || eq_type=="swe_sphere"
 
     for i=1:d1
         for j=1:d2
-            cos_factor=cos(y_c(j)+pts2d_y);  % Vector
+            cos_factor=cos(y_c(j)+pts2d_y*hy/2);  % Vector
             r_loc=r(i,j);
             mass{i,j} = zeros((r_loc+1)^2);
             for m=1:(r_loc+1)^2
