@@ -12,7 +12,11 @@ flux = cell(d1,d2,neq);
 
 pts_x = off_x*ones(size(pts))+abs(off_y)*pts;  % Place coordinates in the right place
 pts_y = off_y*ones(size(pts))+abs(off_x)*pts;  % with respect to the center point
+
 [fx, fy] = flux_function_new(u,eq_type,radius,hx,hy,x_c,y_c,pts_x,pts_y);
+
+% fx_7_5 = fx{7,5,1}'
+% fy_7_5 = fy{7,5,1}'
 
 switch eq_type
 
@@ -59,15 +63,20 @@ switch eq_type
                 alpha = max( sqrt(beta_x.^2+beta_y.^2), [], 1);                                          % Scalar
 
 %%%%		fact_bd = cos(qp_y);   % TODO: this definitely does not look right!
-                fact_bd = cos(y_c(j)+off_y*hy/2);
+                fact_bd = cos(qp_y);
+                fact_bd = 0.0;
+                if ( i==7 && j==5 )
+                    i_j_fact_bd = [i, j, fact_bd]
+                end
 % TODO: confirm the signs for each face (5.3.20: looks correct to me)
 % TODO: check the fact_bd factor...  Why is this not simply a scalar???  Why does it not apply to EW fluxes??
                 for n=1:neq
-                    flux{i,j,n} = 1/2*(off_x*(fx{i,j,n}+fx{in,jn,n}) + fact_bd*off_y*(fy{i,j,n}+fy{in,jn,n}))...
-                                  - alpha/2*(u{in,jn,n}-u{i,j,n});
+                    flux{i,j,n} = 1/2*(off_x*(fx{i,j,n}+fx{in,jn,n}) + off_y*(fy{i,j,n}+fy{in,jn,n}).*fact_bd)...
+                                  - alpha/2*(u{in,jn,n}-u{i,j,n}).*(abs(off_x)+fact_bd*abs(off_y));
                 end
             end
 	end
+flux_new = flux{7,5,1}'
 
     case "swe_sphere"
 

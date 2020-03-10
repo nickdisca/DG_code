@@ -26,8 +26,8 @@ r_new = r';  % r_new(i,j) instead of r(j,i)
 dyn_adapt=false;
 
 %plot the degree distribution
-figure(100);
-imagesc(1:d1,1:d2,flipud(r)); colormap jet; colorbar;
+%%%figure(100);
+%%%imagesc(1:d1,1:d2,flipud(r)); colormap jet; colorbar;
 
 %equation type
 eq_type="adv_sphere";
@@ -44,13 +44,13 @@ n_qp=n_qp_1D^2;
 %time interval, initial and final time
 t=0;
 %T=1*(b-a);
-T=1000;
+T=100;
 %T=36000;
 %T=12*86400;
 %T=5*86400;
 
 %order of the RK scheme (1,2,3,4)
-RK=3; 
+RK=1; 
 
 %time step
 %dt=1/r_max^2*min(hx,hy)*0.1; 
@@ -216,6 +216,7 @@ elseif eq_type=="adv_sphere"
         
     %set initial condition in the uniformly spaced quadrature points
     u0=u0_fun(unif2d_phi(1:dim,:),unif2d_phi(dim+1:2*dim,:));  
+
     u0_new=cell(d1,d2);
     for i=1:d1
         for j=1:d2
@@ -270,11 +271,11 @@ end
 x_u=x_e(1:end-1)+(unif_visual+1)/2*hx;
 y_u=y_e(1:end-1)+(unif_visual+1)/2*hy;
 
-figure(1); 
+%figure(1); 
 %plot_solution( modal2nodal(nodal2modal(u0(:,:,1),V,r),V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 
-to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new);
-plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
+%%%to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new);
+%%%plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 %convert nodal to modal: the vector u will contain the modal coefficient
 u=zeros(dim,d1*d2,size(u0,3)); 
 for i=1:size(u0,3)
@@ -282,6 +283,8 @@ for i=1:size(u0,3)
 end
 
 u_new=nodal2modal_new(u0_new,V,r_new); % Only for adv_sphere in this case
+
+
 
 %compute mass matrix and its inverse
 [mass_tensor, inv_mass_tensor]=compute_mass(phi_val_cell,wts2d,d1,d2,r,hx,hy,fact_int);
@@ -302,7 +305,7 @@ phi_val_bd=convert_cell_2_global(phi_val_bd_cell,r,n_qp_1D,dim,d1,d2);
 
 
 %temporal loop parameters
-Courant=dt/min(hx,hy)
+Courant=dt/min(hx,hy);
 N_it=ceil(T/dt);
 
 %print information
@@ -349,9 +352,9 @@ for iter=1:N_it
     %plot solution
     if (mod(iter-1,plot_freq)==0) || iter==N_it
         fprintf('Iteration %d/%d\n',iter,N_it); 
-        figure(1);
+%%%        figure(1);
         pause(0.05);
-        plot_solution( modal2nodal(u,V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
+%%%        plot_solution( modal2nodal(u,V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
     end
     
     %next iteration

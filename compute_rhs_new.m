@@ -70,7 +70,7 @@ if eq_type=="adv_sphere" || eq_type=="swe_sphere"
                 qp_y=y_c(j)+pts2d_y/2*hy;
                 rhsu{i,j,n}=phi_grad_cell_x{r_new(i,j)}'*(flux_fun_x_new{i,j,n}.*wts2d)*(2/hx)*determ +...
                             phi_grad_cell_y{r_new(i,j)}'*(cos(qp_y).*flux_fun_y_new{i,j,n}.*wts2d)*(2/hy)*determ;
-                max_rhs_u=[i j max(rhsu{i,j,n})]
+%                max_rhs_u=[i j max(rhsu{i,j,n})]
             end
         end
     end
@@ -99,6 +99,9 @@ for i=1:d1
     end
 end
 
+%%% phi_val_bd_cell_n_2 = phi_val_bd_cell_n{2}
+u_new_7_5 = u_new{7,5,1}
+u_qp_bd_n_7_5 = u_qp_bd_n{7,5,1}
 
 %compute LF fluxes on all four edges
 %  First cut: calculate all edges simultaneously
@@ -126,10 +129,10 @@ end
 for i=1:d1
     for j=1:d2
         for n=1:neq
-            rhsu{i,j,n} = rhsu{i,j,n} - phi_val_bd_cell_n{r_new(i,j)}'*(flux_n{i,j,n}.*wts)... 
-                                      - phi_val_bd_cell_s{r_new(i,j)}'*(flux_s{i,j,n}.*wts)...
-                                      - phi_val_bd_cell_e{r_new(i,j)}'*(flux_e{i,j,n}.*wts)...
-                                      - phi_val_bd_cell_w{r_new(i,j)}'*(flux_w{i,j,n}.*wts);
+            rhsu{i,j,n} = rhsu{i,j,n} - 0.5*hy*phi_val_bd_cell_n{r_new(i,j)}'*(flux_n{i,j,n}.*wts)... 
+                                      - 0.5*hy*phi_val_bd_cell_s{r_new(i,j)}'*(flux_s{i,j,n}.*wts)...
+                                      - 0.5*hx*phi_val_bd_cell_e{r_new(i,j)}'*(flux_e{i,j,n}.*wts)...
+                                      - 0.5*hx*phi_val_bd_cell_w{r_new(i,j)}'*(flux_w{i,j,n}.*wts);
         end
     end
 end
