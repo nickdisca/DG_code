@@ -100,7 +100,6 @@ for i=1:d1
 end
 
 %%% phi_val_bd_cell_n_2 = phi_val_bd_cell_n{2}
-u_new_7_5 = u_new{7,5,1}
 u_qp_bd_n_7_5 = u_qp_bd_n{7,5,1}
 
 %compute LF fluxes on all four edges

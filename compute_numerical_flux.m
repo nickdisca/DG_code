@@ -35,9 +35,13 @@ for n=1:size(u,4)
     uR(:,1:d2:(d1-1)*d2+1,1,n)=u(:,d2:d2:d1*d2,3,n);
 end
 
-u_7_5=[uL(:,35,3,1)']
 [fxL, fyL] = flux_function(uL,eq_type,radius,qp_x,qp_y);
 [fxR, fyR] = flux_function(uR,eq_type,radius,qp_x,qp_y);
+
+R_7_5_n=[uR(:,35,3,1)' fxR(:,35,3,1)' fyR(:,35,3,1)']
+R_7_5_s=[uR(:,35,1,1)' fxR(:,35,1,1)' fyR(:,35,1,1)']
+R_7_5_e=[uR(:,35,2,1)' fxR(:,35,2,1)' fyR(:,35,2,1)']
+R_7_5_w=[uR(:,35,4,1)' fxR(:,35,4,1)' fyR(:,35,4,1)']
 
 %fxLn_7_5=[fxL(:,35,3,1)']
 %fyLn_7_5=[fyL(:,35,3,1)']
@@ -57,10 +61,10 @@ normal_y(:,:,1)=-1; normal_y(:,:,2)=0; normal_y(:,:,3)=1; normal_y(:,:,4)=0;
 %compute maximum wave speed for all faces
 alpha = max( get_maximum_eig(uL,eq_type,radius,qp_x,qp_y), get_maximum_eig(uR,eq_type,radius,qp_x,qp_y));
 
-fact_bd_n=fact_bd(:,35,3)
-fact_bd_s=fact_bd(:,35,1)
-fact_bd_e=fact_bd(:,35,2)
-fact_bd_w=fact_bd(:,35,4)
+%%%fact_bd_n=fact_bd(:,35,3)
+%%%fact_bd_s=fact_bd(:,35,1)
+%%%fact_bd_e=fact_bd(:,35,2)
+%%%fact_bd_w=fact_bd(:,35,4)
 
 %compute Lax-Friedrichs flux (multiplied with normal vector)
 flux=nan(size(u));
@@ -68,9 +72,14 @@ for n=1:size(u,4)
     flux(:,:,:,n)=1/2*((fxL(:,:,:,n)+fxR(:,:,:,n)).*normal_x+(fyL(:,:,:,n)+fyR(:,:,:,n)).*fact_bd.*normal_y)...
         -alpha/2.*(uR(:,:,:,n)-uL(:,:,:,n)).*(normal_x.^2+fact_bd.*normal_y.^2);
 end
-num_flux_n=flux(:,35,3,1)'
-num_flux_s=flux(:,35,1,1)'
-num_flux_e=flux(:,35,2,1)'
-num_flux_w=flux(:,35,4,1)'
+%fxyLmfxyR_7_5_n=[fxL(:,35,3,1)' fxR(:,35,3,1)' fyL(:,35,3,1)' fyR(:,35,3,1)']
+%fxyLmfxyR_7_5_s=[fxL(:,35,1,1)' fxR(:,35,1,1)' fyL(:,35,1,1)' fyR(:,35,1,1)']
+%fxyLmfxyR_7_5_e=[fxL(:,35,2,1)' fxR(:,35,2,1)' fyL(:,35,2,1)' fyR(:,35,2,1)']
+%fxyLmfxyR_7_5_w=[fxL(:,35,4,1)' fxR(:,35,4,1)' fyL(:,35,4,1)' fyR(:,35,4,1)']
+
+%%%num_flux_n=flux(:,35,3,1)'
+%%%num_flux_s=flux(:,35,1,1)'
+%%%num_flux_e=flux(:,35,2,1)'
+%%%num_flux_w=flux(:,35,4,1)'
 
 end

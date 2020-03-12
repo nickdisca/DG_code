@@ -47,7 +47,7 @@ T=100;
 %T=5*86400;
 
 %order of the RK scheme (1,2,3,4)
-RK=2; 
+RK=1; 
 
 %time step
 %dt=1/r_max^2*min(hx,hy)*0.1; 
@@ -218,7 +218,6 @@ elseif eq_type=="adv_sphere"
             u0_new{i,j,1} = u0_fun(local_pos_x,local_pos_y);
         end
     end
-    u0_new_7_5 = u0_new{7,5,1}'
 
 
 elseif eq_type=="swe_sphere"
