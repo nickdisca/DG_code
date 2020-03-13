@@ -41,13 +41,13 @@ n_qp=n_qp_1D^2;
 %time interval, initial and final time
 t=0;
 %T=1*(b-a);
-T=100;
+T=36000;
 %T=36000;
 %T=12*86400;
 %T=5*86400;
 
 %order of the RK scheme (1,2,3,4)
-RK=1; 
+RK=2; 
 
 %time step
 %dt=1/r_max^2*min(hx,hy)*0.1; 
@@ -187,7 +187,7 @@ if eq_type=="linear"
     for i=1:d1
         for j=1:d2
             local_pos_x = x_c(i) + 0.5*hx*unif2d_x{r_new(i,j)};
-            local_pos_y = y_c(j) + 0.5*unif2d_y{r_new(i,j)};
+            local_pos_y = y_c(j) + 0.5*hy*unif2d_y{r_new(i,j)};
             u0_new{i,j,1} = u0_fun(local_pos_x,local_pos_y);
         end
     end
@@ -325,6 +325,7 @@ for iter=1:N_it
             end
         end
 
+
     end
 
 %%%    if RK==3
@@ -351,8 +352,8 @@ for iter=1:N_it
         fprintf('Iteration %d/%d\n',iter,N_it); 
 %%%        figure(1);
         pause(0.05);
-%%%        to_plot = modal2nodal_new(u_new,V_rect,r_new);
-%%%        plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
+        to_plot = modal2nodal_new(u_new,V_rect,r_new);
+        plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
     end
 
 %next iteration

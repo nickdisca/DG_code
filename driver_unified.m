@@ -44,8 +44,8 @@ n_qp=n_qp_1D^2;
 %time interval, initial and final time
 t=0;
 %T=1*(b-a);
-%T=100;
-T=36000;
+T=100;
+%T=36000;
 %T=12*86400;
 %T=5*86400;
 
@@ -179,6 +179,55 @@ for k=1:r_max
     end
 end
 
+phi_grad_cell_x=cell(r_max,1);
+phi_grad_cell_y=cell(r_max,1);
+for k=1:r_max
+    phi_grad_cell_x{k} = zeros(n_qp,(k+1)^2);
+    phi_grad_cell_y{k} = zeros(n_qp,(k+1)^2);
+    for i=1:n_qp
+        for j=1:(k+1)^2
+            j_x=floor((j-1)/(k+1))+1;
+            j_y=mod(j-1,(k+1))+1;
+            phi_grad_cell_x{k}(i,j)=GradJacobiP(pts2d_x(i),0,0,j_x-1)*JacobiP(pts2d_y(i),0,0,j_y-1);
+            phi_grad_cell_y{k}(i,j)=GradJacobiP(pts2d_y(i),0,0,j_y-1)*JacobiP(pts2d_x(i),0,0,j_x-1);
+        end
+    end
+end
+
+%values of basis functions in boundary quadrature points, repeating for
+%each face and degree
+%dimensions: (num_quad_pts_per_face)x(cardinality)x(num_faces)
+phi_val_bd_cell_n=cell(r_max,1);
+phi_val_bd_cell_s=cell(r_max,1);
+phi_val_bd_cell_e=cell(r_max,1);
+phi_val_bd_cell_w=cell(r_max,1);
+for k=1:r_max
+    phi_val_bd_cell_n{k} = zeros(n_qp_1D,(k+1)^2);
+    phi_val_bd_cell_s{k} = zeros(n_qp_1D,(k+1)^2);
+    phi_val_bd_cell_e{k} = zeros(n_qp_1D,(k+1)^2);
+    phi_val_bd_cell_w{k} = zeros(n_qp_1D,(k+1)^2);
+    for i=1:n_qp_1D
+        for j=1:(k+1)^2
+            j_x=floor((j-1)/(k+1))+1;
+            j_y=mod(j-1,(k+1))+1;
+            %top
+            phi_val_bd_cell_n{k}(i,j)=JacobiP(pts(i),0,0,j_x-1)*JacobiP(1,0,0,j_y-1);
+            %bottom
+            phi_val_bd_cell_s{k}(i,j)=JacobiP(pts(i),0,0,j_x-1)*JacobiP(-1,0,0,j_y-1);
+            %right
+            phi_val_bd_cell_e{k}(i,j)=JacobiP(1,0,0,j_x-1)*JacobiP(pts(i),0,0,j_y-1);
+            %left
+            phi_val_bd_cell_w{k}(i,j)=JacobiP(-1,0,0,j_x-1)*JacobiP(pts(i),0,0,j_y-1);
+        end
+    end
+end
+
+%%%norm_phi_val_bd_cell_n = norm(phi_val_bd_cell_n{2} - phi_val_bd_cell{2}(:,:,3))
+%%%norm_phi_val_bd_cell_s = norm(phi_val_bd_cell_s{2} - phi_val_bd_cell{2}(:,:,1))
+%%%norm_phi_val_bd_cell_e = norm(phi_val_bd_cell_e{2} - phi_val_bd_cell{2}(:,:,2))
+%%%norm_phi_val_bd_cell_w = norm(phi_val_bd_cell_w{2} - phi_val_bd_cell{2}(:,:,4))
+
+
 %compute factor (cosine for sphere, 1 for cartesian)
 [fact_int,fact_bd,complem_fact,radius]=compute_factor(eq_type,pts2d_phi(n_qp+1:2*n_qp,:),pts2d_phi_bd(n_qp_1D+1:2*n_qp_1D,:,:));
 
@@ -220,8 +269,8 @@ elseif eq_type=="adv_sphere"
     u0_new=cell(d1,d2);
     for i=1:d1
         for j=1:d2
-            local_pos_x = x_c(i) + unif2d_x{r_new(i,j)}/(2*pi)/d1;
-            local_pos_y = y_c(j) + unif2d_y{r_new(i,j)}/pi/2/d2;
+            local_pos_x = x_c(i) + 0.5*hx*unif2d_x{r_new(i,j)};
+            local_pos_y = y_c(j) + 0.5*hy*unif2d_y{r_new(i,j)};
             u0_new{i,j} = u0_fun(local_pos_x,local_pos_y);
         end
     end
@@ -271,12 +320,22 @@ end
 x_u=x_e(1:end-1)+(unif_visual+1)/2*hx;
 y_u=y_e(1:end-1)+(unif_visual+1)/2*hy;
 
+neq = size(u0_new,3);   % Number of equations
+
 %figure(1); 
 %plot_solution( modal2nodal(nodal2modal(u0(:,:,1),V,r),V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 
 %%%to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new);
 %%%plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 %convert nodal to modal: the vector u will contain the modal coefficient
+for i=1:d1
+    for j=1:d2
+        abs_err = abs( norm(u0(:,(i-1)*d2+j,1) - u0_new{i,j,1}) );
+        if abs_err > 1e-13
+            u0_error = [ i j abs_err ]
+        end
+    end
+end
 u=zeros(dim,d1*d2,size(u0,3)); 
 for i=1:size(u0,3)
     u(:,:,i)=nodal2modal(u0(:,:,i),V,r); 
@@ -284,10 +343,28 @@ end
 
 u_new=nodal2modal_new(u0_new,V,r_new); % Only for adv_sphere in this case
 
+for i=1:d1
+    for j=1:d2
+        abs_err = abs( norm(u(:,(i-1)*d2+j,1) - u_new{i,j,1}) );
+        if abs_err > 1e-13
+            u_error = [ i j abs_err ]
+        end
+    end
+end
 
 
 %compute mass matrix and its inverse
 [mass_tensor, inv_mass_tensor]=compute_mass(phi_val_cell,wts2d,d1,d2,r,hx,hy,fact_int);
+[mass_new, inv_mass_new]=compute_mass_new(phi_val_cell,wts2d,d1,d2,r_new,hx,hy,y_c,pts2d_y,eq_type);
+
+for i=1:d1
+    for j=1:d2
+        norm_inv_mass_error = norm(inv_mass_tensor(:,:,(i-1)*d2+j) - inv_mass_new{i,j});
+        if norm_inv_mass_error > 1e-13
+             inv_mass_error = [ i j norm_inv_mass_error ]
+        end
+    end
+end
 
 %compute mass matrix and its inverse
 %[mass_tensor_new, inv_mass_tensor_new]=compute_mass_new(phi_val_cell,wts2d,d1,d2,r_new,hx,hy,fact_int_new);
@@ -320,14 +397,69 @@ for iter=1:N_it
     end
 
     if RK==1
-        rhs_u = compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+        rhs_u=compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
         u = u + dt*rhs_u;
+        rhs_u_new = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                                 phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
+                                 hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+        for i=1:d1
+            for j=1:d2
+                for n=1:neq
+                    u_new{i,j,n} = u_new{i,j,n}+dt*rhs_u_new{i,j,n};
+                end
+            end
+        end
+
+for i=1:d1
+    for j=1:d2
+        abs_err = norm(u(:,(i-1)*d2+j,1) - u_new{i,j,1});
+        if abs_err > 1e-13
+            u_error = [ iter i j abs_err ]
+        end
+    end
+end
+
     end
 
     if RK==2
         k1=compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
         k2=compute_rhs(u+dt*k1,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
         u=u+dt*1/2*k1+dt*1/2*k2;   
+
+        k1_new = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                             phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
+                             hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+
+% This nasty trick avoids the need for a temporary variable for input to compute_rhs_new
+        for i=1:d1
+            for j=1:d2
+                for n=1:neq
+                    u_new{i,j,n} = u_new{i,j,n}+dt*k1_new{i,j,n};
+                end
+            end
+        end
+
+        k2_new = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                             phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
+                             hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+
+        for i=1:d1
+            for j=1:d2
+                for n=1:neq
+                    u_new{i,j,n} = u_new{i,j,n} - dt/2*k1_new{i,j,n} + dt/2*k2_new{i,j,n};  % Subtract the unwanted dt/2*k1;
+                end
+            end
+        end
+
+for i=1:d1
+    for j=1:d2
+        abs_err = norm(u(:,(i-1)*d2+j,1) - u_new{i,j,1});
+        if abs_err > 1e-13
+            u_error = [ iter i j abs_err ]
+        end
+    end
+end
+
     end
     
     if RK==3
@@ -352,9 +484,9 @@ for iter=1:N_it
     %plot solution
     if (mod(iter-1,plot_freq)==0) || iter==N_it
         fprintf('Iteration %d/%d\n',iter,N_it); 
-        figure(1);
+%        figure(1);
         pause(0.05);
-        plot_solution( modal2nodal(u,V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
+%        plot_solution( modal2nodal(u,V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
     end
     
     %next iteration

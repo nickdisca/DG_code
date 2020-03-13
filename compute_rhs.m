@@ -47,7 +47,6 @@ for n=1:size(u,3)
         %u_qp_bd(:,:,i,n)=phi_val_bd(:,:,i)*u(:,:,n); 
     end
 end
-u_qp_bd_n_7_5 = u_qp_bd(:,35,3,1)
 
 %compute LF fluxes
 num_flux=compute_numerical_flux(u_qp_bd,d1,d2,fact_bd,eq_type,radius,pts2d_phi_bd(1:n_qp_1D,:,:),pts2d_phi_bd(n_qp_1D+1:2*n_qp_1D,:,:));

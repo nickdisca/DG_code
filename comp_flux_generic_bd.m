@@ -19,8 +19,6 @@ pts_x = -off_x*ones(size(pts))+abs(off_y)*pts;  % place coordinates of opposing 
 pts_y = -off_y*ones(size(pts))+abs(off_x)*pts;  % with respect to the center point
 
 [fRx, fRy] = flux_function_new(u,eq_type,radius,hx,hy,x_c,y_c,pts_x,pts_y);
-% fx_7_5 = fx{7,5,1}'
-% fy_7_5 = fy{7,5,1}'
 
 switch eq_type
 
@@ -67,11 +65,6 @@ switch eq_type
                 alpha = max( sqrt(beta_x.^2+beta_y.^2), [], 1);                                          % Scalar
 
                 fact_bd = cos(qp_y);
-                if ( i==7 && j==5 )
-                   R_7_5 = [u{in,jn,n}' fx{in,jn,n}' fy{in,jn,n}']
-%%%                    fxyLmfxyR_7_5 = [fx{i,j,n}' fx{in,jn,n}' fy{i,j,n}' fy{in,jn,n}']
-%%% SAME                    fact_bd_7_5 = [i, j, in, jn, fact_bd']
-                end
 % TODO: confirm the signs for each face (5.3.20: looks correct to me)
 % TODO: check the fact_bd factor...  Why is this not simply a scalar???  Why does it not apply to EW fluxes??
                 for n=1:neq
