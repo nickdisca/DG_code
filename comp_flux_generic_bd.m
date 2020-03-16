@@ -18,6 +18,10 @@ pts_y = off_y*ones(size(pts))+abs(off_x)*pts;  % with respect to the center poin
 pts_x = -off_x*ones(size(pts))+abs(off_y)*pts;  % place coordinates of opposing face
 pts_y = -off_y*ones(size(pts))+abs(off_x)*pts;  % with respect to the center point
 
+% DO NOT USE THIS CODE
+% BUG: this is fundamentally wrong, since u is the function values at the generic edge (e.g., North), 
+%      but one needs values at the opposing edge, e.g., South
+%
 [fRx, fRy] = flux_function_new(u,eq_type,radius,hx,hy,x_c,y_c,pts_x,pts_y);
 
 switch eq_type

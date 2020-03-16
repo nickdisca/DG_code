@@ -7,7 +7,7 @@ set(0,'defaultAxesFontSize',20); set(0,'defaultLineLineWidth',2);
 a=0; b=2*pi; c=-pi/2; d=pi/2;
 
 %number of elements in x and y direction
-d1=7; d2=5; 
+d1=20; d2=20; 
 
 %length of the 1D intervals
 hx=(b-a)/d1; hy=(d-c)/d2;
@@ -19,7 +19,7 @@ r_max=2;
 dim=(r_max+1)^2;
 
 %degree distribution
-r=degree_distribution("unif",d1,d2,r_max);
+r=degree_distribution("y_dep",d1,d2,r_max);
 r_new = r';  % r_new(i,j) instead of r(j,i)
 
 %plot the degree distribution
@@ -33,7 +33,7 @@ eq_type="adv_sphere";
 quad_type="leg";
 
 %number of quadrature points in one dimension
-n_qp_1D=4;
+n_qp_1D=8;
 
 %number of quadrature points
 n_qp=n_qp_1D^2;
@@ -41,13 +41,13 @@ n_qp=n_qp_1D^2;
 %time interval, initial and final time
 t=0;
 %T=1*(b-a);
-T=36000;
+%T=100;
 %T=36000;
 %T=12*86400;
-%T=5*86400;
+T=5*86400;
 
 %order of the RK scheme (1,2,3,4)
-RK=2; 
+RK=4; 
 
 %time step
 %dt=1/r_max^2*min(hx,hy)*0.1; 
@@ -55,7 +55,7 @@ dt=100;
 %dt=50;
 
 %plotting frequency
-plot_freq=3600;
+plot_freq=100;
 
 %beginning and end of the intervals
 x_e=linspace(a,b,d1+1); 
@@ -279,8 +279,6 @@ for iter=1:N_it
 
     if RK==1
 
-%%%        u=u+dt*compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-
         rhs_u = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
                                  phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
                                  hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
@@ -294,11 +292,6 @@ for iter=1:N_it
     end
 
     if RK==2
-
-%%%        k1=compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-%%%        k2=compute_rhs(u+dt*k1,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-%%%        u=u+dt*1/2*k1+dt*1/2*k2;   
-%%%    end
 
         k1 = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
                              phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
@@ -328,29 +321,109 @@ for iter=1:N_it
 
     end
 
-%%%    if RK==3
-%%%        k1=compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-%%%        k2=compute_rhs(u+dt*k1,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-%%%        k3=compute_rhs(u+dt*(1/4*k1+1/4*k2),r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-%%%        u=u+dt*1/6*k1+dt*1/6*k2+dt*2/3*k3;   
-%%%    end
-%%%    
-%%%    if RK==4
-%%%        k1=compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-%%%        k2=compute_rhs(u+dt*k1/2,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-%%%        k3=compute_rhs(u+dt*(1/2*k2),r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-%%%        k4=compute_rhs(u+dt*(1*k3),r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-%%%        u=u+dt*1/6*k1+dt*1/3*k2+dt*1/3*k3+dt*1/6*k4;   
-%%%    end
-%%%    
-%%%    if RK>=5
-%%%        error('RK scheme not implemented');
-%%%    end
-%%%    
+    if RK==3
+
+        k1 = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                             phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
+                             hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+
+% This nasty trick avoids the need for a temporary variable for input to compute_rhs_new
+        for i=1:d1
+            for j=1:d2
+                for n=1:neq
+                    u_new{i,j,n} = u_new{i,j,n}+dt*k1{i,j,n};   % Yields : u+dt*k1
+                end
+            end
+        end
+
+        k2 = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                             phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
+                             hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+
+        for i=1:d1
+            for j=1:d2
+                for n=1:neq
+                    u_new{i,j,n} = u_new{i,j,n}+dt*( -3*k1{i,j,n}/4 + k2{i,j,n}/4);   % Yields u+dt*(1/4*k1 + 1/4*k2)
+                end
+            end
+        end
+
+        k3 = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                             phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
+                             hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+
+        for i=1:d1
+            for j=1:d2
+                for n=1:neq
+                    u_new{i,j,n} = u_new{i,j,n}+dt*( -k1{i,j,n}/12 - k2{i,j,n}/12 + 2*k3{i,j,n}/3); % Yields u+dt*1/6*k1+dt*1/6*k2+dt*2/3*k3;
+                end
+            end
+        end
+        
+    end
+    
+    if RK==4
+
+        k1 = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                             phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
+                             hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+
+% This nasty trick avoids the need for a temporary variable for input to compute_rhs_new
+        for i=1:d1
+            for j=1:d2
+                for n=1:neq
+                    u_new{i,j,n} = u_new{i,j,n}+dt*k1{i,j,n}/2;   % Yields : u+dt*k1/2
+                end
+            end
+        end
+
+        k2 = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                             phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
+                             hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+
+        for i=1:d1
+            for j=1:d2
+                for n=1:neq
+                    u_new{i,j,n} = u_new{i,j,n}+dt*(-k1{i,j,n}/2+k2{i,j,n}/2);   % Yields : u+dt*(1/2*k2)
+                end
+            end
+        end
+
+        k3 = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                             phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
+                             hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+
+        for i=1:d1
+            for j=1:d2
+                for n=1:neq
+                    u_new{i,j,n} = u_new{i,j,n}+dt*(-k2{i,j,n}/2 +k3{i,j,n});   % Yields : u+dt*(1*k3)
+                end
+            end
+        end
+
+        k4 = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                             phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
+                             hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+
+        for i=1:d1
+            for j=1:d2
+                for n=1:neq
+                    u_new{i,j,n} = u_new{i,j,n}+dt*(k1{i,j,n}/6+k2{i,j,n}/3-2*k3{i,j,n}/3+k4{i,j,n}/6);   
+% Yields final result:  u=u+dt*1/6*k1+dt*1/3*k2+dt*1/3*k3+dt*1/6*k4
+                end
+            end
+        end
+
+    end
+    
+    if RK>=5
+        error('RK scheme higher than 4 not implemented');
+    end
+    
 %plot solution
     if (mod(iter-1,plot_freq)==0) || iter==N_it
         fprintf('Iteration %d/%d\n',iter,N_it); 
-%%%        figure(1);
+        figure(1);
         pause(0.05);
         to_plot = modal2nodal_new(u_new,V_rect,r_new);
         plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");

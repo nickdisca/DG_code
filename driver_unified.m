@@ -347,7 +347,7 @@ for i=1:d1
     for j=1:d2
         abs_err = abs( norm(u(:,(i-1)*d2+j,1) - u_new{i,j,1}) );
         if abs_err > 1e-13
-            u_error = [ i j abs_err ]
+            u_error_initialization = [ i j abs_err ]
         end
     end
 end
@@ -389,6 +389,15 @@ N_it=ceil(T/dt);
 fprintf('Space discretization: order %d, elements=%d*%d, domain=[%f,%f]x[%f,%f]\n',r_max,d1,d2,a,b,c,d);
 fprintf('Time integration: order %d, T=%f, dt=%f, N_iter=%d\n',RK,T,dt,N_it);
 
+for i=1:d1
+    for j=1:d2
+        abs_err = norm(u(:,(i-1)*d2+j,1) - u_new{i,j,1});
+        if abs_err > 1e-13
+            u_error_init = [ iter i j abs_err ]
+        end
+    end
+end
+
 %start temporal loop
 for iter=1:N_it
     
@@ -397,11 +406,15 @@ for iter=1:N_it
     end
 
     if RK==1
+        rhs_u_new = compute_rhs_unified(u,r,mass,inv_mass,phi_val,phi_grad,phi_val_bd,...
+                                        fact_int,fact_bd,complem_fact,pts2d_phi,pts2d_phi_bd,...
+                                        u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
+                                        phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
+                                        hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
+
         rhs_u=compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
+
         u = u + dt*rhs_u;
-        rhs_u_new = compute_rhs_new(u_new,r_new,n_qp_1D,phi_val_cell,phi_grad_cell_x,phi_grad_cell_y,...
-                                 phi_val_bd_cell_n,phi_val_bd_cell_s,phi_val_bd_cell_e,phi_val_bd_cell_w,inv_mass_new,...
-                                 hx,hy,wts,wts2d,radius,pts,pts,pts2d_x,pts2d_y,x_c,y_c,coriolis_fun,eq_type);
         for i=1:d1
             for j=1:d2
                 for n=1:neq
@@ -409,6 +422,8 @@ for iter=1:N_it
                 end
             end
         end
+
+    end
 
 for i=1:d1
     for j=1:d2
@@ -418,8 +433,6 @@ for i=1:d1
         end
     end
 end
-
-    end
 
     if RK==2
         k1=compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);

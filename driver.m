@@ -7,7 +7,7 @@ set(0,'defaultAxesFontSize',20); set(0,'defaultLineLineWidth',2);
 a=0; b=2*pi; c=-pi/2; d=pi/2;
 
 %number of elements in x and y direction
-d1=7; d2=5; 
+d1=20; d2=20; 
 
 %length of the 1D intervals
 hx=(b-a)/d1; hy=(d-c)/d2;
@@ -19,15 +19,14 @@ r_max=2;
 dim=(r_max+1)^2;
 
 %degree distribution
-r=degree_distribution("unif",d1,d2,r_max);
-r_new = r';  % r_new(i,j) instead of r(j,i)
+r=degree_distribution("y_dep",d1,d2,r_max);
 
 %dynamic adaptivity
 dyn_adapt=false;
 
 %plot the degree distribution
-%%%figure(100);
-%%%imagesc(1:d1,1:d2,flipud(r)); colormap jet; colorbar;
+figure(100);
+imagesc(1:d1,1:d2,flipud(r)); colormap jet; colorbar;
 
 %equation type
 eq_type="adv_sphere";
@@ -36,7 +35,7 @@ eq_type="adv_sphere";
 quad_type="leg";
 
 %number of quadrature points in one dimension
-n_qp_1D=4;
+n_qp_1D=8;
 
 %number of quadrature points
 n_qp=n_qp_1D^2;
@@ -44,13 +43,12 @@ n_qp=n_qp_1D^2;
 %time interval, initial and final time
 t=0;
 %T=1*(b-a);
-%T=100;
-T=36000;
+%T=36000;
 %T=12*86400;
-%T=5*86400;
+T=5*86400;
 
 %order of the RK scheme (1,2,3,4)
-RK=2; 
+RK=3; 
 
 %time step
 %dt=1/r_max^2*min(hx,hy)*0.1; 
@@ -64,23 +62,13 @@ plot_freq=100;
 x_e=linspace(a,b,d1+1); 
 y_e=linspace(c,d,d2+1);
 
-half_cell_x = (b-a)/d1/2;
-half_cell_y = (d-c)/d2/2;
-x_c=linspace(a+half_cell_x,b-half_cell_x,d1); % Cell centers in X
-y_c=linspace(c+half_cell_y,d-half_cell_y,d2); % Cell centers in Y
-
 %create uniformly spaced points in reference and physical domain, and
 %repeat for each degree
 unif2d=cell(r_max,1);
-unif2d_x=cell(r_max);
-unif2d_y=cell(r_max);
 for k=1:r_max
     unif=linspace(-1,1,k+1)';
     [unif2d{k},~]=tensor_product(unif,unif,nan(size(unif)));
-    unif2d_x{k} = unif2d{k}(:,1);
-    unif2d_y{k} = unif2d{k}(:,2);
 end
-
 %map to physical domain
 unif2d_phi=map2phi_adaptive(unif2d,r,r_max,x_e,y_e,d1,d2,hx,hy);
 
@@ -92,10 +80,7 @@ elseif quad_type=="lob"
     [pts,wts]=gauss_legendre_lobatto(n_qp_1D-1); 
 end
 [pts2d,wts2d]=tensor_product(pts,pts,wts);
-pts2d_x = pts2d(:,1);
-pts2d_y = pts2d(:,2);
 pts2d_phi=map2phi_static(pts2d,n_qp_1D-1,x_e,y_e,d1,d2,hx,hy);
-[pts2d_phi_x,pts2d_phi_y]=map2phi_static_new(pts2d_x,pts2d_y,n_qp,x_c,y_c,d1,d2,hx,hy);
 pts2d_phi_bd=map2phi_bd(pts,n_qp_1D-1,x_e,y_e,d1,d2,hx,hy);
 
 %Vandermonde matrix, needed to switch from modal to nodal: u_nod=V*u_mod,
@@ -112,9 +97,6 @@ for k=1:r_max
     end
 end
 
-V_1=V{1};  % TODO: calculate explicitly later
-V_2=V{2};  % TODO: calculate explicitly later
-
 %Vandermonde matrix, needed to switch from modal to nodal: u_nod=V*u_mod
 %only, as this is a rectangular matrix. Repeat for each degree
 unif_visual=linspace(-1,1,n_qp_1D)';
@@ -129,9 +111,6 @@ for k=1:r_max
         end
     end
 end
-
-V_rect_1 = V_rect{1};
-V_rect_2 = V_rect{2};
 
 %values and grads of basis functions in internal quadrature points, i.e.
 %phi_val(i,j)=Phi_j(x_i) for i=1:dim_qp,j=1:dim. The x_i are the quadrature points,
@@ -191,7 +170,6 @@ if eq_type=="linear"
     %set initial condition in the uniformly spaced quadrature points
     u0=u0_fun(unif2d_phi(1:dim,:),unif2d_phi(dim+1:2*dim,:));
 
-
 %initial condition (cartesian swe) - specified as function
 elseif eq_type=="swe"
     h0=1000; h1=5; L=1e7; sigma=L/20;
@@ -213,18 +191,10 @@ elseif eq_type=="adv_sphere"
     th_c=pi/2; lam_c=3/2*pi; h0=1000; 
     rr=@(lam,th) radius*acos(sin(th_c)*sin(th)+cos(th_c)*cos(th).*cos(lam-lam_c)); 
     u0_fun=@(lam,th) h0/2*(1+cos(pi*rr(lam,th)/radius)).*(rr(lam,th)<radius/3);
-        
+    
     %set initial condition in the uniformly spaced quadrature points
     u0=u0_fun(unif2d_phi(1:dim,:),unif2d_phi(dim+1:2*dim,:));  
-
-    u0_new=cell(d1,d2);
-    for i=1:d1
-        for j=1:d2
-            local_pos_x = x_c(i) + unif2d_x{r_new(i,j)}/(2*pi)/d1;
-            local_pos_y = y_c(j) + unif2d_y{r_new(i,j)}/pi/2/d2;
-            u0_new{i,j} = u0_fun(local_pos_x,local_pos_y);
-        end
-    end
+    
 %initial condition (spherical swe) - specified as function
 elseif eq_type=="swe_sphere"
     g=9.80616; h0=2.94e4/g; Omega=7.292e-5; uu0=2*pi*radius/(12*86400); angle=0;
@@ -250,47 +220,26 @@ end
 
 %do modal-nodal conversion check
 u0_check=modal2nodal(nodal2modal(u0(:,:,1),V,r),V,r);
-max_error = max(max(abs(u0_check-u0(:,:,1))));
-if max_error>1e-10
-    error('Wrong modal-nodal conversion: error %e \n',max_error);
-end
-
-% n2m = nodal2modal_new(u0_new,V,r_new);
-u0_check_new=modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V,r_new);
-
-for i=1:d1
-    for j=1:d2
-        error_2 = norm(u0_check_new{i,j} - u0_new{i,j});
-        if error_2 >1e-10
-            error('Wrong modal-nodal conversion: %d %d error: %e \n',i,j,error_2);
-        end 
-    end
+if max(max(abs(u0_check-u0(:,:,1))))>1e-10
+    error('Wrong modal-nodal conversion: %e\n',max(max(abs(u0_check-u0(:,:,1)))));
 end
 
 %visualize solution at initial time - only first component
 x_u=x_e(1:end-1)+(unif_visual+1)/2*hx;
 y_u=y_e(1:end-1)+(unif_visual+1)/2*hy;
 
-%figure(1); 
-%plot_solution( modal2nodal(nodal2modal(u0(:,:,1),V,r),V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
+figure(1); 
+plot_solution( modal2nodal(nodal2modal(u0(:,:,1),V,r),V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 
-%%%to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new);
-%%%plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
+
 %convert nodal to modal: the vector u will contain the modal coefficient
 u=zeros(dim,d1*d2,size(u0,3)); 
 for i=1:size(u0,3)
     u(:,:,i)=nodal2modal(u0(:,:,i),V,r); 
 end
 
-u_new=nodal2modal_new(u0_new,V,r_new); % Only for adv_sphere in this case
-
-
-
 %compute mass matrix and its inverse
 [mass_tensor, inv_mass_tensor]=compute_mass(phi_val_cell,wts2d,d1,d2,r,hx,hy,fact_int);
-
-%compute mass matrix and its inverse
-%[mass_tensor_new, inv_mass_tensor_new]=compute_mass_new(phi_val_cell,wts2d,d1,d2,r_new,hx,hy,fact_int_new);
 
 %convert to global matrices instead of tensors
 idx_r=repelem(reshape((1:dim*d1*d2),dim,d1*d2),1,dim);
@@ -320,8 +269,7 @@ for iter=1:N_it
     end
 
     if RK==1
-        rhs_u = compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
-        u = u + dt*rhs_u;
+        u=u+dt*compute_rhs(u,r,n_qp_1D,mass,inv_mass,phi_val,phi_grad,phi_val_bd,hx,hy,wts,wts2d,d1,d2,fact_int,fact_bd,complem_fact,radius,pts2d_phi,pts2d_phi_bd,coriolis_fun,eq_type);
     end
 
     if RK==2
@@ -372,8 +320,8 @@ end
 
 %plot all components of the solution
 for i=1:size(u,3)
-%    figure(200); 
-%    plot_solution(modal2nodal(u(:,:,i),V_rect,r),x_u,y_u,n_qp_1D-1,d1,d2,"surf"); 
+    figure(200); 
+    plot_solution(modal2nodal(u(:,:,i),V_rect,r),x_u,y_u,n_qp_1D-1,d1,d2,"surf"); 
 end
 
 %compute discretization error, assuming that solution did one complete rotation

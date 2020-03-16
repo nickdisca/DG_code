@@ -101,26 +101,8 @@ end
 
 %compute LF fluxes on all four edges
 %  First cut: calculate all edges simultaneously
-%%%% [flux_n,flux_s,flux_e,flux_w]=compute_numerical_flux_new(u_qp_bd_n,u_qp_bd_s,u_qp_bd_e,u_qp_bd_w,...
-%%%%                                                         pts_x,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
-
-% Better: calculate each edge separately using a generic boundary flux computation
-
-flux_n = comp_flux_generic_bd(u_qp_bd_n,0,1,pts_x,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
-flux_s = comp_flux_generic_bd(u_qp_bd_s,0,-1,pts_x,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
-flux_e = comp_flux_generic_bd(u_qp_bd_e,1,0,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
-flux_w = comp_flux_generic_bd(u_qp_bd_w,-1,0,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
-
-%compute boundary integrals and subtract them from the rhs
-for n=1:neq
-    for i=1:4
-        %det_bd*sum(Phi*num_flux*weights)
-%%%        bd_term(:,:,n)=bd_term(:,:,n)+reshape(phi_val_bd{i}'*reshape(num_flux(:,:,i,n).*wts,n_qp_1D*d1*d2,1),dim,d1*d2)*bd_det(i);
-        %bd_term(:,:,n)=bd_term(:,:,n)+phi_val_bd(:,:,i)'*(num_flux(:,:,i,n).*wts)*bd_det(i);
-    end
-%%%    rhsu(:,:,n)=rhsu(:,:,n)-bd_term(:,:,n);
-end
-
+[flux_n,flux_s,flux_e,flux_w]=comp_flux_bd(u_qp_bd_n,u_qp_bd_s,u_qp_bd_e,u_qp_bd_w,...
+                                           pts_x,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c);
 for i=1:d1
     for j=1:d2
         for n=1:neq
