@@ -30,7 +30,7 @@ dyn_adapt=false;
 %%%imagesc(1:d1,1:d2,flipud(r)); colormap jet; colorbar;
 
 %equation type
-eq_type="adv_sphere";
+eq_type="linear";
 
 %type of quadrature rule (Gauss-Legendre or Gauss-Legendre-Lobatto)
 quad_type="leg";
@@ -50,7 +50,7 @@ T=100;
 %T=5*86400;
 
 %order of the RK scheme (1,2,3,4)
-RK=2; 
+RK=1; 
 
 %time step
 %dt=1/r_max^2*min(hx,hy)*0.1; 
@@ -234,12 +234,22 @@ end
 %initial condition (cartesian linear advection) - specified as function
 if eq_type=="linear"
     %u0_fun=@(x,y) sin(2*pi*x).*sin(2*pi*y);
-    h0=0; h1=1; R=(b-a)/2/5; x_c=(a+b)/2; y_c=(c+d)/2; u0_fun=@(x,y) h0+h1/2*(1+cos(pi*sqrt((x-x_c).^2+(y-y_c).^2)/R)).*(sqrt((x-x_c).^2+(y-y_c).^2)<R);
+    h0=0; h1=1; R=(b-a)/2/5; xc=(a+b)/2; yc=(c+d)/2; u0_fun=@(x,y) h0+h1/2*(1+cos(pi*sqrt((x-xc).^2+(y-yc).^2)/R)).*(sqrt((x-xc).^2+(y-yc).^2)<R);
     %u0_fun=@(x,y) 5*(~isnan(x));
     
     %set initial condition in the uniformly spaced quadrature points
     u0=u0_fun(unif2d_phi(1:dim,:),unif2d_phi(dim+1:2*dim,:));
 
+    %set initial condition in the uniformly spaced quadrature points
+    u0_new=cell(d1,d2,1);
+
+    for i=1:d1
+        for j=1:d2
+            local_pos_x = x_c(i) + 0.5*hx*unif2d_x{r_new(i,j)};   % Vector
+            local_pos_y = y_c(j) + 0.5*hy*unif2d_y{r_new(i,j)};   % Vector
+            u0_new{i,j,1} = u0_fun(local_pos_x,local_pos_y);
+        end
+    end
 
 %initial condition (cartesian swe) - specified as function
 elseif eq_type=="swe"
@@ -256,7 +266,20 @@ elseif eq_type=="swe"
     %set coriolis function
     %coriolis_fun=@(x,y) zeros(size(x));
     coriolis_fun=@(x,y) 1e-4*ones(size(x));
-    
+
+    u0_new=cell(d1,d2,3);
+
+    %set initial condition in the uniformly spaced quadrature points
+    for i=1:d1
+        for j=1:d2
+            local_pos_x = x_c(i) + 0.5*hx*unif2d_x{r_new(i,j)};
+            local_pos_y = y_c(j) + 0.5*hy*unif2d_y{r_new(i,j)};
+            u0_new{i,j,1} = h0_fun(local_pos_x,local_pos_y);
+            u0_new{i,j,2} = h0_fun(local_pos_x,local_pos_y) .* v0x_fun(local_pos_x,local_pos_y);
+            u0_new{i,j,3} = h0_fun(local_pos_x,local_pos_y) .* v0y_fun(local_pos_x,local_pos_y);
+        end
+    end
+
 %initial condition (spherical linear advection) - specified as function
 elseif eq_type=="adv_sphere"
     th_c=pi/2; lam_c=3/2*pi; h0=1000; 
@@ -325,8 +348,8 @@ neq = size(u0_new,3);   % Number of equations
 %figure(1); 
 %plot_solution( modal2nodal(nodal2modal(u0(:,:,1),V,r),V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 
-%%%to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new);
-%%%plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
+to_plot = modal2nodal_new(nodal2modal_new(u0_new,V,r_new),V_rect,r_new);
+plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 %convert nodal to modal: the vector u will contain the modal coefficient
 for i=1:d1
     for j=1:d2
@@ -499,6 +522,9 @@ end
         fprintf('Iteration %d/%d\n',iter,N_it); 
 %        figure(1);
         pause(0.05);
+        to_plot = modal2nodal(u,V_rect,r);
+        plot_solution(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
+
 %        plot_solution( modal2nodal(u,V_rect,r) ,x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
     end
     

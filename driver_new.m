@@ -178,28 +178,45 @@ end
 
 %initial condition (cartesian linear advection) - specified as function
 if eq_type=="linear"
-    radius = 1.0;
-    h0=0; h1=1; R=(b-a)/2/5; x_c=(a+b)/2; y_c=(c+d)/2; u0_fun=@(x,y) h0+h1/2*(1+cos(pi*sqrt((x-x_c).^2+(y-y_c).^2)/R)).*(sqrt((x-x_c).^2+(y-y_c).^2)<R);
+    radius = 1.0;  % For completeness -- never used
+    h0=0; h1=1; R=(b-a)/2/5; xc=(a+b)/2; yc=(c+d)/2; u0_fun=@(x,y) h0+h1/2*(1+cos(pi*sqrt((x-xc).^2+(y-yc).^2)/R)).*(sqrt((x-xc).^2+(y-yc).^2)<R);
     
     %set initial condition in the uniformly spaced quadrature points
     u0_new=cell(d1,d2,1);
 
     for i=1:d1
         for j=1:d2
-            local_pos_x = x_c(i) + 0.5*hx*unif2d_x{r_new(i,j)};
-            local_pos_y = y_c(j) + 0.5*hy*unif2d_y{r_new(i,j)};
+            local_pos_x = x_c(i) + 0.5*hx*unif2d_x{r_new(i,j)};   % Vector
+            local_pos_y = y_c(j) + 0.5*hy*unif2d_y{r_new(i,j)};   % Vector
             u0_new{i,j,1} = u0_fun(local_pos_x,local_pos_y);
         end
     end
 
 elseif eq_type=="swe"
-    radius = 1.0;
 
+    radius = 1.0;  % For completeness -- never used
 %initial condition (cartesian swe) - specified as function
-%
-% Not currently supported
+    h0=1000; h1=5; L=1e7; sigma=L/20;
+    h0_fun=@(x,y) h0+h1*exp(-((x-L/2).^2+(y-L/2).^2)/(2*sigma^2));
+    v0x_fun=@(x,y) zeros(size(x));
+    v0y_fun=@(x,y) zeros(size(x));
+
     u0_new=cell(d1,d2,3);
 
+    %set initial condition in the uniformly spaced quadrature points
+    for i=1:d1
+        for j=1:d2
+            local_pos_x = x_c(i) + 0.5*hx*unif2d_x{r_new(i,j)};
+            local_pos_y = y_c(j) + 0.5*hy*unif2d_y{r_new(i,j)};
+            u0_new{i,j,1} = h0_fun(local_pos_x,local_pos_y);
+            u0_new{i,j,2} = h0_fun(local_pos_x,local_pos_y) .* v0x_fun(local_pos_x,local_pos_y);
+            u0_new{i,j,3} = h0_fun(local_pos_x,local_pos_y) .* v0y_fun(local_pos_x,local_pos_y);
+        end
+    end
+
+    %set coriolis function
+    %coriolis_fun=@(x,y) zeros(size(x));
+    coriolis_fun=@(x,y) 1e-4*ones(size(x));
 
 %initial condition (spherical linear advection) - specified as function
 elseif eq_type=="adv_sphere"
@@ -223,11 +240,22 @@ elseif eq_type=="adv_sphere"
 elseif eq_type=="swe_sphere"
 
     radius=6.37122e6;
+    g=9.80616; h0=2.94e4/g; Omega=7.292e-5; uu0=2*pi*radius/(12*86400); angle=0;
+    h0_fun=@(lam,th) h0-1/g*(radius*Omega*uu0+uu0^2/2)*(sin(th)*cos(angle)-cos(lam).*cos(th)*sin(angle)).^2;
+    v0x_fun=@(lam,th) uu0.*(cos(th)*cos(angle)+sin(th).*cos(lam)*sin(angle));
+    v0y_fun=@(lam,th) -uu0.*sin(angle).*sin(lam);
 
-%initial condition (spherical swe) - specified as function
-%
-% Not currently supported
-
+    %set initial condition in the uniformly spaced quadrature points
+    u0_new=cell(d1,d2,3);
+    for i=1:d1
+        for j=1:d2
+            local_pos_x = x_c(i) + 0.5*hx*unif2d_x{r_new(i,j)};
+            local_pos_y = y_c(j) + 0.5*hy*unif2d_y{r_new(i,j)};
+            u0_new{i,j,1} = h0_fun(local_pos_x,local_pos_y);
+            u0_new{i,j,2} = h0_fun(local_pos_x,local_pos_y) .* v0x_fun(local_pos_x,local_pos_y);
+            u0_new{i,j,3} = h0_fun(local_pos_x,local_pos_y) .* v0y_fun(local_pos_x,local_pos_y);
+        end
+    end
 
 end
 
@@ -261,8 +289,8 @@ y_u=y_e(1:end-1)+(unif_visual+1)*hy/2;
 
 u_new=nodal2modal_new(u0_new,V,r_new); % Only for adv_sphere in this case
 
-%%% to_plot = modal2nodal_new(u_new,V_rect,r_new);
-%%% plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
+to_plot = modal2nodal_new(u_new,V_rect,r_new);
+plot_solution_new(to_plot, x_u(:),y_u(:),n_qp_1D-1,d1,d2,"contour");
 
 [mass_new, inv_mass_new]=compute_mass_new(phi_val_cell,wts2d,d1,d2,r_new,hx,hy,y_c,pts2d_y,eq_type);
 
