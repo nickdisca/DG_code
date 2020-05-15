@@ -1,4 +1,4 @@
-function [flux_n,flux_s,flux_e,flux_w] = compute_numerical_flux_new(u_n,u_s,u_e,u_w,pts_x,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c)
+function [flux_n,flux_s,flux_e,flux_w] = comp_flux_bd(u_n,u_s,u_e,u_w,pts_x,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c)
 
 flux_n = cell(d1,d2,neq); flux_s = cell(d1,d2,neq); flux_e = cell(d1,d2,neq); flux_w = cell(d1,d2,neq);
 
@@ -7,10 +7,10 @@ flux_n = cell(d1,d2,neq); flux_s = cell(d1,d2,neq); flux_e = cell(d1,d2,neq); fl
 % Find the U values from the N, S, E, W neighboring cells
 %         
 
-[fx_n, fy_n] = flux_function_new(u_n,eq_type,radius,hx,hy,x_c,y_c+hy/2,pts_x,zeros(size(pts_x)));
-[fx_s, fy_s] = flux_function_new(u_s,eq_type,radius,hx,hy,x_c,y_c-hy/2,pts_x,zeros(size(pts_x)));
-[fx_e, fy_e] = flux_function_new(u_e,eq_type,radius,hx,hy,x_c+hx/2,y_c,zeros(size(pts_y)),pts_y);
-[fx_w, fy_w] = flux_function_new(u_w,eq_type,radius,hx,hy,x_c-hx/2,y_c,zeros(size(pts_y)),pts_y);
+[fx_n, fy_n] = flux_function(u_n,eq_type,radius,hx,hy,x_c,y_c+hy/2,pts_x,zeros(size(pts_x)));
+[fx_s, fy_s] = flux_function(u_s,eq_type,radius,hx,hy,x_c,y_c-hy/2,pts_x,zeros(size(pts_x)));
+[fx_e, fy_e] = flux_function(u_e,eq_type,radius,hx,hy,x_c+hx/2,y_c,zeros(size(pts_y)),pts_y);
+[fx_w, fy_w] = flux_function(u_w,eq_type,radius,hx,hy,x_c-hx/2,y_c,zeros(size(pts_y)),pts_y);
 
 %convention: 1=bottom, 2=right, 3=top, 4=left
 %alternatively:  N=3, S=1, E=2, W=4
