@@ -64,7 +64,7 @@ quad_type="leg";
 n_qp_1D=4;
 
 # Number of quadrature points
-n_qp=n_qp_1D^2;
+n_qp=n_qp_1D*n_qp_1D
 
 # Time interval, initial and final time
 t=0;
@@ -109,12 +109,6 @@ unif=np.linspace(-1,1,n_qp_1D)
 unif2d_visual_x = np.kron(unif,np.ones(n_qp_1D))
 unif2d_visual_y = np.kron(np.ones(n_qp_1D),unif)
 
-# Again, we use lists for the main fields.  This is not supposed to be efficient
-K = {}
-for i in range(d1):
-    for j in range(d2):
-        K[i, j] = np.zeros((3, 3))
-
 if quad_type == "leg":
 # Gauss-Legendre quadrature
     [pts,wts]=np.polynomial.legendre.leggauss(n_qp_1D)
@@ -156,6 +150,7 @@ for r in range(r_max):
     max_deg = (r+1)
     phi_val_cell[r] = np.polynomial.legendre.legvander2d(pts2d_x,pts2d_y,[max_deg, max_deg])
     print(phi_val_cell[r])
+
 
 phi_grad_cell_x={}
 phi_grad_cell_y={}
