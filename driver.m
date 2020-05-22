@@ -19,7 +19,7 @@ r_max=2;
 dim=(r_max+1)^2;
 
 %degree distribution
-r=degree_distribution("y_dep",d1,d2,r_max)';  # NEW: r(i,j)
+r=degree_distribution("y_dep",d1,d2,r_max)';  % NEW: r(i,j)
 
 %plot the degree distribution
 %%%figure(100);
