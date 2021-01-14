@@ -42,8 +42,7 @@ n_qp=n_qp_1D*n_qp_1D
 
 # Time interval, initial and final time
 t=0
-T=5000
-#T=5*86400
+T=5*86400
 
 # Order of the RK scheme (1,2,3,4)
 RK=4
@@ -54,7 +53,7 @@ RK=4
 dt=100
 
 # Plotting frequency
-plot_freq=10
+plot_freq=100
 
 # Derived temporal loop parameters
 Courant=dt/min(hx,hy)
@@ -73,9 +72,7 @@ def plot_solution(u,x_c,y_c,r,d1,d2,neq,hx,hy):
     for j in range(d2) :
         y_u[j*r:(j+1)*r] = y_c[j]+hy*unif/2
 
-    X, Y = np.meshgrid(x_u, y_u)
-    print("X = ", X)
-    print("Y = ", Y)
+    Y, X = np.meshgrid(y_u, x_u)  # Transposed to visualize properly
     Z    = np.zeros((d1*r,d2*r))
     for k in range(neq):
         for j in range(d2):
