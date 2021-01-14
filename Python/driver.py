@@ -3,6 +3,9 @@ import numpy as np
 import quadpy as qp
 import math
 import sys
+import matplotlib
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 
 # Radius of the earth (for spherical geometry)
 radius=6.37122e6;
@@ -39,11 +42,11 @@ n_qp=n_qp_1D*n_qp_1D
 
 # Time interval, initial and final time
 t=0
-T=100
+T=5000
 #T=5*86400
 
 # Order of the RK scheme (1,2,3,4)
-RK=1
+RK=4
 
 # Time step
 # For "linadv":  dt=1/r_max^2*min(hx,hy)*0.1;
@@ -51,7 +54,7 @@ RK=1
 dt=100
 
 # Plotting frequency
-plot_freq=100
+plot_freq=10
 
 # Derived temporal loop parameters
 Courant=dt/min(hx,hy)
@@ -59,6 +62,29 @@ N_it=math.ceil(T/dt)
 
 # Coriolis function currently zero
 coriolis_fun=lambda x,y: np.zeros(len(x));
+
+# Function to plot solution
+def plot_solution(u,x_c,y_c,r,d1,d2,neq,hx,hy):
+    x_u    = np.zeros(d1*r)
+    y_u    = np.zeros(d2*r)
+    unif   = np.linspace(-1,1,r)
+    for i in range(d1) :
+        x_u[i*r:(i+1)*r] = x_c[i]+hx*unif/2
+    for j in range(d2) :
+        y_u[j*r:(j+1)*r] = y_c[j]+hy*unif/2
+
+    X, Y = np.meshgrid(x_u, y_u)
+    print("X = ", X)
+    print("Y = ", Y)
+    Z    = np.zeros((d1*r,d2*r))
+    for k in range(neq):
+        for j in range(d2):
+            for i in range(d1):
+                Z[i*r:(i+1)*r,j*r:(j+1)*r] = u[i,j,n].reshape(r,r)
+
+    fig, ax = plt.subplots()
+    CS = ax.contour(X, Y, Z)
+    plt.show()
 
 # Function to compute the element degrees
 def degree_distribution(type,d1,d2,r_max):
@@ -524,7 +550,6 @@ for iter in range(N_it) :
     t=t+dt
 
     if ( RK == 1 ) :
-        print( RK, " first order Runge-Kutta" )
         rhs_u = compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, phi_grad_cell_y,
                             phi_val_bd_cell_n, phi_val_bd_cell_s, phi_val_bd_cell_e, phi_val_bd_cell_w, inv_mass,
                             hx, hy, wts, wts2d, radius, pts, pts, pts2d_x, pts2d_y, x_c, y_c, coriolis_fun, eq_type)
@@ -534,13 +559,98 @@ for iter in range(N_it) :
                     u[i,j,n] = u[i,j,n] + dt*rhs_u[i,j,n]
 
     elif ( RK == 2 ) :
-       print( RK, " second order Runge-Kutta" )
+        k1 = compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, phi_grad_cell_y,
+                         phi_val_bd_cell_n, phi_val_bd_cell_s, phi_val_bd_cell_e, phi_val_bd_cell_w, inv_mass,
+                         hx, hy, wts, wts2d, radius, pts, pts, pts2d_x, pts2d_y, x_c, y_c, coriolis_fun, eq_type)
+#  Use a trick to avoid the need for another temporary variable for the U input
+        for n in range(neq):
+            for j in range(d2):
+                for i in range(d1):
+                    u[i,j,n] = u[i,j,n] + dt*k1[i,j,n]     # Add in dt/2 too much of k1
+
+        k2 = compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, phi_grad_cell_y,
+                         phi_val_bd_cell_n, phi_val_bd_cell_s, phi_val_bd_cell_e, phi_val_bd_cell_w, inv_mass,
+                         hx, hy, wts, wts2d, radius, pts, pts, pts2d_x, pts2d_y, x_c, y_c, coriolis_fun, eq_type)
+
+        for n in range(neq):
+            for j in range(d2):
+                for i in range(d1):
+                    u[i,j,n] = u[i,j,n] + dt*(-k1[i,j,n]/2 + k2[i,j,n]/2)     # Yields: u+dt*(k1/2 + k2/2)
+
     elif ( RK == 3 ) :
-       print( RK, " third order Runge-Kutta" )
+        k1 = compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, phi_grad_cell_y,
+                         phi_val_bd_cell_n, phi_val_bd_cell_s, phi_val_bd_cell_e, phi_val_bd_cell_w, inv_mass,
+                         hx, hy, wts, wts2d, radius, pts, pts, pts2d_x, pts2d_y, x_c, y_c, coriolis_fun, eq_type)
+
+#  Use a trick to avoid the need for another temporary variable for the U input
+        for n in range(neq):
+            for j in range(d2):
+                for i in range(d1):
+                    u[i,j,n] = u[i,j,n] + dt*k1[i,j,n]     # Yields : u+dt*k1
+
+        k2 = compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, phi_grad_cell_y,
+                         phi_val_bd_cell_n, phi_val_bd_cell_s, phi_val_bd_cell_e, phi_val_bd_cell_w, inv_mass,
+                         hx, hy, wts, wts2d, radius, pts, pts, pts2d_x, pts2d_y, x_c, y_c, coriolis_fun, eq_type)
+
+        for n in range(neq):
+            for j in range(d2):
+                for i in range(d1):
+                    u[i,j,n] = u[i,j,n] + dt*(-3/4*k1[i,j,n] + k2[i,j,n]/4)     # Yields: u+dt*(k1/4 + k2/4)
+
+        k3 = compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, phi_grad_cell_y,
+                         phi_val_bd_cell_n, phi_val_bd_cell_s, phi_val_bd_cell_e, phi_val_bd_cell_w, inv_mass,
+                         hx, hy, wts, wts2d, radius, pts, pts, pts2d_x, pts2d_y, x_c, y_c, coriolis_fun, eq_type)
+
+        for n in range(neq):
+            for j in range(d2):
+                for i in range(d1):
+                    u[i,j,n] = u[i,j,n] + dt*(-k1[i,j,n]/12 - k2[i,j,n]/12 + 2/3*k3[i,j,n]) # Yields: u+dt*(k1/6+k2/6+2*k1/3)
+
     elif ( RK == 4 ) :
-       print( RK, " fourth order Runge-Kutta" )
+        k1 = compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, phi_grad_cell_y,
+                         phi_val_bd_cell_n, phi_val_bd_cell_s, phi_val_bd_cell_e, phi_val_bd_cell_w, inv_mass,
+                         hx, hy, wts, wts2d, radius, pts, pts, pts2d_x, pts2d_y, x_c, y_c, coriolis_fun, eq_type)
+
+#  Use a trick to avoid the need for another temporary variable for the U input
+        for n in range(neq):
+            for j in range(d2):
+                for i in range(d1):
+                    u[i,j,n] = u[i,j,n] + dt*k1[i,j,n]/2     # Yields : u+dt*k1/2
+
+        k2 = compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, phi_grad_cell_y,
+                         phi_val_bd_cell_n, phi_val_bd_cell_s, phi_val_bd_cell_e, phi_val_bd_cell_w, inv_mass,
+                         hx, hy, wts, wts2d, radius, pts, pts, pts2d_x, pts2d_y, x_c, y_c, coriolis_fun, eq_type)
+
+        for n in range(neq):
+            for j in range(d2):
+                for i in range(d1):
+                    u[i,j,n] = u[i,j,n] + dt*(-k1[i,j,n]/2 + k2[i,j,n]/4)     # Yields: u+dt*k2/2
+
+        k3 = compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, phi_grad_cell_y,
+                         phi_val_bd_cell_n, phi_val_bd_cell_s, phi_val_bd_cell_e, phi_val_bd_cell_w, inv_mass,
+                         hx, hy, wts, wts2d, radius, pts, pts, pts2d_x, pts2d_y, x_c, y_c, coriolis_fun, eq_type)
+
+        for n in range(neq):
+            for j in range(d2):
+                for i in range(d1):
+                    u[i,j,n] = u[i,j,n] + dt*(-k2[i,j,n]/2 + k3[i,j,n]) # Yields: u+dt*k3
+
+        k4 = compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, phi_grad_cell_y,
+                         phi_val_bd_cell_n, phi_val_bd_cell_s, phi_val_bd_cell_e, phi_val_bd_cell_w, inv_mass,
+                         hx, hy, wts, wts2d, radius, pts, pts, pts2d_x, pts2d_y, x_c, y_c, coriolis_fun, eq_type)
+
+        for n in range(neq):
+            for j in range(d2):
+                for i in range(d1):
+                    # u=u+dt*1/6*k1+dt*1/3*k2+dt*1/3*k3+dt*1/6*k4
+                    u[i,j,n] = u[i,j,n] + dt*(k1[i,j,n]/6 + k2[i,j,n]/3 - 2/3*k3[i,j,n] + 1/6*k4[i,j,n])
+
     else :
-       print( RK, " is not a valid value (RK in {1,2,3,4}" )
+        print( RK, " is not a valid value (RK in {1,2,3,4}" )
 
-sys.exit("Finished")
+    if ( iter%plot_freq == 0 or iter == N_it-1 ) :
+        
+        to_plot = modal2nodal(d1,d2,neq,u,V_rect,rdist)
+        plot_solution(to_plot, x_c, y_c, n_qp_1D, d1, d2, neq, hx, hy)
 
+# End of program
