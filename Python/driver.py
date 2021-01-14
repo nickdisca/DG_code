@@ -43,7 +43,7 @@ T=100
 #T=5*86400
 
 # Order of the RK scheme (1,2,3,4)
-RK=4
+RK=1
 
 # Time step
 # For "linadv":  dt=1/r_max^2*min(hx,hy)*0.1;
@@ -56,6 +56,9 @@ plot_freq=100
 # Derived temporal loop parameters
 Courant=dt/min(hx,hy)
 N_it=math.ceil(T/dt)
+
+# Coriolis function currently zero
+coriolis_fun=lambda x,y: np.zeros(len(x));
 
 # Function to compute the element degrees
 def degree_distribution(type,d1,d2,r_max):
@@ -70,6 +73,7 @@ def degree_distribution(type,d1,d2,r_max):
     else: 
         result = r_max*np.ones((d1, d2))
         print (type,"unsupported degree distribution, using uniform")
+    result.astype(int)
     return result
 
 # Function to determine the Rusanov flux
@@ -99,14 +103,15 @@ def flux_function(eq_type,d1,d2,u,radius,hx,hy,x_c,y_c,pts_x,pts_y):
 
     elif eq_type == "adv_sphere" :
         angle = np.pi / 2
+        meters_per_s = 2*np.pi*radius/(12*86400)
         flux_x = {}
         flux_y = {}
         for j in range(d2):
             for i in range(d1):
                 qp_x = x_c[i] + pts_x*hx/2
                 qp_y = y_c[j] + pts_y*hy/2
-                beta_x = (np.cos(qp_y)*np.cos(angle)+np.sin(qp_y)) * (np.cos(qp_x)*np.sin(angle))
-                beta_y = -2*np.pi*radius/(12*86400) * (np.sin(angle)*np.sin(qp_x))
+                beta_x = meters_per_s * (np.cos(qp_y)*np.cos(angle) + np.sin(qp_y) * np.cos(qp_x)*np.sin(angle))
+                beta_y = -meters_per_s * (np.sin(angle)*np.sin(qp_x))
                 flux_x[i,j,0] = beta_x * u[i,j,0]
                 flux_y[i,j,0] = beta_y * u[i,j,0]
 
@@ -136,14 +141,14 @@ def flux_function(eq_type,d1,d2,u,radius,hx,hy,x_c,y_c,pts_x,pts_y):
     return flux_x, flux_y
 
 # Function to compute the fluxes into or out of the DG elements
-def comp_flux_bd(u_n,u_s,u_e,u_w,pts_x,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,y_c):
+def comp_flux_bd(d1,d2,neq,u_n,u_s,u_e,u_w,pts_x,pts_y,hx,hy,eq_type,radius,x_c,y_c):
     
     # Find the U values from the N, S, E, W neighboring cells
 
-    fx_n, fy_n = flux_function(u_n,eq_type,radius,hx,hy,x_c,y_c+hy/2,pts_x,np.zeros(len(pts_x)))
-    fx_s, fy_s = flux_function(u_s,eq_type,radius,hx,hy,x_c,y_c-hy/2,pts_x,np.zeros(len(pts_x)))
-    fx_e, fy_e = flux_function(u_e,eq_type,radius,hx,hy,x_c+hx/2,y_c,np.zeros(len(pts_y)),pts_y)
-    fx_w, fy_w = flux_function(u_w,eq_type,radius,hx,hy,x_c-hx/2,y_c,np.zeros(len(pts_y)),pts_y)
+    fx_n, fy_n = flux_function(eq_type,d1,d2,u_n,radius,hx,hy,x_c,y_c+hy/2,pts_x,np.zeros(len(pts_x)))
+    fx_s, fy_s = flux_function(eq_type,d1,d2,u_s,radius,hx,hy,x_c,y_c-hy/2,pts_x,np.zeros(len(pts_x)))
+    fx_e, fy_e = flux_function(eq_type,d1,d2,u_e,radius,hx,hy,x_c+hx/2,y_c,np.zeros(len(pts_y)),pts_y)
+    fx_w, fy_w = flux_function(eq_type,d1,d2,u_w,radius,hx,hy,x_c-hx/2,y_c,np.zeros(len(pts_y)),pts_y)
 
     flux_n = {}
     flux_s = {}
@@ -155,10 +160,10 @@ def comp_flux_bd(u_n,u_s,u_e,u_w,pts_x,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,
         for j in range(d2):
             for i in range(d1):
 
-                i_n=i; j_n=mod(j+1,d2);     # Find the index of neighbor sharing north edge 
-                i_s=i; j_s=mod(j-1,d2);     # Find the index of neighbor sharing south edge 
-                i_e=mod(i+1,d1); j_e=j;     # Find the index of neighbor sharing east edge 
-                i_w=mod(i-1,d1); j_w=j;     # Find the index of neighbor sharing west edge 
+                i_n=i; j_n=(j+1)%d2;     # Find the index of neighbor sharing north edge 
+                i_s=i; j_s=(j-1)%d2;     # Find the index of neighbor sharing south edge 
+                i_e=(i+1)%d1; j_e=j;      # Find the index of neighbor sharing east edge 
+                i_w=(i-1)%d1; j_w=j;      # Find the index of neighbor sharing west edge 
 
                 flux_n[i,j,0] =  1/2*(fy_n[i,j,0]+fy_s[i_n,j_n,0]) - alpha/2 * (u_s[i_n,j_n,0] - u_n[i,j,n])
                 flux_s[i,j,0] = -1/2*(fy_s[i,j,0]+fy_n[i_s,j_s,0]) - alpha/2 * (u_n[i_s,j_s,0] - u_s[i,j,n])
@@ -170,41 +175,44 @@ def comp_flux_bd(u_n,u_s,u_e,u_w,pts_x,pts_y,d1,d2,neq,hx,hy,eq_type,radius,x_c,
         angle     = np.pi/2
         cos_angle = 0.0
         sin_angle = 1.0
+        meters_per_s = 2*np.pi*radius/(12*86400)   # Over twelve days
 
         for j in range(d2):
+            qp_y   = y_c[j]+pts_y*hy/2;         # Vector
+            qp_y_n = y_c[j]+hy/2; qp_y_s = y_c[j]-hy/2;   # Scalars
+
+
             if ( j==d2 ) :
                 fact_bd_n = 0.0          # Avoid epsilon values in north pole
             else :
-                fact_bd_n = cos(qp_y_n)  # Scalar
+                fact_bd_n = np.cos(qp_y_n)  # Scalar
 
             if ( j==1 ) :
                 fact_bd_s = 0.0
             else :
-                fact_bd_s = cos(qp_y_s)  # Scalar
+                fact_bd_s = np.cos(qp_y_s)  # Scalar
 
             for i in range(d1):
                 qp_x   = x_c[i]+pts_x*hx/2;
-                qp_y   = y_c[j]+pts_y*hy/2;
                 qp_x_e = x_c[i]+hx/2; qp_x_w = x_c[i]-hx/2; 
-                qp_y_n = y_c[j]+hy/2; qp_y_s = y_c[j]-hy/2;
                 # The beta_x_* are all vectors
-                beta_x_n = 2*pi*radius/(12*86400)*(np.cos(qp_y_n)*cos_angle+np.sin(qp_y_n)*np.cos(qp_x)*sin_angle)
-                beta_x_s = 2*pi*radius/(12*86400)*(np.cos(qp_y_s)*cos_angle+np.sin(qp_y_s)*np.cos(qp_x)*sin_angle)
-                beta_x_e = 2*pi*radius/(12*86400)*(np.cos(qp_y)*cos_angle+np.sin(qp_y)*np.cos(qp_x_e)*sin_angle)
-                beta_x_w = 2*pi*radius/(12*86400)*(np.cos(qp_y)*cos_angle+np.sin(qp_y)*np.cos(qp_x_w)*sin_angle)
-                beta_y   =-2*pi*radius/(12*86400)*sin_angle*np.sin(qp_x);     # Vector
-                beta_y_e =-2*pi*radius/(12*86400)*sin_angle*np.sin(qp_x_e);   # Scalar
-                beta_y_w =-2*pi*radius/(12*86400)*sin_angle*np.sin(qp_x_w);   # Scalar
+                beta_x_n = meters_per_s*(np.cos(qp_y_n)*cos_angle+np.sin(qp_y_n)*np.cos(qp_x)*sin_angle)
+                beta_x_s = meters_per_s*(np.cos(qp_y_s)*cos_angle+np.sin(qp_y_s)*np.cos(qp_x)*sin_angle)
+                beta_x_e = meters_per_s*(np.cos(qp_y)*cos_angle+np.sin(qp_y)*np.cos(qp_x_e)*sin_angle)
+                beta_x_w = meters_per_s*(np.cos(qp_y)*cos_angle+np.sin(qp_y)*np.cos(qp_x_w)*sin_angle)
+                beta_y   =-meters_per_s*sin_angle*np.sin(qp_x);     # Vector
+                beta_y_e =-meters_per_s*sin_angle*np.sin(qp_x_e);   # Scalar
+                beta_y_w =-meters_per_s*sin_angle*np.sin(qp_x_w);   # Scalar
 
                 alpha_n = np.amax( np.sqrt(np.square(beta_x_n)+np.square(beta_y)), axis=0 ); 
                 alpha_s = np.amax( np.sqrt(np.square(beta_x_s)+np.square(beta_y)), axis=0 );
                 alpha_e = np.amax( np.sqrt(np.square(beta_x_e)+beta_y_e**2), axis=0 ); 
                 alpha_w = np.amax( np.sqrt(np.square(beta_x_w)+beta_y_w**2), axis=0 );
 
-                i_n=i; j_n=mod(j+1,d2);     # Find the index of neighbor sharing north edge
-                i_s=i; j_s=mod(j-1,d2);     # Find the index of neighbor sharing south edge
-                i_e=mod(i+1,d1); j_e=j;     # Find the index of neighbor sharing east edge
-                i_w=mod(i-1,d1); j_w=j;     # Find the index of neighbor sharing west edge
+                i_n=i; j_n=(j+1)%d2;     # Find the index of neighbor sharing north edge
+                i_s=i; j_s=(j-1)%d2;     # Find the index of neighbor sharing south edge
+                i_e=(i+1)%d1; j_e=j;     # Find the index of neighbor sharing east edge
+                i_w=(i-1)%d1; j_w=j;     # Find the index of neighbor sharing west edge
 
                 flux_n[i,j,0] = fact_bd_n*(1/2*(fy_n[i,j,0]+fy_s[i_n,j_n,0]) - alpha_n/2 * (u_s[i_n,j_n,0] - u_n[i,j,n]))
                 flux_s[i,j,0] = fact_bd_s*(-1/2*(fy_s[i,j,0]+fy_n[i_s,j_s,0]) - alpha_s/2 * (u_n[i_s,j_s,0] - u_s[i,j,n])) 
@@ -223,25 +231,26 @@ def compute_mass(phi,wts2d,d1,d2,rdist,hx,hy,y_c,pts2d_y,eq_type) :
     mass     = {}
     inv_mass = {}
 
-    if (eq_type == "linear" or eq_type == "swe") :
-        cos_factor = np.ones(d2)
-    elif (eq_type == "adv_sphere" or eq_type == "swe_sphere") :
-        cos_factor = np.cos( y_c[j]+pts2d_y*hy/2 ) 
-    else :
-        print (eq_type,"unsupported option, using linear ")
-        cos_factor = np.ones(d2)
+    cos_factor = {}
+    for j in range(d2):
+        if (eq_type == "linear" or eq_type == "swe") :
+            cos_factor[j] = np.ones(d2)
+        elif (eq_type == "adv_sphere" or eq_type == "swe_sphere") :
+            cos_factor[j] = np.cos( y_c[j]+pts2d_y*hy/2 ) 
+        else :
+            print (eq_type,"unsupported option, using linear ")
+            cos_factor[j] = np.ones(d2)
 
     for j in range(d2):
         for i in range(d1):
             r_loc=rdist[i,j]
-            dim = (r_loc+1)**2
-            mass[i,j] = np.zeros(dim,dim)
+            dim = int((r_loc+1)*(r_loc+1))
+            matrix = np.zeros((dim,dim))
             for m in range(dim):
                 for n in range(dim):
                     # det*sum(i-th basis function in qp * j-th basis function in qp * metric factor * weights)
-                    mass[i,j][m,n]=determ * np.dot(wts2d, (phi[r_loc][:,m] * phi[r_loc][:,n] * cos_factor))
-                end
-            end
+                    matrix[m,n]=determ * np.dot(wts2d, (phi[r_loc][:,m] * phi[r_loc][:,n] * cos_factor[j]))
+            mass[i,j] = matrix
             inv_mass[i,j] = np.linalg.inv(mass[i,j])
 
     return mass, inv_mass
@@ -251,7 +260,7 @@ def compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, p
                 phi_val_bd_cell_n, phi_val_bd_cell_s, phi_val_bd_cell_e, phi_val_bd_cell_w, inv_mass,
                 hx, hy, wts, wts2d, radius, pts_x, pts_y, pts2d_x, pts2d_y, x_c, y_c, coriolis_fun, eq_type) :
 
-    rhsu = {}
+    rhsu = {}   # Result
 
 # cardinality and qp
     n_qp=n_qp_1D**2
@@ -262,13 +271,13 @@ def compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, p
 
 # compute solution in the quadrature points (a matrix-vector multiplication)
     u_qp = {}
-    for k in range(neq):
+    for n in range(neq):
         for j in range(d2):
             for i in range(d1):
-                u_qp[i,j,n] = np.matmul(phi_val_cell[r(i,j)],u[i,j,n])
+                u_qp[i,j,n] = np.matmul(phi_val_cell[int(rdist[i,j])],u[i,j,n])
 
 # compute physical value of F(x) inside the region 
-    flux_fun_x, flux_fun_y = flux_function(u_qp, eq_type, radius, hx, hy, x_c, y_c, pts2d_x, pts2d_y)
+    flux_fun_x, flux_fun_y = flux_function(eq_type, d1, d2, u_qp, radius, hx, hy, x_c, y_c, pts2d_x, pts2d_y)
 
     factors = np.ones(d2)
     if (eq_type == "adv_sphere" or eq_type == "swe_sphere") :
@@ -277,48 +286,61 @@ def compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, p
         for j in range(d2):
             factors[j]=np.cos(y_c[j]+pts2d_y/2*hy)
 
-    for k in range(neq):
+    u_qp_bd_n = {}
+    u_qp_bd_s = {}
+    u_qp_bd_e = {}
+    u_qp_bd_w = {}
+    for n in range(neq):
         for j in range(d2):
             for i in range(d1):
                 rhsu[i,j,n] = ( np.matmul( phi_grad_cell_x[rdist[i,j]].T,flux_fun_x[i,j,n]*wts2d ) * (2/hx) * determ +
                               np.matmul( phi_grad_cell_y[rdist[i,j]].T,(factors[j]*flux_fun_y[i,j,n]*wts2d) ) * (2/hy) * determ )
 
-# compute LF fluxes on all four edges : calculate all edges simultaneously
-    flux_n, flux_s, flux_e, flux_w = comp_flux_bd( np.matmul( phi_val_bd_cell_n[r[i,j]], u[i,j,n] ), 
-                                                   np.matmul( phi_val_bd_cell_s[r[i,j]], u[i,j,n] ), 
-                                                   np.matmul( phi_val_bd_cell_e[r[i,j]], u[i,j,n] ), 
-                                                   np.matmul( phi_val_bd_cell_w[r[i,j]], u[i,j,n] ), 
-                                                   pts_x, pts_y, d1, d2, neq, hx, hy, eq_type, radius, x_c, y_c )
+                # Interpolate to the boundaries
+                u_qp_bd_n[i,j,n] = np.matmul(phi_val_bd_cell_n[rdist[i,j]],u[i,j,n])
+                u_qp_bd_s[i,j,n] = np.matmul(phi_val_bd_cell_s[rdist[i,j]],u[i,j,n])
+                u_qp_bd_e[i,j,n] = np.matmul(phi_val_bd_cell_e[rdist[i,j]],u[i,j,n])
+                u_qp_bd_w[i,j,n] = np.matmul(phi_val_bd_cell_w[rdist[i,j]],u[i,j,n])
 
-    for k in range(neq):
+# compute LF fluxes on all four edges : calculate all edges simultaneously
+    flux_n, flux_s, flux_e, flux_w = comp_flux_bd( d1, d2, neq, u_qp_bd_n, u_qp_bd_s, u_qp_bd_e, u_qp_bd_w,
+                                                   pts_x, pts_y, hx, hy, eq_type, radius, x_c, y_c )
+
+    for n in range(neq):
         for j in range(d2):
             for i in range(d1):
                 rhsu[i,j,n] = rhsu[i,j,n] - (0.5*hx*np.matmul(phi_val_bd_cell_n[rdist[i,j]].T,(flux_n[i,j,n]*wts)) +
                                              0.5*hx*np.matmul(phi_val_bd_cell_s[rdist[i,j]].T,(flux_s[i,j,n]*wts)) +
-                                             0.5*hx*np.matmul(phi_val_bd_cell_e[rdist[i,j]].T,(flux_e[i,j,n]*wts)) +
-                                             0.5*hx*np.matmul(phi_val_bd_cell_w[rdist[i,j]].T,(flux_w[i,j,n]*wts))) 
+                                             0.5*hy*np.matmul(phi_val_bd_cell_e[rdist[i,j]].T,(flux_e[i,j,n]*wts)) +
+                                             0.5*hy*np.matmul(phi_val_bd_cell_w[rdist[i,j]].T,(flux_w[i,j,n]*wts)))
  
     if (eq_type == "swe" or eq_type == "swe_sphere") :
         print( eq_type, " Coriolis and other correction tearms are not yet supported " )
+
+# invert the (local) mass matrix and divide by radius
+    for n in range(neq):
+        for j in range(d2):
+            for i in range(d1):
+                rhsu[i,j,n] = 1/radius * np.matmul(inv_mass[i,j],rhsu[i,j,n])
 
     return rhsu
 
 # Function to interpolate, generally from modal to nodal space
 def modal2nodal(d1,d2,neq,uM,V,rdist):
     result = {}
-    for k in range(neq):
+    for n in range(neq):
         for j in range(d2):
             for i in range(d1):
-                result[i,j,k] =  np.matmul(V[rdist[i,j]],uM[i,j,k])
+                result[i,j,n] =  np.matmul(V[rdist[i,j]],uM[i,j,n])
     return result
 
 # Function to interpolate, generally from nodal to modal space
 def nodal2modal(d1,d2,neq,uM,V,rdist):
     result = {}
-    for k in range(neq):
+    for n in range(neq):
         for j in range(d2):
             for i in range(d1):
-                result[i,j,k] =  np.linalg.solve(V[rdist[i,j]],uM[i,j,k])
+                result[i,j,n] =  np.linalg.solve(V[rdist[i,j]],uM[i,j,n])
     return result
 
 # Function to calculate diagonal matrix entries (length r^2) corresponding to normalization
@@ -405,7 +427,7 @@ else:
 # The Kronecker product is used to form the tensor of quadrature points
 pts2d_x = np.kron(pts,np.ones(n_qp_1D))
 pts2d_y = np.kron(np.ones(n_qp_1D),pts)
-wts2d_y = np.kron(wts,wts)
+wts2d   = np.kron(wts,wts)
 
 # Create the Vandermonde matrix for the modal to nodal conversion
 V = {}
@@ -482,12 +504,18 @@ u0 = initial_conditions(eq_type, d1, d2, neq, unif2d_x, unif2d_y, rdist)
 
 u0_check=modal2nodal(d1,d2,neq,nodal2modal(d1,d2,neq,u0,V,rdist),V,rdist);
 
-for k in range(neq):
+for n in range(neq):
     for j in range(d2):
         for i in range(d1):
-            error = np.linalg.norm( u0_check[i,j,k] - u0[i,j,k] )
+            error = np.linalg.norm( u0_check[i,j,n] - u0[i,j,n] )
             if ( error > 1.E-10 ) :
                print( i, j, k, error, " too big")
+
+# Create the local mass matrices and their inverses 
+mass, inv_mass = compute_mass(phi_val_cell, wts2d, d1, d2, rdist, hx, hy, y_c, pts2d_y, eq_type);
+
+# Now create U in modal space, where the time integration will be performed
+u = nodal2modal(d1,d2,neq,u0,V,rdist)
 
 for iter in range(N_it) :
     print("Performing iteration at time ", t)
@@ -497,10 +525,10 @@ for iter in range(N_it) :
 
     if ( RK == 1 ) :
         print( RK, " first order Runge-Kutta" )
-        rhs_u = compute_rhs(u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, phi_grad_cell_y,
+        rhs_u = compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, phi_grad_cell_y,
                             phi_val_bd_cell_n, phi_val_bd_cell_s, phi_val_bd_cell_e, phi_val_bd_cell_w, inv_mass,
                             hx, hy, wts, wts2d, radius, pts, pts, pts2d_x, pts2d_y, x_c, y_c, coriolis_fun, eq_type)
-        for k in range(neq):
+        for n in range(neq):
             for j in range(d2):
                 for i in range(d1):
                     u[i,j,n] = u[i,j,n] + dt*rhs_u[i,j,n]
