@@ -11,13 +11,12 @@ import matplotlib.pyplot as plt
 radius=6.37122e6;
 
 # Equation type
+#eq_type="linear";
 eq_type="adv_sphere";
 
 # number of elements in X and Y
 d1=20; d2=20
 
-# number of equations
-neq=1
 
 # definition of the domain [a,b]x[c,d]
 a=0; b=2*np.pi; c=-np.pi/2; d=np.pi/2;
@@ -52,7 +51,7 @@ RK=4
 # For "adv_sphere" with earth radius
 dt=100
 
-# Plotting frequency
+# Plotting frequency (time steps)
 plot_freq=100
 
 # Derived temporal loop parameters
@@ -60,7 +59,7 @@ Courant=dt/min(hx,hy)
 N_it=math.ceil(T/dt)
 
 # Coriolis function currently zero
-coriolis_fun=lambda x,y: np.zeros(len(x));
+coriolis_fun=lambda x,y: np.zeros(len(x));  # Needed only for swe_sphere
 
 # Function to plot solution
 def plot_solution(u,x_c,y_c,r,d1,d2,neq,hx,hy):
@@ -86,18 +85,18 @@ def plot_solution(u,x_c,y_c,r,d1,d2,neq,hx,hy):
 # Function to compute the element degrees
 def degree_distribution(type,d1,d2,r_max):
     if type == "unif":
-        result = r_max*np.ones((d1, d2))
+        rdist = r_max*np.ones((d1, d2))
     elif type == "y_dep":
 # Implement:  round( (r_max-1)/(floor(d2/2)-1)*(0:floor(d2/2)-1)+1 );
-        result = r_max*np.ones((d1, d2))
+        rdist = r_max*np.ones((d1, d2))
     elif type == "y_incr":
 # Implement: round ( (r_max-1)/(d2-1)*(0:d2-1)+1 );
-        result = r_max*np.ones((d1, d2))
+        rdist = r_max*np.ones((d1, d2))
     else: 
-        result = r_max*np.ones((d1, d2))
+        rdist = r_max*np.ones((d1, d2))
         print (type,"unsupported degree distribution, using uniform")
-    result.astype(int)
-    return result
+    rdist.astype(int)
+    return rdist
 
 # Function to determine the Rusanov flux
 def flux_function(eq_type,d1,d2,u,radius,hx,hy,x_c,y_c,pts_x,pts_y):
@@ -180,6 +179,7 @@ def comp_flux_bd(d1,d2,neq,u_n,u_s,u_e,u_w,pts_x,pts_y,hx,hy,eq_type,radius,x_c,
 
     if eq_type == "linear" :
 
+        alpha = 1.0
         for j in range(d2):
             for i in range(d1):
 
@@ -257,7 +257,7 @@ def compute_mass(phi,wts2d,d1,d2,rdist,hx,hy,y_c,pts2d_y,eq_type) :
     cos_factor = {}
     for j in range(d2):
         if (eq_type == "linear" or eq_type == "swe") :
-            cos_factor[j] = np.ones(d2)
+            cos_factor[j] = np.ones(len(pts2d_y))
         elif (eq_type == "adv_sphere" or eq_type == "swe_sphere") :
             cos_factor[j] = np.cos( y_c[j]+pts2d_y*hy/2 ) 
         else :
@@ -377,21 +377,41 @@ def norm_coeffs(r):
     return result
 
 # Initial conditions
-def initial_conditions(eq_type, d1, d2, neq, unif2d_x, unif2d_y, rdist) :
+def initial_conditions(eq_type, d1, d2, unif2d_x, unif2d_y, rdist) :
     u0 = {}
     if ( eq_type == "linear") :
-        print(eq_type)  # Still untested
+        neq = 1
         h0=0; h1=1; R=(b-a)/2/5; xc=(a+b)/2; yc=(c+d)/2; 
         u0_fun=lambda x,y:  h0+h1/2*(1+np.cos(np.pi*np.sqrt(np.square(x-xc)+np.square(y-yc)))/R)*(np.sqrt(np.square(x-xc)+np.square(y-yc))<R).astype(np.double)
+        for j in range(d2):
+            for i in range(d1):
+                local_pos_x = x_c[i] + 0.5*hx*unif2d_x[rdist[i,j]]
+                local_pos_y = y_c[j] + 0.5*hy*unif2d_y[rdist[i,j]]
+                u0[i,j,0] = u0_fun(local_pos_x,local_pos_y)
     
     elif ( eq_type == "swe") :
-        print(eq_type)
+        neq = 3
+        h0=1000; h1=5; L=1e7; sigma=L/20;
+        h0_fun  = lambda x,y : h0+h1*np.exp(-(np.square(x-L/2)+np.square(y-L/2))/(2*sigma**2))
+        v0x_fun = lambda x,y : np.zeros(len(x))
+        v0y_fun = lambda x,y : np.zeros(len(x))
+
+        # set initial condition in the uniformly spaced quadrature points
+        for j in range(d2):
+            for i in range(d1):
+                local_pos_x = x_c[i] + 0.5*hx*unif2d_x[rdist[i,j]]
+                local_pos_y = y_c[j] + 0.5*hy*unif2d_y[rdist[i,j]]
+                u0[i,j,0] = h0_fun(local_pos_x,local_pos_y)
+                u0[i,j,1] = h0_fun(local_pos_x,local_pos_y) * v0x_fun(local_pos_x,local_pos_y)
+                u0[i,j,2] = h0_fun(local_pos_x,local_pos_y) * v0y_fun(local_pos_x,local_pos_y)
+
     elif ( eq_type == "adv_sphere") :
+        neq = 1
         th_c=np.pi/2; lam_c=3/2*np.pi; h0=1000; 
         rr = lambda lam, th : radius*np.arccos(np.sin(th_c)*np.sin(th)+np.cos(th_c)*np.cos(th)*np.cos(lam-lam_c))
         u0_fun = lambda lam, th: h0/2*(1+np.cos(np.pi*rr(lam,th)/radius))*(rr(lam,th)<radius/3).astype(np.double)
         
-        #set initial condition in the uniformly spaced quadrature points
+        # set initial condition in the uniformly spaced quadrature points
         for j in range(d2):
             for i in range(d1):
                 local_pos_x = x_c[i] + 0.5*hx*unif2d_x[rdist[i,j]]
@@ -399,11 +419,13 @@ def initial_conditions(eq_type, d1, d2, neq, unif2d_x, unif2d_y, rdist) :
                 u0[i,j,0] = u0_fun(local_pos_x,local_pos_y)
 
     elif ( eq_type == "swe_sphere") :
-        print(eq_type)
+        neq = 3
+        print(eq_type, " initial conditions not yet implemented ")
     else :
-        print(eq_type, " not recognized ")
+        print(eq_type, " not recognized, exiting ")
+        sys.exit(-1)
 
-    return u0
+    return neq, u0
 
 # MAIN PROGRAM
 
@@ -520,19 +542,19 @@ for r in range(r_max+1):
     phi_val_bd_cell_w[r] = np.multiply(np.polynomial.legendre.legvander2d(lower, pts,   [r,r]),coeffs)
 
 # Set initial conditions
-u0 = initial_conditions(eq_type, d1, d2, neq, unif2d_x, unif2d_y, rdist)
+neq, u0 = initial_conditions(eq_type, d1, d2, unif2d_x, unif2d_y, rdist)
 
 # Check the modal-nodal-modal transformations
 # this check only checks whether V has full rank, since m2n and n2m are inverse operations.
 
-u0_check=modal2nodal(d1,d2,neq,nodal2modal(d1,d2,neq,u0,V,rdist),V,rdist);
+# u0_check=modal2nodal(d1,d2,neq,nodal2modal(d1,d2,neq,u0,V,rdist),V,rdist);
 
-for n in range(neq):
-    for j in range(d2):
-        for i in range(d1):
-            error = np.linalg.norm( u0_check[i,j,n] - u0[i,j,n] )
-            if ( error > 1.E-10 ) :
-               print( i, j, k, error, " too big")
+#for n in range(neq):
+#    for j in range(d2):
+#        for i in range(d1):
+#            error = np.linalg.norm( u0_check[i,j,n] - u0[i,j,n] )
+#            if ( error > 1.E-10 ) :
+#               print( i, j, k, error, " too big")
 
 # Create the local mass matrices and their inverses 
 mass, inv_mass = compute_mass(phi_val_cell, wts2d, d1, d2, rdist, hx, hy, y_c, pts2d_y, eq_type);
