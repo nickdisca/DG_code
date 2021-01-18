@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 radius=6.37122e6;
 
 # Equation type
-#eq_type="linear";
-eq_type="adv_sphere";
+eq_type="linear";
+#eq_type="adv_sphere";
 
 # number of elements in X and Y
 d1=20; d2=20
@@ -188,10 +188,10 @@ def comp_flux_bd(d1,d2,neq,u_n,u_s,u_e,u_w,pts_x,pts_y,hx,hy,eq_type,radius,x_c,
                 i_e=(i+1)%d1; j_e=j;      # Find the index of neighbor sharing east edge 
                 i_w=(i-1)%d1; j_w=j;      # Find the index of neighbor sharing west edge 
 
-                flux_n[i,j,0] =  1/2*(fy_n[i,j,0]+fy_s[i_n,j_n,0]) - alpha/2 * (u_s[i_n,j_n,0] - u_n[i,j,n])
-                flux_s[i,j,0] = -1/2*(fy_s[i,j,0]+fy_n[i_s,j_s,0]) - alpha/2 * (u_n[i_s,j_s,0] - u_s[i,j,n])
-                flux_e[i,j,0] =  1/2*(fx_e[i,j,0]+fx_w[i_e,j_e,0]) - alpha/2 * (u_w[i_e,j_e,0] - u_e[i,j,n])
-                flux_w[i,j,0] = -1/2*(fx_w[i,j,0]+fx_e[i_w,j_w,0]) - alpha/2 * (u_e[i_w,j_w,0] - u_w[i,j,n])
+                flux_n[i,j,0] =  1/2*(fy_n[i,j,0]+fy_s[i_n,j_n,0]) - alpha/2 * (u_s[i_n,j_n,0] - u_n[i,j,0])
+                flux_s[i,j,0] = -1/2*(fy_s[i,j,0]+fy_n[i_s,j_s,0]) - alpha/2 * (u_n[i_s,j_s,0] - u_s[i,j,0])
+                flux_e[i,j,0] =  1/2*(fx_e[i,j,0]+fx_w[i_e,j_e,0]) - alpha/2 * (u_w[i_e,j_e,0] - u_e[i,j,0])
+                flux_w[i,j,0] = -1/2*(fx_w[i,j,0]+fx_e[i_w,j_w,0]) - alpha/2 * (u_e[i_w,j_w,0] - u_w[i,j,0])
 
     elif eq_type == "adv_sphere" :
 
@@ -237,10 +237,10 @@ def comp_flux_bd(d1,d2,neq,u_n,u_s,u_e,u_w,pts_x,pts_y,hx,hy,eq_type,radius,x_c,
                 i_e=(i+1)%d1; j_e=j;     # Find the index of neighbor sharing east edge
                 i_w=(i-1)%d1; j_w=j;     # Find the index of neighbor sharing west edge
 
-                flux_n[i,j,0] = fact_bd_n*(1/2*(fy_n[i,j,0]+fy_s[i_n,j_n,0]) - alpha_n/2 * (u_s[i_n,j_n,0] - u_n[i,j,n]))
-                flux_s[i,j,0] = fact_bd_s*(-1/2*(fy_s[i,j,0]+fy_n[i_s,j_s,0]) - alpha_s/2 * (u_n[i_s,j_s,0] - u_s[i,j,n])) 
-                flux_e[i,j,0] =  1/2*(fx_e[i,j,0]+fx_w[i_e,j_e,0]) - alpha_e/2 * (u_w[i_e,j_e,0] - u_e[i,j,n])
-                flux_w[i,j,0] = -1/2*(fx_w[i,j,0]+fx_e[i_w,j_w,0]) - alpha_w/2 * (u_e[i_w,j_w,0] - u_w[i,j,n])
+                flux_n[i,j,0] = fact_bd_n*(1/2*(fy_n[i,j,0]+fy_s[i_n,j_n,0]) - alpha_n/2 * (u_s[i_n,j_n,0] - u_n[i,j,0]))
+                flux_s[i,j,0] = fact_bd_s*(-1/2*(fy_s[i,j,0]+fy_n[i_s,j_s,0]) - alpha_s/2 * (u_n[i_s,j_s,0] - u_s[i,j,0])) 
+                flux_e[i,j,0] =  1/2*(fx_e[i,j,0]+fx_w[i_e,j_e,0]) - alpha_e/2 * (u_w[i_e,j_e,0] - u_e[i,j,0])
+                flux_w[i,j,0] = -1/2*(fx_w[i,j,0]+fx_e[i_w,j_w,0]) - alpha_w/2 * (u_e[i_w,j_w,0] - u_w[i,j,0])
 
     else :
         print( eq_type, " not supported in comp_flux_bd" )
@@ -380,14 +380,23 @@ def norm_coeffs(r):
 def initial_conditions(eq_type, d1, d2, unif2d_x, unif2d_y, rdist) :
     u0 = {}
     if ( eq_type == "linear") :
+#
+# The original code had a periodic sine*sine distribution.  
+#        u0=sin(2*pi*unif2d_phi(1:dim,:)).*sin(2*pi*unif2d_phi(dim+1:2*dim,:));
+
         neq = 1
-        h0=0; h1=1; R=(b-a)/2/5; xc=(a+b)/2; yc=(c+d)/2; 
-        u0_fun=lambda x,y:  h0+h1/2*(1+np.cos(np.pi*np.sqrt(np.square(x-xc)+np.square(y-yc)))/R)*(np.sqrt(np.square(x-xc)+np.square(y-yc))<R).astype(np.double)
+        mounds = 4
+        h0=0; h1=1; R=(b-a)/2/5; xc=(a+b)/2; yc=(c+d)/2;
+        u0_fun=lambda x,y:  h0 + h1*np.sin(mounds*x)*np.sin(mounds*y)  # Try the origin
+# This one is a blob centered on the domain.
+#        u0_fun=lambda x,y:  h0+h1/2*(1+np.cos(np.pi*np.sqrt(np.square(x-xc)+np.square(y-yc)))/R)*(np.sqrt(np.square(x-xc)+np.square(y-yc))<R).astype(np.double)
         for j in range(d2):
             for i in range(d1):
                 local_pos_x = x_c[i] + 0.5*hx*unif2d_x[rdist[i,j]]
                 local_pos_y = y_c[j] + 0.5*hy*unif2d_y[rdist[i,j]]
                 u0[i,j,0] = u0_fun(local_pos_x,local_pos_y)
+
+        print("len u0[0,0,0]", len(u0[i,j,0]))
     
     elif ( eq_type == "swe") :
         neq = 3
