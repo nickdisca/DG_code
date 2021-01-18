@@ -11,8 +11,9 @@ import matplotlib.pyplot as plt
 radius=6.37122e6;
 
 # Equation type
-eq_type="linear";
-#eq_type="adv_sphere";
+#eq_type="linear";
+eq_type="adv_sphere";
+#eq_type="swe";
 
 # number of elements in X and Y
 d1=20; d2=20
@@ -41,7 +42,9 @@ n_qp=n_qp_1D*n_qp_1D
 
 # Time interval, initial and final time
 t=0
-T=5*86400
+T=1000
+#T=86400
+#T=5*86400
 
 # Order of the RK scheme (1,2,3,4)
 RK=4
@@ -52,7 +55,7 @@ RK=4
 dt=100
 
 # Plotting frequency (time steps)
-plot_freq=100
+plot_freq=1000
 
 # Derived temporal loop parameters
 Courant=dt/min(hx,hy)
@@ -73,11 +76,13 @@ def plot_solution(u,x_c,y_c,r,d1,d2,neq,hx,hy):
 
     Y, X = np.meshgrid(y_u, x_u)  # Transposed to visualize properly
     Z    = np.zeros((d1*r,d2*r))
+    
     for k in range(neq):
         for j in range(d2):
             for i in range(d1):
                 Z[i*r:(i+1)*r,j*r:(j+1)*r] = u[i,j,n].reshape(r,r)
-
+    Z[np.abs(Z) < np.amax(Z)/1000.0] = 0.0   # Clip all values less than 1/1000 of peak
+                
     fig, ax = plt.subplots()
     CS = ax.contour(X, Y, Z)
     plt.show()
@@ -104,10 +109,11 @@ def flux_function(eq_type,d1,d2,u,radius,hx,hy,x_c,y_c,pts_x,pts_y):
     flux_y = {}
 
     if eq_type == "linear" :
+        meters_per_s = 100.0
         for j in range(d2):
             for i in range(d1):
-                flux_x[i,j,0] = u[i,j,0]
-                flux_y[i,j,0] = u[i,j,0]
+                flux_x[i,j,0] = meters_per_s * u[i,j,0]
+                flux_y[i,j,0] = meters_per_s * u[i,j,0]
 
     elif eq_type == "swe" :
 #
@@ -242,6 +248,42 @@ def comp_flux_bd(d1,d2,neq,u_n,u_s,u_e,u_w,pts_x,pts_y,hx,hy,eq_type,radius,x_c,
                 flux_e[i,j,0] =  1/2*(fx_e[i,j,0]+fx_w[i_e,j_e,0]) - alpha_e/2 * (u_w[i_e,j_e,0] - u_e[i,j,0])
                 flux_w[i,j,0] = -1/2*(fx_w[i,j,0]+fx_e[i_w,j_w,0]) - alpha_w/2 * (u_e[i_w,j_w,0] - u_w[i,j,0])
 
+    elif eq_type == "swe" :
+
+        g = 9.80616
+        fun_alpha = lambda g,u1,u2,u3 : np.amax( np.sqrt(np.abs(g*u1))+np.sqrt(np.square(u2/u1)+np.square(u3/u1)) )
+        for j in range(d2):
+            for i in range(d1):
+                i_n=i; j_n=(j+1)%d2;     # Find the index of neighbor sharing north edge
+                i_s=i; j_s=(j-1)%d2;     # Find the index of neighbor sharing south edge
+                i_e=(i+1)%d1; j_e=j;     # Find the index of neighbor sharing east edge
+                i_w=(i-1)%d1; j_w=j;     # Find the index of neighbor sharing west edge
+
+                # Calculate the maximum wave speed over the north face (same for all QP)
+                alpha = max( fun_alpha(g,u_n[i,j,0],u_n[i,j,1],u_n[i,j,2]), 
+                             fun_alpha(g,u_s[i_n,j_n,0],u_s[i_n,j_n,1],u_s[i_n,j_n,2]))
+                for n in range(neq):
+                    flux_n[i,j,n] = 1/2*(fy_n[i,j,n]+fy_s[i_n,j_n,n]) - alpha/2 * (u_s[i_n,j_n,n] - u_n[i,j,n])
+
+                # Calculate the maximum wave speed over the south face (same for all QP)
+                alpha = max( fun_alpha(g,u_s[i,j,0],u_s[i,j,1],u_s[i,j,2]), 
+                             fun_alpha(g,u_n[i_s,j_s,0],u_n[i_s,j_s,1],u_n[i_s,j_s,2]))
+                for n in range(neq):
+                    flux_s[i,j,n] = 1/2*(fy_s[i,j,n]+fy_n[i_s,j_s,n]) - alpha/2 * (u_n[i_s,j_s,n] - u_s[i,j,n])
+
+                # Calculate the maximum wave speed over the east face (same for all QP)
+                alpha = max( fun_alpha(g,u_e[i,j,0],u_e[i,j,1],u_e[i,j,2]),
+                             fun_alpha(g,u_w[i_e,j_e,0],u_w[i_e,j_e,1],u_w[i_e,j_e,2]))
+                for n in range(neq):
+                    flux_e[i,j,n] = 1/2*(fy_e[i,j,n]+fy_w[i_e,j_e,n]) - alpha/2 * (u_w[i_e,j_e,n] - u_e[i,j,n])
+
+                # Calculate the maximum wave speed over the west face (same for all QP)
+                alpha = max( fun_alpha(g,u_w[i,j,0],u_w[i,j,1],u_w[i,j,2]),
+                             fun_alpha(g,u_e[i_w,j_w,0],u_e[i_w,j_w,1],u_e[i_w,j_w,2]))
+                for n in range(neq):
+                    flux_w[i,j,n] = 1/2*(fy_w[i,j,n]+fy_e[i_w,j_w,n]) - alpha/2 * (u_e[i_w,j_w,n] - u_w[i,j,n])
+
+
     else :
         print( eq_type, " not supported in comp_flux_bd" )
 
@@ -338,7 +380,7 @@ def compute_rhs(d1, d2, neq, u, rdist, n_qp_1D, phi_val_cell, phi_grad_cell_x, p
                                              0.5*hy*np.matmul(phi_val_bd_cell_w[rdist[i,j]].T,(flux_w[i,j,n]*wts)))
  
     if (eq_type == "swe" or eq_type == "swe_sphere") :
-        print( eq_type, " Coriolis and other correction tearms are not yet supported " )
+        print( eq_type, " Coriolis not yet supported -- no correction" )
 
 # invert the (local) mass matrix and divide by radius
     for n in range(neq):
@@ -380,16 +422,13 @@ def norm_coeffs(r):
 def initial_conditions(eq_type, d1, d2, unif2d_x, unif2d_y, rdist) :
     u0 = {}
     if ( eq_type == "linear") :
-#
-# The original code had a periodic sine*sine distribution.  
-#        u0=sin(2*pi*unif2d_phi(1:dim,:)).*sin(2*pi*unif2d_phi(dim+1:2*dim,:));
-
         neq = 1
-        mounds = 4
         h0=0; h1=1; R=(b-a)/2/5; xc=(a+b)/2; yc=(c+d)/2;
-        u0_fun=lambda x,y:  h0 + h1*np.sin(mounds*x)*np.sin(mounds*y)  # Try the origin
+# The original code had a periodic sine*sine distribution:
+#        mounds = 4
+#        u0_fun=lambda x,y:  h0 + h1*np.sin(mounds*x)*np.sin(mounds*y)  # Try the origin
 # This one is a blob centered on the domain.
-#        u0_fun=lambda x,y:  h0+h1/2*(1+np.cos(np.pi*np.sqrt(np.square(x-xc)+np.square(y-yc)))/R)*(np.sqrt(np.square(x-xc)+np.square(y-yc))<R).astype(np.double)
+        u0_fun=lambda x,y:  h0+h1/2*(1+np.cos(np.pi*np.sqrt(np.square(x-xc)+np.square(y-yc)))/R)*(np.sqrt(np.square(x-xc)+np.square(y-yc))<R).astype(np.double)
         for j in range(d2):
             for i in range(d1):
                 local_pos_x = x_c[i] + 0.5*hx*unif2d_x[rdist[i,j]]
