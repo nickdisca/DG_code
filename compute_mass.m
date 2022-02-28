@@ -1,33 +1,53 @@
-function [mass,inv_mass] =compute_mass(phi,wts2d,d1,d2,r,hx,hy,factor)
+function [mass,inv_mass] =compute_mass(phi,wts2d,d1,d2,r,hx,hy,y_c,pts2d_y,eq_type)
 %compute mass matrix and its inverse, different in all elements due to cosine factors
 %M(i,j)=integral_K(Phi_j*Phi_i*dA)
 
 dim=(max(r(:))+1)^2;
 
-%dimensions: (cardinality)x(cardinality)x(num_elems)
-mass=repmat(eye(dim,dim),1,1,d1*d2);
-inv_mass=repmat(eye(dim,dim),1,1,d1*d2);
+%dimensions: cell arrays (d1,d2)
+mass=cell(d1,d2);
+inv_mass=cell(d1,d2);
 
 %determinant of the affine mapping from reference to physical element (this
 %is assumed to be constant)
 determ=hx*hy/4;
 
-for k=1:d1*d2
-    
-    elem_x=floor((k-1)/d2)+1;
-    elem_y=mod((k-1),d2)+1;
-    r_loc=r(elem_y,elem_x);
-    
-    for i=1:(r_loc+1)^2
-        for j=1:(r_loc+1)^2
-            %det*sum(i-th basis function in qp * j-th basis function in qp * metric
-            %factor * weights)
-            mass(i,j,k)=determ*wts2d'*(phi{r_loc}(:,i).*phi{r_loc}(:,j).*factor(:,k));
+if eq_type=="linear" || eq_type=="swe"
+    for i=1:d1
+        for j=1:d2
+            r_loc=r(i,j);
+            mass{i,j} = eye((r_loc+1)^2);
+            for m=1:(r_loc+1)^2
+                for n=1:(r_loc+1)^2
+                    %det*sum(i-th basis function in qp * j-th basis function in qp * metric
+                    %factor * weights)
+                    mass{i,j}(m,n)=determ*wts2d'*(phi{r_loc}(:,m).*phi{r_loc}(:,n));
+                end
+            end
+            inv_mass{i,j}=inv(mass{i,j});
         end
     end
-    
-    inv_mass(1:(r_loc+1)^2,1:(r_loc+1)^2,k)=mass(1:(r_loc+1)^2,1:(r_loc+1)^2,k)\eye((r_loc+1).^2);
-    
+
 end
+
+%spherical geometry
+if eq_type=="adv_sphere" || eq_type=="swe_sphere"
+
+    for i=1:d1
+        for j=1:d2
+            cos_factor=cos(y_c(j)+pts2d_y*hy/2);  % Vector
+            r_loc=r(i,j);
+            mass{i,j} = zeros((r_loc+1)^2);
+            for m=1:(r_loc+1)^2
+                for n=1:(r_loc+1)^2
+                    %det*sum(i-th basis function in qp * j-th basis function in qp * metric
+                    %factor * weights)
+                    mass{i,j}(m,n)=determ*wts2d'*(phi{r_loc}(:,m).*phi{r_loc}(:,n).*cos_factor);
+                end
+            end
+            inv_mass{i,j}=inv(mass{i,j});
+        end
+    end
+
 
 end

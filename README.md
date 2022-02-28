@@ -1,9 +1,16 @@
 # DGMG
-### Created by: Niccolò Discacciati (EPFL, Lausanne) 
+### Created by: Niccolò Discacciati (EPFL, Lausanne), Forked and Updated by Will Sawyer (CSCS/ETH)
 ### Code available at: 
-`https://github.com/nickdisca/DG_code/`             
+`https://github.com/vectorflux/DG_code/`
 
-### Date: 11 October, 2019
+### Date: 16 March, 2020
+
+**Latest update**  On the "devel" branch there is now a refactored version of Nick's code which uses a simple {i,j,n} structure over all arrays (i over the X and j over the Y dimension, n over the number of equations).   Besides being easier to read than the old verion, this one has a structure which is compatible with the GridTools library, and therefore might serve as a basis to port the algorithm to Python, possibly using the GT4Py extension.
+
+This version is run out of **driver_new.m**, which has the same parameters as the origin **driver.m** code described below.  The revised functions generally have the suffix **new**, although be aware that not all the functions with that suffix are actually used.   The full implementation of the original code is still present in the **devel** branch and essentially unchanged.  This allows for direct comparisons between the two versions for debugging. 
+
+### Overview
+
 
 **DGMG** is a modal RKDG-solver written in MATLAB, which can handle conservation laws in both cartesian and spherical coordinates (MG stands for 'MultiGeometry'), with a support for variable degree in space ('static adaptivity'). Details about DG discretization methods can be found in, e.g.
 
@@ -12,7 +19,8 @@
 A more detailed description is provided in, e.g.,
 
  - S. Carcano. “Finite volume methods and Discontinuous Galerkin methods for the numerical modeling of multiphase gas-particle flows.” Doctoral Thesis. Politecnico di Milano, 2014.
-- G. Tumolo, L. Bonaventura. “A semi-implicit, semi-Lagrangian Discontinuous Galerkin framework for adaptive numerical weather prediction.” Q.J. Royal Meteorological Society, 2015.- G. Tumolo, L. Bonaventura, M. Restelli. “A semi-implicit, semi-Lagrangian, p-adaptive dis- continuous Galerkin method for the shallow water equations.” Journal of Computational Physics (2013).
+- G. Tumolo, L. Bonaventura. “A semi-implicit, semi-Lagrangian Discontinuous Galerkin framework for adaptive numerical weather prediction.” Q.J. Royal Meteorological Society, 2015.
+- G. Tumolo, L. Bonaventura, M. Restelli. “A semi-implicit, semi-Lagrangian, p-adaptive dis- continuous Galerkin method for the shallow water equations.” Journal of Computational Physics (2013).
 
 Interesting test cases are provided in 
 
