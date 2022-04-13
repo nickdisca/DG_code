@@ -10,6 +10,8 @@ from norm_coeffs import norm_coeffs
 
 from numpy.polynomial import legendre as L
 
+from vander import Vander
+
 # %%
 backend = "gtc:numpy"
 dtype = np.float64
@@ -67,32 +69,30 @@ half_cell_y = (d-c)/(2*ny)
 x_c=np.linspace(a+half_cell_x,b-half_cell_x,nx); # Cell centers in X
 y_c=np.linspace(c+half_cell_y,d-half_cell_y,ny); # Cell centers in Y
 
-# To support the variable length of the uniform space, we use lists
-unif2d_x = {}
-unif2d_y = {}
-
-# The Kronecker product is used to form the tensor
-for r in range(r_max+1):
-     unif=np.linspace(-1,1,r+1)
-     unif2d_x[r] = np.kron(unif,np.ones(r+1))
-     unif2d_y[r] = np.kron(np.ones(r+1),unif)
+unif=np.linspace(-1,1,r_max)
+unif2d_x = np.kron(unif,np.ones(r_max+1))
+unif2d_y = np.kron(np.ones(r_max+1),unif)
 
 # all matrices are the same size but lower orders are padded!
 V = np.zeros((dim, dim, r_max+1))
 phi_val_cell = np.zeros((n_qp, dim, r_max+1))
 
-for r in range(r_max+1):
-    num_coeff = r+1
-    matrix_dim = (r+1)**2
+V = Vander(dim, r_max, n_qp, pts2d_x, pts2d_y)
 
-    # Determine the coefficients for the orthogonality
-    coeffs = norm_coeffs(num_coeff)
+print('Done')
 
-    # Square matrix for the modal-nodal transformations
-    legvander2d = L.legvander2d(unif2d_x[r],unif2d_y[r],[r,r])
-    V[:matrix_dim,:matrix_dim,r] = legvander2d * coeffs
+# for r in range(r_max+1):
+#     num_coeff = r+1
+#     matrix_dim = (r+1)**2
 
-    # Values and grads of basis functions in internal quadrature points, i.e.
-    # phi_val(i,j)=Phi_j(x_i) for i=1:dim_qp,j=1:dim. The x_i are the quadrature points,
-    legvander2d = np.polynomial.legendre.legvander2d(pts2d_x,pts2d_y,[r, r])
-    phi_val_cell[:, :matrix_dim, r] = legvander2d * coeffs
+#     # Determine the coefficients for the orthogonality
+#     coeffs = norm_coeffs(num_coeff)
+
+#     # Square matrix for the modal-nodal transformations
+#     legvander2d = L.legvander2d(unif2d_x[r],unif2d_y[r],[r,r])
+#     V[:matrix_dim,:matrix_dim,r] = legvander2d * coeffs
+
+#     # Values and grads of basis functions in internal quadrature points, i.e.
+#     # phi_val(i,j)=Phi_j(x_i) for i=1:dim_qp,j=1:dim. The x_i are the quadrature points,
+#     legvander2d = np.polynomial.legendre.legvander2d(pts2d_x,pts2d_y,[r, r])
+#     phi_val_cell[:, :matrix_dim, r] = legvander2d * coeffs

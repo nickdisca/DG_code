@@ -1,5 +1,6 @@
 import numpy as np
 import numpy.polynomial.legendre as L
+from scipy.special import legendre
 
 
 class Vander:
@@ -9,8 +10,8 @@ class Vander:
 
         self.V = np.zeros((dim, dim, r_max+1))
         self.phi_val_cell = np.zeros((n_qp, dim, r_max+1))
-        self.phi_val_cell_x = np.zeros((n_qp, dim, r_max+1))
-        self.phi_val_cell_y = np.zeros((n_qp, dim, r_max+1))
+        self.phi_grad_cell_x = np.zeros((n_qp, dim, r_max+1))
+        self.phi_grad_cell_y = np.zeros((n_qp, dim, r_max+1))
         for r in range(r_max+1):
             unif = np.linspace(-1, 1, r+1)
             self.unif2d_x.append(np.kron(unif,np.ones(r+1)))
@@ -30,7 +31,27 @@ class Vander:
             self.phi_val_cell[:, :matrix_dim, r]= np.polynomial.legendre.legvander2d(pts2d_x,pts2d_y,[r, r])
             # self.phi_val_cell[:, :matrix_dim, r] = legvander2d * coeffs
 
-            
+            temp_vander_x = np.polynomial.legendre.legvander(pts2d_x,r)
+            temp_vander_y = np.polynomial.legendre.legvander(pts2d_y,r)
+            dLm_x         = np.zeros((n_qp,num_coeff))
+            dLm_y         = np.zeros((n_qp,num_coeff))
+
+            # Note the unclean way with which the coefficients are set, used, and then zeroed out again
+            coeff = np.zeros(num_coeff)
+            for m in range(num_coeff):
+                coeff[m]=1.0
+                dLm_x[:,m] = np.polynomial.legendre.legval(pts2d_x,np.polynomial.legendre.legder(coeff))
+                dLm_y[:,m] = np.polynomial.legendre.legval(pts2d_y,np.polynomial.legendre.legder(coeff)) 
+                coeff[m]=0.0
+
+            for m in range(num_coeff):
+                for n in range(num_coeff):
+                    self.phi_grad_cell_x[:,m*num_coeff+n, r]=np.multiply(temp_vander_y[:,n],dLm_x[:,m])
+                    self.phi_grad_cell_y[:,m*num_coeff+n, r]=np.multiply(temp_vander_x[:,m],dLm_y[:,n])
+
+        print('Intilization finished!')
+
+
 
 
 
