@@ -1,30 +1,43 @@
 import numpy as np
 import numpy.polynomial.legendre as L
 from scipy.special import legendre
+import gt4py as gt
 
 
 class Vander:
-    def __init__(self, dim, r_max, n_qp, pts2d_x, pts2d_y):
+    def __init__(self, nx, ny, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d, backend="gtc:numpy"):
+        self.nx = nx
+        self.ny = ny
         # self.V = np.zeros((dim, dim))
         self.phi_val_cell = np.zeros((n_qp, dim))
         self.phi_grad_cell_x = np.zeros((n_qp, dim))
         self.phi_grad_cell_y = np.zeros((n_qp, dim))
-        unif = np.linspace(-1, 1, r_max+1)
-        self.unif2d_x = np.kron(unif,np.ones(r_max+1))
-        self.unif2d_y = np.kron(np.ones(r_max+1),unif)
+        unif = np.linspace(-1, 1, r+1)
+        self.unif2d_x = np.kron(unif,np.ones(r+1))
+        self.unif2d_y = np.kron(np.ones(r+1),unif)
 
-        num_coeff = r_max+1
+        self.wts2d = wts2d
+        self.pts = pts
+
+
+        lower  = -np.ones(1)   # Corresponds to the negative boundary of a Legendre polynomial
+        upper  =  np.ones(1)   # Corresponds to the positive boundary of a Legendre polynomial
+
+        num_coeff = r+1
         matrix_dim = num_coeff**2
         # # Determine the coefficients for the orthogonality
-        # coeffs = self.norm_coeffs(num_coeff)
+        coeffs = self.norm_coeffs(num_coeff)
 
         # Square matrix for the modal-nodal transformations
-        self.V = L.legvander2d(self.unif2d_x[r_max],self.unif2d_y[r_max],[r_max,r_max])
+        self.vander = L.legvander2d(self.unif2d_x,self.unif2d_y,[r,r])
+        self.vander = self.vander * coeffs
+        self.inv_vander = np.linalg.inv(self.vander)
         # self.V[:matrix_dim,:matrix_dim,r] = legvander2d * coeffs
 
         # Values and grads of basis functions in internal quadrature points, i.e.
         # phi_val(i,j)=Phi_j(x_i) for i=1:dim_qp,j=1:dim. The x_i are the quadrature points,
-        self.phi_val_cell[r_max] = np.polynomial.legendre.legvander2d(pts2d_x,pts2d_y,[r, r])
+        self.phi_val_cell = np.polynomial.legendre.legvander2d(pts2d_x,pts2d_y,[r, r])
+        self.phi_val_cell = self.phi_val_cell * coeffs
         # self.phi_val_cell[:, :matrix_dim, r] = legvander2d * coeffs
 
         temp_vander_x = np.polynomial.legendre.legvander(pts2d_x,r)
@@ -42,14 +55,48 @@ class Vander:
 
         for m in range(num_coeff):
             for n in range(num_coeff):
-                self.phi_grad_cell_x[:,m*num_coeff+n, r]=np.multiply(temp_vander_y[:,n],dLm_x[:,m])
-                self.phi_grad_cell_y[:,m*num_coeff+n, r]=np.multiply(temp_vander_x[:,m],dLm_y[:,n])
+                self.phi_grad_cell_x[:,m*num_coeff+n]=np.multiply(temp_vander_y[:,n],dLm_x[:,m])
+                self.phi_grad_cell_y[:,m*num_coeff+n]=np.multiply(temp_vander_x[:,m],dLm_y[:,n])
+        self.phi_grad_cell_x = self.phi_grad_cell_x * coeffs
+        self.phi_grad_cell_y = self.phi_grad_cell_y * coeffs
 
-        print('Intilization finished!')
+        # Values of basis functions in boundary quadrature points, repeating for
+        # each face and degree;  dimensions: (num_quad_pts_per_face)x(cardinality)x(num_faces)
+        self.phi_val_bd_cell_n = np.polynomial.legendre.legvander2d(pts,   upper, [r,r]) * coeffs
+        self.phi_val_bd_cell_s = np.polynomial.legendre.legvander2d(pts,   lower, [r,r]) * coeffs
+        self.phi_val_bd_cell_e = np.polynomial.legendre.legvander2d(upper, pts,   [r,r]) * coeffs
+        self.phi_val_bd_cell_w = np.polynomial.legendre.legvander2d(lower, pts,   [r,r]) * coeffs
+
+        self.conv_to_gt()
 
 
+    def conv_to_gt(self, dtype=np.float64, backend="gtc:numpy"):
+        dim = self.vander.shape[0]
+        n_qp_1D = len(self.pts)
+        self.wtsd2d_gt = gt.storage.from_array(data=self.wts2d,
+            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (dim,)), default_origin=(0,0,0))
+        self.vander_gt = gt.storage.from_array(data=self.vander,
+            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (dim, dim)), default_origin=(0,0,0))
+        self.inv_vander_gt = gt.storage.from_array(data=self.inv_vander,
+            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (dim, dim)), default_origin=(0,0,0))
 
+        n_qp, dim = self.phi_val_cell.shape
+        self.phi_gt = gt.storage.from_array(data=self.phi_val_cell,
+            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp, dim)), default_origin=(0,0,0))
+        self.grad_phi_x_gt = gt.storage.from_array(data=self.phi_grad_cell_x,
+            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp, dim)), default_origin=(0,0,0))
+        self.grad_phi_y_gt = gt.storage.from_array(data=self.phi_grad_cell_y,
+            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp, dim)), default_origin=(0,0,0))
 
+        self.phi_bd_N_gt = gt.storage.from_array(data=self.phi_val_bd_cell_n,
+            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp_1D,dim)), default_origin=(0,0,0))
+        self.phi_bd_S_gt = gt.storage.from_array(data=self.phi_val_bd_cell_s,
+            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp_1D,dim)), default_origin=(0,0,0))
+        self.phi_bd_E_gt = gt.storage.from_array(data=self.phi_val_bd_cell_e,
+            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp_1D,dim)), default_origin=(0,0,0))
+        self.phi_bd_W_gt = gt.storage.from_array(data=self.phi_val_bd_cell_w,
+            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp_1D,dim)), default_origin=(0,0,0))
+        
 
     def norm_coeffs(self, r):
         result = np.zeros(r*r)

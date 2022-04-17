@@ -1,16 +1,19 @@
 # %%
+from email.policy import default
 import numpy as np
 import gt4py as gt
 import gt4py.gtscript as gtscript
 import quadpy as qp
-
-from degree_distribution import degree_distribution
-from compute_unif import compute_unif
-from norm_coeffs import norm_coeffs
-
 from numpy.polynomial import legendre as L
 
 from vander import Vander
+from initial_conditions import set_initial_conditions
+from plot import plot_solution
+from generate_matmul_function import generate_matmul_function
+from modal_conversion import nodal2modal, modal2nodal, nodal2modal_gt, modal2nodal_gt
+from compute_mass import compute_mass
+from compute_rhs import compute_rhs
+from boundary_conditions import apply_pbc
 
 # %%
 backend = "gtc:numpy"
@@ -28,25 +31,25 @@ eq_type="adv_sphere";
 # domain
 a = 0; b = 1; c = 0; d =1
 # number of elements in X and Y
-nx = 20; ny = 20
+nx = 2; ny = 2
 
 hx = (b-a)/nx; hy = (d-c)/ny
 
 # polynomial degree of DG
-r_max = 2
+r = 1
 # cardinality
-dim=(r_max+1)**2
+dim=(r+1)**2
 
 # Type of quadrature rule (Gauss-Legendre or Gauss-Legendre-Lobatto)
 quad_type="leg"
 
 # Number of quadrature points in one dimension
-n_qp_1D=4
+n_qp_1D=2
 
 # Number of quadrature points
 n_qp=n_qp_1D*n_qp_1D
 # %%
-rdist_gt = degree_distribution("unif",nx,ny,r_max);
+# rdist_gt = degree_distribution("unif",nx,ny,r_max);
 
 if quad_type == "leg":
 # Gauss-Legendre quadrature
@@ -69,30 +72,36 @@ half_cell_y = (d-c)/(2*ny)
 x_c=np.linspace(a+half_cell_x,b-half_cell_x,nx); # Cell centers in X
 y_c=np.linspace(c+half_cell_y,d-half_cell_y,ny); # Cell centers in Y
 
-unif=np.linspace(-1,1,r_max)
-unif2d_x = np.kron(unif,np.ones(r_max+1))
-unif2d_y = np.kron(np.ones(r_max+1),unif)
-
 # all matrices are the same size but lower orders are padded!
-V = np.zeros((dim, dim, r_max+1))
-phi_val_cell = np.zeros((n_qp, dim, r_max+1))
+vander = Vander(nx, ny, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d)
 
-V = Vander(dim, r_max, n_qp, pts2d_x, pts2d_y)
+neq, u0_nodal = set_initial_conditions(x_c, y_c, a, b, c, d, dim, vander, "linear")
 
-print('Done')
 
-# for r in range(r_max+1):
-#     num_coeff = r+1
-#     matrix_dim = (r+1)**2
+print("done")
 
-#     # Determine the coefficients for the orthogonality
-#     coeffs = norm_coeffs(num_coeff)
+# u_shape = u0.shape + np.array([2, 2, 0, 0]) # add ghost cell
 
-#     # Square matrix for the modal-nodal transformations
-#     legvander2d = L.legvander2d(unif2d_x[r],unif2d_y[r],[r,r])
-#     V[:matrix_dim,:matrix_dim,r] = legvander2d * coeffs
+# u0_nodal = np.zeros(shape=u_shape)
+# u0_nodal[1:-1, 1:-1] = u0               # insert u
+# u0_nodal = apply_pbc(u0_nodal)
 
-#     # Values and grads of basis functions in internal quadrature points, i.e.
-#     # phi_val(i,j)=Phi_j(x_i) for i=1:dim_qp,j=1:dim. The x_i are the quadrature points,
-#     legvander2d = np.polynomial.legendre.legvander2d(pts2d_x,pts2d_y,[r, r])
-#     phi_val_cell[:, :matrix_dim, r] = legvander2d * coeffs
+# plot_solution(u0_nodal, x_c, y_c, r+1, nx, ny, neq, hx, hy, "contour")
+
+
+
+u0_nodal_gt = gt.storage.from_array(data=u0_nodal,
+    backend=backend, default_origin=(0,0,0), shape=(nx,ny,1), dtype=(dtype, (dim,)))
+
+u0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
+
+mass, inv_mass = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, eq_type)
+
+inv_mass_gt = gt.storage.from_array(inv_mass, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (dim, dim)))
+
+wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (dim, )))
+
+wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (len(wts), )))
+
+rhs = compute_rhs(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp, hx, hy)
+print("Done")
