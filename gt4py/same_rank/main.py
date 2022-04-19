@@ -48,6 +48,9 @@ n_qp_1D=2
 
 # Number of quadrature points
 n_qp=n_qp_1D*n_qp_1D
+
+# timestep
+dt = 1e-7
 # %%
 # rdist_gt = degree_distribution("unif",nx,ny,r_max);
 
@@ -78,7 +81,6 @@ vander = Vander(nx, ny, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d)
 neq, u0_nodal = set_initial_conditions(x_c, y_c, a, b, c, d, dim, vander, "linear")
 
 
-print("done")
 
 # u_shape = u0.shape + np.array([2, 2, 0, 0]) # add ghost cell
 
@@ -103,5 +105,5 @@ wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0),
 
 wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (len(wts), )))
 
-rhs = compute_rhs(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp, hx, hy)
+rhs = compute_rhs(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp, hx, hy, nx, ny, dt)
 print("Done")

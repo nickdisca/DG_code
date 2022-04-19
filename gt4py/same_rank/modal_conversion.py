@@ -79,8 +79,8 @@ def modal2bd_gt(phi, in_modal):
     nx, ny, nz, _ = in_modal.shape
     vec = phi.shape[3]
     out = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (vec,)))
-    modal2bd(phi, in_modal, out)
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (vec,)))
+    modal2bd(phi, in_modal, out, origin=(1,1,0), domain=(nx,ny,1))
     return out
 
 @gtscript.stencil(backend=backend, **backend_opts)

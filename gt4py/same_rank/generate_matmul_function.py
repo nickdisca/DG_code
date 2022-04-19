@@ -5,17 +5,17 @@ def generate_matmul_function(dim_x, dim_y, transposed=False):
             f.write('@gtscript.function\n')
             f.write(f'def matmul_{dim_x}_{dim_y}_T(matrix, vec):')
             alph = []
-            for i in range(dim_x):
-                alph.append(f'a_{i}')
+            for j in range(dim_y):
+                alph.append(f'a_{j}')
 
-            for i in range(dim_x):
-                f.write(f'\n\t{alph[i]} = matrix[0,0,0][0,{i}] * vec[0,0,0][0]')
-                for j in range(1, dim_y):
-                    f.write(f'+ matrix[0,0,0][{j},{i}] * vec[0,0,0][{j}]')
+            for j in range(dim_y):
+                f.write(f'\n\t{alph[j]} = matrix[0,0,0][0,{j}] * vec[0,0,0][0]')
+                for i in range(1, dim_x):
+                    f.write(f'+ matrix[0,0,0][{i},{j}] * vec[0,0,0][{i}]')
 
             f.write(f'\n\treturn {alph[0]}')
-            for i in range(1, dim_x):
-                f.write(f', {alph[i]}')
+            for j in range(1, dim_y):
+                f.write(f', {alph[j]}')
     else:
         with open(f'matmul/matmul_{dim_x}_{dim_y}.py', 'w') as f:
             f.write('import gt4py.gtscript as gtscript\n\n')
