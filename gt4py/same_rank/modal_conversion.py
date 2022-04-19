@@ -80,7 +80,13 @@ def modal2bd_gt(phi, in_modal):
     vec = phi.shape[3]
     out = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx+2, ny+2, nz), dtype=(dtype, (vec,)))
-    modal2bd(phi, in_modal, out, origin=(1,1,0), domain=(nx,ny,1))
+    origins = {"phi": (0,0,0), "in_modal": (0,0,0), "out": (1,1,0)}
+    modal2bd(phi, in_modal, out, origin=origins, domain=(nx,ny,1))
+    # periodic boundary conditions
+    out[1:-1,0] = out[1:-1,-2] # north
+    out[1:-1,-1] = out[1:-1,1] # south
+    out[-1,1:-1] = out[1,1:-1] # east
+    out[0,1:-1] = out[-2,1:-1] # west
     return out
 
 @gtscript.stencil(backend=backend, **backend_opts)

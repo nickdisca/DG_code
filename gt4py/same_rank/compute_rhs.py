@@ -59,17 +59,27 @@ def integrate_numerical_flux(w, f_n, f_s, f_e, f_w, vander, bd_det_x, bd_det_y):
     return out
 
 @gtscript.stencil(backend=backend, **backend_opts)
+def subtract_boundary_term_stencil(
+    rhs: gtscript.Field[(dtype, (4,))],
+    boundary_term: gtscript.Field[(dtype, (4,))]
+):
+    with computation(PARALLEL), interval(...):
+        rhs[0,0,0][0] -= boundary_term[0,0,0][0]
+        rhs[0,0,0][1] -= boundary_term[0,0,0][1]
+        rhs[0,0,0][2] -= boundary_term[0,0,0][2]
+        rhs[0,0,0][3] -= boundary_term[0,0,0][3]
+
+@gtscript.stencil(backend=backend, **backend_opts)
 def runge_kuta_stencil(
     u_modal: gtscript.Field[(dtype, (4,))],
     rhs: gtscript.Field[(dtype, (4,))],
-    out_modal: gtscript.Field[(dtype, (4))],
     dt: float
 ):
     with computation(PARALLEL), interval(...):
-        out_modal[0,0,0][0] = u_modal[0,0,0][0] + dt * rhs[0,0,0][0]
-        out_modal[0,0,0][1] = u_modal[0,0,0][1] + dt * rhs[0,0,0][1]
-        out_modal[0,0,0][2] = u_modal[0,0,0][2] + dt * rhs[0,0,0][2]
-        out_modal[0,0,0][3] = u_modal[0,0,0][3] + dt * rhs[0,0,0][3]
+        u_modal[0,0,0][0] += dt * rhs[0,0,0][0]
+        u_modal[0,0,0][1] += dt * rhs[0,0,0][1]
+        u_modal[0,0,0][2] += dt * rhs[0,0,0][2]
+        u_modal[0,0,0][3] += dt * rhs[0,0,0][3]
 
 def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp, hx, hy, nx, ny, dt):
     determ = hx * hy / 4
@@ -95,10 +105,10 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp, hx, hy, nx, ny
 
     flux_n, flux_s, flux_e, flux_w = compute_flux_gt(u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w)
     boundary_term = integrate_numerical_flux(wts1d, flux_n, flux_s, flux_w, flux_e, vander, bd_det_x, bd_det_y)
-    rhs = rhs - boundary_term
+    subtract_boundary_term_stencil(rhs, boundary_term)
 
     inv_mass_stencil(inv_mass, rhs) 
-    uM_gt = uM_gt + dt * rhs
+    runge_kuta_stencil(uM_gt, rhs, dt)
     return rhs
 
 

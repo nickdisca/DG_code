@@ -101,13 +101,16 @@ def compute_flux_stencil(
 
 def compute_flux_gt(u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w):
     nx, ny, nz, vec = u_n.shape
-    flux_n = gt.storage.zeros(backend=backend, default_origin=(0,0,0), shape=(nx, ny, 1), dtype=(dtype, (vec,)))
-    flux_s = gt.storage.zeros(backend=backend, default_origin=(0,0,0), shape=(nx, ny, 1), dtype=(dtype, (vec,)))
-    flux_e = gt.storage.zeros(backend=backend, default_origin=(0,0,0), shape=(nx, ny, 1), dtype=(dtype, (vec,)))
-    flux_w = gt.storage.zeros(backend=backend, default_origin=(0,0,0), shape=(nx, ny, 1), dtype=(dtype, (vec,)))
+    flux_n = gt.storage.zeros(backend=backend, default_origin=(0,0,0), shape=(nx-2, ny-2, 1), dtype=(dtype, (vec,)))
+    flux_s = gt.storage.zeros(backend=backend, default_origin=(0,0,0), shape=(nx-2, ny-2, 1), dtype=(dtype, (vec,)))
+    flux_e = gt.storage.zeros(backend=backend, default_origin=(0,0,0), shape=(nx-2, ny-2, 1), dtype=(dtype, (vec,)))
+    flux_w = gt.storage.zeros(backend=backend, default_origin=(0,0,0), shape=(nx-2, ny-2, 1), dtype=(dtype, (vec,)))
 
     # TODO: Run over all domain; requires padding with pbc
-    compute_flux_stencil(f_n, f_s, f_e, f_w, u_n, u_s, u_e, u_w, flux_n, flux_s, flux_e, flux_w, origin=(1,1,0), domain=(nx,ny,1))
+    origins = {
+        "_all_": (1,1,0), "flux_n": (0,0,0), "flux_s": (0,0,0), "flux_e": (0,0,0), "flux_w": (0,0,0)
+        }
+    compute_flux_stencil(f_n, f_s, f_e, f_w, u_n, u_s, u_e, u_w, flux_n, flux_s, flux_e, flux_w, origin=origins, domain=(nx-2,ny-2,1))
     return flux_n, flux_s, flux_e, flux_w
 
 @gtscript.stencil(backend=backend, **backend_opts)
