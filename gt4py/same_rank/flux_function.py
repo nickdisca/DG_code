@@ -3,11 +3,7 @@ import gt4py as gt
 from matmul.matmul_4_4_T import matmul_4_4_T
 import numpy as np
 
-dtype = np.float64
-backend = "gtc:numpy"
-backend_opts = {
-    "rebuild": True
-}
+from gt4py_config import dtype, backend, backend_opts
 
 @gtscript.function
 def flux_function(u_qp):

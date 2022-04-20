@@ -6,11 +6,8 @@ from matmul.matmul_2_4_T import matmul_2_4_T
 import gt4py.gtscript as gtscript
 import gt4py as gt
 
-dtype = np.float64
-backend = "gtc:numpy"
-backend_opts = {
-    "rebuild": True
-}
+from boundary_conditions import apply_pbc
+from gt4py_config import dtype, backend, backend_opts
 
 def nodal2modal_gt(vander, in_nodal):
     nx, ny, nz, _ = in_nodal.shape
@@ -63,7 +60,7 @@ def modal2qp_gt(phi, in_modal):
     return out_nodal
 
 @gtscript.stencil(backend=backend, **backend_opts)
-def modal2qp(
+def modal2qp_stencil(
     phi: gtscript.Field[(dtype, (4, 4))],
     in_nodal: gtscript.Field[(dtype, (4,))],
     out_modal: gtscript.Field[(dtype, (4,))]
@@ -75,22 +72,27 @@ def modal2qp(
         out_modal[0,0,0][2] = a_2
         out_modal[0,0,0][3] = a_3
 
-def modal2bd_gt(phi, in_modal):
+# def modal2bd_gt(phi, in_modal):
+#     nx, ny, nz, _ = in_modal.shape
+#     vec = phi.shape[3]
+#     out = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+#         shape=(nx+2, ny+2, nz), dtype=(dtype, (vec,)))
+#     origins = {"out": (1,1,0)}
+#     # origins = {"phi": (0,0,0), "in_modal": (0,0,0), "out": (1,1,0)}
+#     modal2bd_stencil(phi, in_modal, out, origin=origins, domain=(nx,ny,1))
+#     # periodic boundary conditions
+#     apply_pbc(out)
+#     return out
+def modal2bd_gt(phi, in_modal, out):
     nx, ny, nz, _ = in_modal.shape
     vec = phi.shape[3]
-    out = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx+2, ny+2, nz), dtype=(dtype, (vec,)))
     origins = {"phi": (0,0,0), "in_modal": (0,0,0), "out": (1,1,0)}
-    modal2bd(phi, in_modal, out, origin=origins, domain=(nx,ny,1))
+    modal2bd_stencil(phi, in_modal, out, origin=origins, domain=(nx,ny,1))
     # periodic boundary conditions
-    out[1:-1,0] = out[1:-1,-2] # north
-    out[1:-1,-1] = out[1:-1,1] # south
-    out[-1,1:-1] = out[1,1:-1] # east
-    out[0,1:-1] = out[-2,1:-1] # west
-    return out
+    apply_pbc(out)
 
 @gtscript.stencil(backend=backend, **backend_opts)
-def modal2bd(
+def modal2bd_stencil(
     phi_bd: gtscript.Field[(dtype, (2, 4))],
     in_nodal: gtscript.Field[(dtype, (4,))],
     out: gtscript.Field[(dtype, (2,))]

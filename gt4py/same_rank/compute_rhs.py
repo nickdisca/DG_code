@@ -1,17 +1,12 @@
 import numpy as np
 import gt4py.gtscript as gtscript
 import gt4py as gt
-from flux_function import flux_function_gt, integrate_flux_stencil
-from modal_conversion import modal2qp_gt, modal2bd_gt
-from numerical_flux import flux_bd_gt, compute_flux_gt, integrate_numerical_flux_stencil
+from flux_function import flux_function_gt, integrate_flux_stencil, flux_function_stencil
+from modal_conversion import modal2qp_gt, modal2bd_gt, modal2qp_stencil, modal2bd_stencil, modal2nodal_gt
+from numerical_flux import flux_bd_gt, compute_flux_gt, integrate_numerical_flux_stencil, flux_bd_stencil
 
 from matmul.matmul_4_4 import matmul_4_4
-
-dtype = np.float64
-backend = "gtc:numpy"
-backend_opts = {
-    "rebuild": True
-}
+from gt4py_config import dtype, backend, backend_opts
 
 # @gtscript.stencil(backend=backend, **backend_opts)
 # def elemwise_mult(
@@ -38,25 +33,17 @@ def inv_mass_stencil(
         rhs[0,0,0][3] = a_3
 
 
-def integrate_flux(w, fx, fy, vander, determ, bd_det_x, bd_det_y):
-    nx, ny, nz, vec = fx.shape
+def integrate_flux(rhs, w, fx, fy, vander, determ, bd_det_x, bd_det_y):
     phi_grad_x = vander.grad_phi_x_gt
     phi_grad_y = vander.grad_phi_y_gt
-    out = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (vec,)))
-    integrate_flux_stencil(w, fx, fy, phi_grad_x, phi_grad_y, out, determ, bd_det_x, bd_det_y)
-    return out
+    integrate_flux_stencil(w, fx, fy, phi_grad_x, phi_grad_y, rhs, determ, bd_det_x, bd_det_y)
 
-def integrate_numerical_flux(w, f_n, f_s, f_e, f_w, vander, bd_det_x, bd_det_y):
-    nx, ny, nz, vec = f_n.shape
+def integrate_numerical_flux(rhs, w, f_n, f_s, f_e, f_w, vander, bd_det_x, bd_det_y):
     phi_n = vander.phi_bd_N_gt
     phi_s = vander.phi_bd_S_gt
     phi_e = vander.phi_bd_E_gt
     phi_w = vander.phi_bd_W_gt
-    out = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (4,)))
-    integrate_numerical_flux_stencil(w, f_n, f_s, f_e, f_w, phi_n, phi_s, phi_e, phi_w, out, bd_det_x, bd_det_y)
-    return out
+    integrate_numerical_flux_stencil(w, f_n, f_s, f_e, f_w, phi_n, phi_s, phi_e, phi_w, rhs, bd_det_x, bd_det_y)
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def subtract_boundary_term_stencil(
@@ -81,35 +68,97 @@ def runge_kuta_stencil(
         u_modal[0,0,0][2] += dt * rhs[0,0,0][2]
         u_modal[0,0,0][3] += dt * rhs[0,0,0][3]
 
-def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp, hx, hy, nx, ny, dt):
+def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, ny, dt, niter, plotter):
     determ = hx * hy / 4
     bd_det_x = hx / 2
     bd_det_y = hy / 2
     radius = 1
+    nz = 1
+    plot_freq = plotter.plot_freq
 
-    # --- Flux Integrals ---
-    u_qp = modal2qp_gt(vander.phi_gt, uM_gt)
-    fx, fy = flux_function_gt(u_qp)
-    rhs = integrate_flux(wts2d, fx, fy, vander, determ, bd_det_x, bd_det_y)
+    # === Memory allocation ===
+    rhs = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,)))
 
-    # --- Boundary Numerical Flux ---
-    u_n = modal2bd_gt(vander.phi_bd_N_gt, uM_gt)
-    u_s = modal2bd_gt(vander.phi_bd_S_gt, uM_gt)
-    u_e = modal2bd_gt(vander.phi_bd_E_gt, uM_gt)
-    u_w = modal2bd_gt(vander.phi_bd_W_gt, uM_gt)
+    # --- internal integrals ---
+    u_qp = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,)))
+    fx = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,)))
+    fy = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,)))
 
-    _, f_n = flux_bd_gt(u_n)
-    _, f_s = flux_bd_gt(u_s)
-    f_e, _ = flux_bd_gt(u_e)
-    f_w, _ = flux_bd_gt(u_w)
+    # --- boundary integrals ---
+    ## NOTE Default origin is NOT (0,0,0)
+    u_n = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    u_s = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    u_e = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    u_w = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    f_n = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    f_s = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    f_e = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    f_w = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    tmp = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
 
-    flux_n, flux_s, flux_e, flux_w = compute_flux_gt(u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w)
-    boundary_term = integrate_numerical_flux(wts1d, flux_n, flux_s, flux_w, flux_e, vander, bd_det_x, bd_det_y)
-    subtract_boundary_term_stencil(rhs, boundary_term)
+    flux_n = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
+    flux_s = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
+    flux_e = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
+    flux_w = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
+    # === End ===
 
-    inv_mass_stencil(inv_mass, rhs) 
-    runge_kuta_stencil(uM_gt, rhs, dt)
-    return rhs
+    for i in range(niter):
+        # --- Flux Integrals ---
+        modal2qp_stencil(vander.phi_gt, uM_gt, u_qp)
+        flux_function_stencil(u_qp, fx, fy)
+        integrate_flux(rhs, wts2d, fx, fy, vander, determ, bd_det_x, bd_det_y)
+
+        # --- Boundary Numerical Flux ---
+        # u_n = modal2bd_gt(vander.phi_bd_N_gt, uM_gt)
+        # u_s = modal2bd_gt(vander.phi_bd_S_gt, uM_gt)
+        # u_e = modal2bd_gt(vander.phi_bd_E_gt, uM_gt)
+        # u_w = modal2bd_gt(vander.phi_bd_W_gt, uM_gt)
+
+        modal2bd_gt(vander.phi_bd_N_gt, uM_gt, u_n)
+        modal2bd_gt(vander.phi_bd_S_gt, uM_gt, u_s)
+        modal2bd_gt(vander.phi_bd_E_gt, uM_gt, u_e)
+        modal2bd_gt(vander.phi_bd_W_gt, uM_gt, u_w)
+
+
+        # _, f_n = flux_bd_gt(u_n)
+        # _, f_s = flux_bd_gt(u_s)
+        # f_e, _ = flux_bd_gt(u_e)
+        # f_w, _ = flux_bd_gt(u_w)
+        flux_bd_stencil(u_n, f_n, tmp, origin=(0,0,0), domain=(nx+2, nx+2,1))
+        flux_bd_stencil(u_s, f_s, tmp, origin=(0,0,0), domain=(nx+2, ny+2, 1))
+        flux_bd_stencil(u_e, tmp, f_e, origin=(0,0,0), domain=(nx+2, ny+2, 1))
+        flux_bd_stencil(u_w, tmp, f_w, origin=(0,0,0), domain=(nx+2, ny+2, 1))
+
+        # flux_n, flux_s, flux_e, flux_w = compute_flux_gt(u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w)
+        # boundary_term = integrate_numerical_flux(wts1d, flux_n, flux_s, flux_w, flux_e, vander, bd_det_x, bd_det_y)
+        # subtract_boundary_term_stencil(rhs, boundary_term)
+
+        compute_flux_gt(u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w)
+        integrate_numerical_flux(rhs, wts1d, flux_n, flux_s, flux_w, flux_e, vander, bd_det_x, bd_det_y)
+
+        inv_mass_stencil(inv_mass, rhs) 
+        runge_kuta_stencil(uM_gt, rhs, dt)
+        
+        # if i % plot_freq == 0:
+        #     u0_nodal_gt = modal2nodal_gt(vander.vander_gt, uM_gt)
+        #     plotter.plot_solution(u0_nodal_gt)
 
 
 

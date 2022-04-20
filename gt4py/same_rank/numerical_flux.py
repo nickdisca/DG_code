@@ -3,11 +3,7 @@ import gt4py as gt
 from matmul.matmul_2_4_T import matmul_2_4_T
 import numpy as np
 
-dtype = np.float64
-backend = "gtc:numpy"
-backend_opts = {
-    "rebuild": True
-}
+from gt4py_config import dtype, backend, backend_opts
 
 @gtscript.function
 def flux_function(u_bd):
@@ -17,14 +13,8 @@ def flux_function(u_bd):
     fy_1 = u_bd[0,0,0][1]
     return fx_0, fx_1, fy_0, fy_1
 
-def flux_bd_gt(u):
-    nx, ny, nz, vec = u.shape
-    fx = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (vec,)))
-    fy = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (vec,)))
+def flux_bd_gt(u, fx, fy):
     flux_bd_stencil(u, fx, fy)
-    return fx, fy
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def flux_bd_stencil(
@@ -99,14 +89,8 @@ def compute_flux_stencil(
         flux_w[0,0,0][0] = flux_w_0
         flux_w[0,0,0][1] = flux_w_1
 
-def compute_flux_gt(u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w):
+def compute_flux_gt(u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w):
     nx, ny, nz, vec = u_n.shape
-    flux_n = gt.storage.zeros(backend=backend, default_origin=(0,0,0), shape=(nx-2, ny-2, 1), dtype=(dtype, (vec,)))
-    flux_s = gt.storage.zeros(backend=backend, default_origin=(0,0,0), shape=(nx-2, ny-2, 1), dtype=(dtype, (vec,)))
-    flux_e = gt.storage.zeros(backend=backend, default_origin=(0,0,0), shape=(nx-2, ny-2, 1), dtype=(dtype, (vec,)))
-    flux_w = gt.storage.zeros(backend=backend, default_origin=(0,0,0), shape=(nx-2, ny-2, 1), dtype=(dtype, (vec,)))
-
-    # TODO: Run over all domain; requires padding with pbc
     origins = {
         "_all_": (1,1,0), "flux_n": (0,0,0), "flux_s": (0,0,0), "flux_e": (0,0,0), "flux_w": (0,0,0)
         }
@@ -146,7 +130,7 @@ def integrate_numerical_flux_stencil(
         f_w[0,0,0][1] = f_w[0,0,0][1] * w[0,0,0][1]
         w_0, w_1, w_2, w_3 = matmul_2_4_T(phi_w, f_w)
 
-        rhs[0,0,0][0] = bd_det_x * (n_0+s_0) + bd_det_y * (e_0+w_0)
-        rhs[0,0,0][1] = bd_det_x * (n_1+s_1) + bd_det_y * (e_1+w_1)
-        rhs[0,0,0][2] = bd_det_x * (n_2+s_2) + bd_det_y * (e_2+w_2)
-        rhs[0,0,0][3] = bd_det_x * (n_3+s_3) + bd_det_y * (e_3+w_3)
+        rhs[0,0,0][0] -= bd_det_x * (n_0+s_0) + bd_det_y * (e_0+w_0)
+        rhs[0,0,0][1] -= bd_det_x * (n_1+s_1) + bd_det_y * (e_1+w_1)
+        rhs[0,0,0][2] -= bd_det_x * (n_2+s_2) + bd_det_y * (e_2+w_2)
+        rhs[0,0,0][3] -= bd_det_x * (n_3+s_3) + bd_det_y * (e_3+w_3)

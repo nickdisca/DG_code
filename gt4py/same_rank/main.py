@@ -8,30 +8,25 @@ from numpy.polynomial import legendre as L
 
 from vander import Vander
 from initial_conditions import set_initial_conditions
-from plot import plot_solution
 from generate_matmul_function import generate_matmul_function
 from modal_conversion import nodal2modal, modal2nodal, nodal2modal_gt, modal2nodal_gt
 from compute_mass import compute_mass
 from compute_rhs import compute_rhs
 from boundary_conditions import apply_pbc
+from plotter import Plotter
+from gt4py_config import backend, dtype, backend_opts
 
-# %%
-backend = "gtc:numpy"
-dtype = np.float64
-backend_opts = {
-    "rebuild": True
-}
 # %%
 # Radius of the earth (for spherical geometry)
 radius=6.37122e6;
 
 # Equation type
-eq_type="adv_sphere";
+eq_type="linear";
 
 # domain
 a = 0; b = 1; c = 0; d =1
 # number of elements in X and Y
-nx = 2; ny = 2
+nx = 20; ny = 20
 
 hx = (b-a)/nx; hy = (d-c)/ny
 
@@ -50,7 +45,11 @@ n_qp_1D=2
 n_qp=n_qp_1D*n_qp_1D
 
 # timestep
-dt = 1e-7
+dt = 1e-3
+niter = 10000
+
+# plotting
+plot_freq=1
 # %%
 # rdist_gt = degree_distribution("unif",nx,ny,r_max);
 
@@ -80,20 +79,12 @@ vander = Vander(nx, ny, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d)
 
 neq, u0_nodal = set_initial_conditions(x_c, y_c, a, b, c, d, dim, vander, "linear")
 
-
-
-# u_shape = u0.shape + np.array([2, 2, 0, 0]) # add ghost cell
-
-# u0_nodal = np.zeros(shape=u_shape)
-# u0_nodal[1:-1, 1:-1] = u0               # insert u
-# u0_nodal = apply_pbc(u0_nodal)
-
 # plot_solution(u0_nodal, x_c, y_c, r+1, nx, ny, neq, hx, hy, "contour")
-
-
-
 u0_nodal_gt = gt.storage.from_array(data=u0_nodal,
     backend=backend, default_origin=(0,0,0), shape=(nx,ny,1), dtype=(dtype, (dim,)))
+
+plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq)
+plotter.plot_solution(u0_nodal_gt, init=True, plot_type='scatter')
 
 u0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
 
@@ -105,5 +96,7 @@ wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0),
 
 wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (len(wts), )))
 
-rhs = compute_rhs(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp, hx, hy, nx, ny, dt)
+compute_rhs(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, dt, niter, plotter)
 print("Done")
+
+u0_nodal_gt = modal2nodal_gt(vander.vander_gt, u0_modal_gt)
