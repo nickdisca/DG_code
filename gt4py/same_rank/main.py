@@ -75,7 +75,7 @@ x_c=np.linspace(a+half_cell_x,b-half_cell_x,nx); # Cell centers in X
 y_c=np.linspace(c+half_cell_y,d-half_cell_y,ny); # Cell centers in Y
 
 # all matrices are the same size but lower orders are padded!
-vander = Vander(nx, ny, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d)
+vander = Vander(nx, ny, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d, backend=backend)
 
 neq, u0_nodal = set_initial_conditions(x_c, y_c, a, b, c, d, dim, vander, "linear")
 

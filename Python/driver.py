@@ -8,25 +8,27 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 
 # Radius of the earth (for spherical geometry)
-radius=6.37122e6;
+# radius=6.37122e6;
+radius = 1
 
 # Equation type
-#eq_type="linear";
-eq_type="adv_sphere";
+eq_type="linear";
+# eq_type="adv_sphere";
 #eq_type="swe";
 
 # number of elements in X and Y
-d1=20; d2=20
+d1=2; d2=2
 
 
 # definition of the domain [a,b]x[c,d]
-a=0; b=2*np.pi; c=-np.pi/2; d=np.pi/2;
+# a=0; b=2*np.pi; c=-np.pi/2; d=np.pi/2;
+a=0; b=1; c=0; d=1
 
 # length of the 1D intervals
-hx=(b-a)/d1; hy=(d-c)/d2;
+hx=(b-a)/d1; hy=(d-c)/d2
 
 # polynomial degree of DG
-r_max=2
+r_max=1
 
 # cardinality
 dim=(r_max+1)**2
@@ -35,7 +37,7 @@ dim=(r_max+1)**2
 quad_type="leg"
 
 # Number of quadrature points in one dimension
-n_qp_1D=4
+n_qp_1D=2
 
 # Number of quadrature points
 n_qp=n_qp_1D*n_qp_1D
@@ -47,15 +49,15 @@ T=1000
 #T=5*86400
 
 # Order of the RK scheme (1,2,3,4)
-RK=4
+RK=1
 
 # Time step
 # For "linadv":  dt=1/r_max^2*min(hx,hy)*0.1;
 # For "adv_sphere" with earth radius
-dt=100
+dt = 1e-3
 
 # Plotting frequency (time steps)
-plot_freq=1000
+plot_freq=10
 
 # Derived temporal loop parameters
 Courant=dt/min(hx,hy)
@@ -81,11 +83,12 @@ def plot_solution(u,x_c,y_c,r,d1,d2,neq,hx,hy):
         for j in range(d2):
             for i in range(d1):
                 Z[i*r:(i+1)*r,j*r:(j+1)*r] = u[i,j,n].reshape(r,r)
-    Z[np.abs(Z) < np.amax(Z)/1000.0] = 0.0   # Clip all values less than 1/1000 of peak
+    # Z[np.abs(Z) < np.amax(Z)/1000.0] = 0.0   # Clip all values less than 1/1000 of peak
                 
     fig, ax = plt.subplots()
-    CS = ax.contour(X, Y, Z)
-    plt.show()
+    CS = ax.contourf(X, Y, Z)
+    plt.colorbar(CS)
+    plt.pause(0.05)
 
 # Function to compute the element degrees
 def degree_distribution(type,d1,d2,r_max):
@@ -109,7 +112,7 @@ def flux_function(eq_type,d1,d2,u,radius,hx,hy,x_c,y_c,pts_x,pts_y):
     flux_y = {}
 
     if eq_type == "linear" :
-        meters_per_s = 100.0
+        meters_per_s = 1
         for j in range(d2):
             for i in range(d1):
                 flux_x[i,j,0] = meters_per_s * u[i,j,0]
@@ -428,7 +431,8 @@ def initial_conditions(eq_type, d1, d2, unif2d_x, unif2d_y, rdist) :
 #        mounds = 4
 #        u0_fun=lambda x,y:  h0 + h1*np.sin(mounds*x)*np.sin(mounds*y)  # Try the origin
 # This one is a blob centered on the domain.
-        u0_fun=lambda x,y:  h0+h1/2*(1+np.cos(np.pi*np.sqrt(np.square(x-xc)+np.square(y-yc)))/R)*(np.sqrt(np.square(x-xc)+np.square(y-yc))<R).astype(np.double)
+        u0_fun=lambda x,y:  h0+h1/2*(1+np.cos(np.pi*np.sqrt(np.square(x-xc)+np.square(y-yc))/R))*(np.sqrt(np.square(x-xc)+np.square(y-yc))<R)
+        u0_fun=lambda x,y: np.ones(unif2d_x[1].shape)
         for j in range(d2):
             for i in range(d1):
                 local_pos_x = x_c[i] + 0.5*hx*unif2d_x[rdist[i,j]]
@@ -715,6 +719,7 @@ for iter in range(N_it) :
     else :
         print( RK, " is not a valid value (RK in {1,2,3,4}" )
 
+    print(f'Iteration{iter} done')
     if ( iter%plot_freq == 0 or iter == N_it-1 ) :
         
         to_plot = modal2nodal(d1,d2,neq,u,V_rect,rdist)
