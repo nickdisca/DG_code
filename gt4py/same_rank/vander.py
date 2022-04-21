@@ -67,10 +67,10 @@ class Vander:
         self.phi_val_bd_cell_e = np.polynomial.legendre.legvander2d(upper, pts,   [r,r]) * coeffs
         self.phi_val_bd_cell_w = np.polynomial.legendre.legvander2d(lower, pts,   [r,r]) * coeffs
 
-        self.conv_to_gt()
+        self.conv_to_gt(backend=backend)
 
 
-    def conv_to_gt(self, dtype=np.float64, backend="gtc:numpy"):
+    def conv_to_gt(self, backend, dtype=np.float64):
         dim = self.vander.shape[0]
         n_qp_1D = len(self.pts)
         self.wtsd2d_gt = gt.storage.from_array(data=self.wts2d,

@@ -1,8 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+# from mpl_toolkits.mplot3d import Axes3D
+
+import plotly.express as px
+import plotly.graph_objects as go
 class Plotter():
-    def __init__(self, x_c, y_c, r, nx, ny, neq, hx, hy, plot_freq=100):
+    def __init__(self, x_c, y_c, r, nx, ny, neq, hx, hy, plot_freq, plot_type):
         self.x_c = x_c
         self.y_c = y_c
         self.r = r
@@ -12,10 +15,17 @@ class Plotter():
         self.hx = hx
         self.hy = hy
         self.plot_freq = plot_freq
+        self.plot_type = plot_type
 
+        # self.plots = []
+        # # self.figure = plt.figure(figsize=(12,8))
+        # # fig = go.Figure()
+        # # self.fig = go.FigureWidget(fig)
+        # self.fig = plt.figure(figsize=(6,6))
         self.fig, self.ax = plt.subplots()
 
-    def plot_solution(self,u,init=False,plot_type="scatter"):
+
+    def plot_solution(self,u,init=False, plot_type='plotly'):
         nx, ny, nz, vec = u.shape
         u.reshape((nx, ny, vec))
         x_u    = np.zeros(self.nx*self.r)
@@ -43,13 +53,43 @@ class Plotter():
             else:
                 self.cbar.remove()
                 self.cbar = self.fig.colorbar(CS)
-        if plot_type == 'scatter':
-            # self.fig.clear()
-            self.ax = plt.axes(projection='3d')
-            CS = self.ax.contourf(X, Y, Z)
-            CS = plt.scatter(X, Y, Z)
-            # self.cbar.remove()
-            # self.cbar = self.fig.colorbar(CS)
+        elif plot_type == 'scatter':
+            self.fig.clear()
+            if init:
+                self.ax = self.fig.add_subplot(projection='3d')
+                self.CS = self.ax.scatter(X.ravel(), Y.ravel(), Z.ravel(), c=Z.ravel())
+                # self.CS.xlabel("x")
+                # self.CS.ylabel("y")
+            else:
+                self.CS.remove()
+                self.CS = self.ax.scatter(X.ravel(), Y.ravel(), Z.ravel(), c=Z.ravel())
+                # self.CS.set_3d_properties(zs=Z.ravel(), zdir='z')
+
+        elif plot_type == 'plotly':
+            X = X.ravel(); Y = Y.ravel(); Z = Z.ravel()
+            if init:
+                self.plots.append(go.Figure(data = go.Scatter3d(
+                    x=X, y=Y, z=Z, mode='markers', marker=dict(
+                        size=8,
+                        color=Z,
+                        colorscale='Viridis'
+                    ))))
+                # self.fig.show(renderer='browser')
+            else:
+                self.plots.append(go.Figure(data = go.Scatter3d(
+                    x=X, y=Y, z=Z, mode='markers', marker=dict(
+                        size=8,
+                        color=Z,
+                        colorscale='Viridis'
+                    ))))
+                # self.fig.data[0].z = Z
+                # go.Scatter3d(
+                #     x=X, y=Y, z=Z, mode='markers', marker=dict(
+                #         size=8,
+                #         color=Z,
+                #         colorscale='Viridis'))
+            
+            
         elif plot_type == 'surf':
             fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
             # CS = ax.plot_surface(X, Y, Z)
@@ -58,4 +98,4 @@ class Plotter():
         else:
             print("Plot type not recognised!")
         # self.cbar.draw_all()
-        plt.pause(0.05)
+        plt.pause(0.005)

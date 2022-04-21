@@ -16,6 +16,8 @@ from boundary_conditions import apply_pbc
 from plotter import Plotter
 from gt4py_config import backend, dtype, backend_opts
 
+import plotly
+
 # %%
 # Radius of the earth (for spherical geometry)
 radius=6.37122e6;
@@ -49,7 +51,8 @@ dt = 1e-3
 niter = 10000
 
 # plotting
-plot_freq=1
+plot_freq=10
+plot_type = "contour"
 # %%
 # rdist_gt = degree_distribution("unif",nx,ny,r_max);
 
@@ -83,8 +86,9 @@ neq, u0_nodal = set_initial_conditions(x_c, y_c, a, b, c, d, dim, vander, "linea
 u0_nodal_gt = gt.storage.from_array(data=u0_nodal,
     backend=backend, default_origin=(0,0,0), shape=(nx,ny,1), dtype=(dtype, (dim,)))
 
-plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq)
-plotter.plot_solution(u0_nodal_gt, init=True, plot_type='scatter')
+plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
+plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
+
 
 u0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
 
@@ -100,3 +104,4 @@ compute_rhs(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, 
 print("Done")
 
 u0_nodal_gt = modal2nodal_gt(vander.vander_gt, u0_modal_gt)
+

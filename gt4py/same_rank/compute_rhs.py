@@ -75,6 +75,7 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
     radius = 1
     nz = 1
     plot_freq = plotter.plot_freq
+    plot_type = plotter.plot_type
 
     # === Memory allocation ===
     rhs = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
@@ -155,10 +156,11 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
 
         inv_mass_stencil(inv_mass, rhs) 
         runge_kuta_stencil(uM_gt, rhs, dt)
+        print(f'Iteration {i} done')
         
         if i % plot_freq == 0:
             u0_nodal_gt = modal2nodal_gt(vander.vander_gt, uM_gt)
-            plotter.plot_solution(u0_nodal_gt)
+            plotter.plot_solution(u0_nodal_gt, init=False, plot_type=plot_type)
 
 
 
