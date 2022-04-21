@@ -1,4 +1,5 @@
 import numpy as np
+import time
 import gt4py.gtscript as gtscript
 import gt4py as gt
 from flux_function import flux_function_gt, integrate_flux_stencil, flux_function_stencil
@@ -19,6 +20,17 @@ from gt4py_config import dtype, backend, backend_opts
 #         out[0,0,0][1] = a[0,0,0][1] * b[0,0,0][1]
 #         out[0,0,0][2] = a[0,0,0][2] * b[0,0,0][2]
 #         out[0,0,0][3] = a[0,0,0][3] * b[0,0,0][3]
+
+@gtscript.stencil(backend=backend)
+def copy(
+    in_phi: gtscript.Field[(dtype, (4,))],
+    out_phi: gtscript.Field[(dtype, (4,))]
+):
+    with computation(PARALLEL), interval(...):
+        out_phi[0,0,0][0] = in_phi[0, 0, 0][0]
+        out_phi[0,0,0][1] = in_phi[0, 0, 0][1]
+        out_phi[0,0,0][2] = in_phi[0, 0, 0][2]
+        out_phi[0,0,0][3] = in_phi[0, 0, 0][3]
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def inv_mass_stencil(
@@ -78,6 +90,8 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
     plot_type = plotter.plot_type
 
     # === Memory allocation ===
+    alloc_start = time.perf_counter()
+
     rhs = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,)))
 
@@ -118,19 +132,15 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
         shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
     flux_w = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
+    alloc_end = time.perf_counter()
     # === End ===
 
+    loop_start = time.perf_counter()
     for i in range(niter):
         # --- Flux Integrals ---
         modal2qp_stencil(vander.phi_gt, uM_gt, u_qp)
         flux_function_stencil(u_qp, fx, fy)
         integrate_flux(rhs, wts2d, fx, fy, vander, determ, bd_det_x, bd_det_y)
-
-        # --- Boundary Numerical Flux ---
-        # u_n = modal2bd_gt(vander.phi_bd_N_gt, uM_gt)
-        # u_s = modal2bd_gt(vander.phi_bd_S_gt, uM_gt)
-        # u_e = modal2bd_gt(vander.phi_bd_E_gt, uM_gt)
-        # u_w = modal2bd_gt(vander.phi_bd_W_gt, uM_gt)
 
         modal2bd_gt(vander.phi_bd_N_gt, uM_gt, u_n)
         modal2bd_gt(vander.phi_bd_S_gt, uM_gt, u_s)
@@ -138,18 +148,10 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
         modal2bd_gt(vander.phi_bd_W_gt, uM_gt, u_w)
 
 
-        # _, f_n = flux_bd_gt(u_n)
-        # _, f_s = flux_bd_gt(u_s)
-        # f_e, _ = flux_bd_gt(u_e)
-        # f_w, _ = flux_bd_gt(u_w)
         flux_bd_stencil(u_n, f_n, tmp, origin=(0,0,0), domain=(nx+2, nx+2,1))
         flux_bd_stencil(u_s, f_s, tmp, origin=(0,0,0), domain=(nx+2, ny+2, 1))
         flux_bd_stencil(u_e, tmp, f_e, origin=(0,0,0), domain=(nx+2, ny+2, 1))
         flux_bd_stencil(u_w, tmp, f_w, origin=(0,0,0), domain=(nx+2, ny+2, 1))
-
-        # flux_n, flux_s, flux_e, flux_w = compute_flux_gt(u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w)
-        # boundary_term = integrate_numerical_flux(wts1d, flux_n, flux_s, flux_w, flux_e, vander, bd_det_x, bd_det_y)
-        # subtract_boundary_term_stencil(rhs, boundary_term)
 
         compute_flux_gt(u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w)
         integrate_numerical_flux(rhs, wts1d, flux_n, flux_s, flux_w, flux_e, vander, bd_det_x, bd_det_y)
@@ -162,7 +164,11 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
             u0_nodal_gt = modal2nodal_gt(vander.vander_gt, uM_gt)
             plotter.plot_solution(u0_nodal_gt, init=False, plot_type=plot_type)
 
+    loop_end = time.perf_counter()
 
+    print('--- Timings ---')
+    print(f'Loop: {loop_end - loop_start}s')
+    print(f'Allocation: {alloc_end - alloc_start}s')
 
 
 

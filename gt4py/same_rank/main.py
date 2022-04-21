@@ -1,6 +1,6 @@
 # %%
-from email.policy import default
 import numpy as np
+import time
 import gt4py as gt
 import gt4py.gtscript as gtscript
 import quadpy as qp
@@ -48,10 +48,11 @@ n_qp=n_qp_1D*n_qp_1D
 
 # timestep
 dt = 1e-3
-niter = 10000
+T = 1
+niter = int(T // dt)
 
 # plotting
-plot_freq=10
+plot_freq = int(niter // 10)
 plot_type = "contour"
 # %%
 # rdist_gt = degree_distribution("unif",nx,ny,r_max);
@@ -78,7 +79,9 @@ x_c=np.linspace(a+half_cell_x,b-half_cell_x,nx); # Cell centers in X
 y_c=np.linspace(c+half_cell_y,d-half_cell_y,ny); # Cell centers in Y
 
 # all matrices are the same size but lower orders are padded!
+vander_start = time.perf_counter()
 vander = Vander(nx, ny, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d, backend=backend)
+vander_end = time.perf_counter()
 
 neq, u0_nodal = set_initial_conditions(x_c, y_c, a, b, c, d, dim, vander, "linear")
 
@@ -88,7 +91,6 @@ u0_nodal_gt = gt.storage.from_array(data=u0_nodal,
 
 plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-
 
 u0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
 
@@ -100,8 +102,16 @@ wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0),
 
 wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (len(wts), )))
 
+print(f'--- Backend = {backend} ---')
 compute_rhs(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, dt, niter, plotter)
-print("Done")
 
-u0_nodal_gt = modal2nodal_gt(vander.vander_gt, u0_modal_gt)
+u_final_nodal = modal2nodal_gt(vander.vander_gt, u0_modal_gt)
+
+# Timinig
+print(f'Vander: {vander_end - vander_start}s')
+
+# Error
+print('--- Error ---')
+l2_error = np.linalg.norm(u0_nodal_gt.reshape(-1) - u_final_nodal.reshape(-1)) / u0_nodal_gt.size
+print(f'{l2_error=}')
 
