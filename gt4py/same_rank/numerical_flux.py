@@ -32,26 +32,26 @@ def flux_bd_stencil(
 
 @gtscript.function
 def compute_flux_N(fy_n, fy_s, u_n, u_s):
-    flux_1 = 1/2 * (fy_n[0,0,0][0] + fy_s[0,+1,0][0]) - 1/2 * (u_s[0,+1,0][0] - u_n[0,0,0][0])
-    flux_2 = 1/2 * (fy_n[0,0,0][1] + fy_s[0,+1,0][1]) - 1/2 * (u_s[0,+1,0][1] - u_n[0,0,0][1])
+    flux_1 = 0.5 * (fy_n[0,0,0][0] + fy_s[0,+1,0][0]) - 0.5 * (u_s[0,+1,0][0] - u_n[0,0,0][0])
+    flux_2 = 0.5 * (fy_n[0,0,0][1] + fy_s[0,+1,0][1]) - 0.5 * (u_s[0,+1,0][1] - u_n[0,0,0][1])
     return flux_1, flux_2
 
 @gtscript.function
 def compute_flux_S(fy_s, fy_n, u_s, u_n):
-    flux_1 = -1/2 * (fy_s[0,0,0][0] + fy_n[0,-1,0][0]) - 1/2 * (u_n[0,-1,0][0] - u_s[0,0,0][0])
-    flux_2 = -1/2 * (fy_s[0,0,0][1] + fy_n[0,-1,0][1]) - 1/2 * (u_n[0,-1,0][1] - u_s[0,0,0][1])
+    flux_1 = -0.5 * (fy_s[0,0,0][0] + fy_n[0,-1,0][0]) - 0.5 * (u_n[0,-1,0][0] - u_s[0,0,0][0])
+    flux_2 = -0.5 * (fy_s[0,0,0][1] + fy_n[0,-1,0][1]) - 0.5 * (u_n[0,-1,0][1] - u_s[0,0,0][1])
     return flux_1, flux_2
 
 @gtscript.function
 def compute_flux_E(fx_e, fx_w, u_e, u_w):
-    flux_1 = 1/2 * (fx_e[0,0,0][0] + fx_w[+1,0,0][0]) - 1/2 * (u_w[+1,0,0][0] - u_e[0,0,0][0])
-    flux_2 = 1/2 * (fx_e[0,0,0][1] + fx_w[+1,0,0][1]) - 1/2 * (u_w[+1,0,0][1] - u_e[0,0,0][1])
+    flux_1 = 0.5 * (fx_e[0,0,0][0] + fx_w[+1,0,0][0]) - 0.5 * (u_w[+1,0,0][0] - u_e[0,0,0][0])
+    flux_2 = 0.5 * (fx_e[0,0,0][1] + fx_w[+1,0,0][1]) - 0.5 * (u_w[+1,0,0][1] - u_e[0,0,0][1])
     return flux_1, flux_2
 
 @gtscript.function
 def compute_flux_W(fx_w, fx_e, u_w, u_e):
-    flux_1 = -1/2 * (fx_w[0,0,0][0] + fx_e[-1,0,0][0]) - 1/2 * (u_e[-1,0,0][0] - u_w[0,0,0][0])
-    flux_2 = -1/2 * (fx_w[0,0,0][1] + fx_e[-1,0,0][1]) - 1/2 * (u_e[-1,0,0][1] - u_w[0,0,0][1])
+    flux_1 = -0.5 * (fx_w[0,0,0][0] + fx_e[-1,0,0][0]) - 0.5 * (u_e[-1,0,0][0] - u_w[0,0,0][0])
+    flux_2 = -0.5 * (fx_w[0,0,0][1] + fx_e[-1,0,0][1]) - 0.5 * (u_e[-1,0,0][1] - u_w[0,0,0][1])
     return flux_1, flux_2
 
 @gtscript.function
@@ -89,13 +89,16 @@ def compute_flux_stencil(
         flux_w[0,0,0][0] = flux_w_0
         flux_w[0,0,0][1] = flux_w_1
 
+
+
+
 def compute_flux_gt(u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w):
     nx, ny, nz, vec = u_n.shape
     origins = {
-        "_all_": (1,1,0), "flux_n": (0,0,0), "flux_s": (0,0,0), "flux_e": (0,0,0), "flux_w": (0,0,0)
+        "u_n": (1,1,0), "u_s": (1,1,0), "u_e": (1,1,0), "u_w": (1,1,0), "f_n": (1,1,0), "f_s": (1,1,0), "f_e": (1,1,0), "f_w": (1,1,0), "flux_n": (0,0,0), "flux_s": (0,0,0), "flux_e": (0,0,0), "flux_w": (0,0,0)
         }
+    # origins = {"_all_": (0,0,0)}
     compute_flux_stencil(f_n, f_s, f_e, f_w, u_n, u_s, u_e, u_w, flux_n, flux_s, flux_e, flux_w, origin=origins, domain=(nx-2,ny-2,1))
-    return flux_n, flux_s, flux_e, flux_w
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def integrate_numerical_flux_stencil(

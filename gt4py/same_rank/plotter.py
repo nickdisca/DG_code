@@ -98,4 +98,5 @@ class Plotter():
         else:
             print("Plot type not recognised!")
         # self.cbar.draw_all()
-        plt.pause(0.005)
+        plt.pause(2)
+        # plt.show()

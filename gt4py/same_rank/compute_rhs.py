@@ -154,15 +154,24 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
         flux_bd_stencil(u_w, tmp, f_w, origin=(0,0,0), domain=(nx+2, ny+2, 1))
 
         compute_flux_gt(u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w)
+
+        # print(f'{f_n = }\n\n')
+        # print(f'{f_s = }\n\n')
+
+        # print(f'{u_n = }\n\n')
+        # print(f'{u_s = }\n\n')
+        
+        # print(f'{flux_n = }\n\n')
+
         integrate_numerical_flux(rhs, wts1d, flux_n, flux_s, flux_w, flux_e, vander, bd_det_x, bd_det_y)
 
         inv_mass_stencil(inv_mass, rhs) 
         runge_kuta_stencil(uM_gt, rhs, dt)
-        print(f'Iteration {i} done')
+        # print(f'Iteration {i} done')
         
-        if i % plot_freq == 0:
-            u0_nodal_gt = modal2nodal_gt(vander.vander_gt, uM_gt)
-            plotter.plot_solution(u0_nodal_gt, init=False, plot_type=plot_type)
+        # if i % plot_freq == 0:
+        #     u0_nodal_gt = modal2nodal_gt(vander.vander_gt, uM_gt)
+        #     plotter.plot_solution(u0_nodal_gt, init=False, plot_type=plot_type)
 
     loop_end = time.perf_counter()
 

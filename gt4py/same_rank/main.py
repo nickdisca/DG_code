@@ -18,6 +18,8 @@ from gt4py_config import backend, dtype, backend_opts
 
 import plotly
 
+debug = False
+
 # %%
 # Radius of the earth (for spherical geometry)
 radius=6.37122e6;
@@ -54,8 +56,15 @@ niter = int(T // dt)
 # plotting
 plot_freq = int(niter // 10)
 plot_type = "contour"
+
+plot_freq = 100
 # %%
 # rdist_gt = degree_distribution("unif",nx,ny,r_max);
+
+if debug:
+    nx = 2; ny = 2
+    niter = 1
+    plot_freq = niter + 10
 
 if quad_type == "leg":
 # Gauss-Legendre quadrature
@@ -90,7 +99,9 @@ u0_nodal_gt = gt.storage.from_array(data=u0_nodal,
     backend=backend, default_origin=(0,0,0), shape=(nx,ny,1), dtype=(dtype, (dim,)))
 
 plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
-plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
+
+if not debug:
+    plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
 
 u0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
 
@@ -102,16 +113,16 @@ wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0),
 
 wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (len(wts), )))
 
-print(f'--- Backend = {backend} ---')
+print(f'\n\n--- Backend = {backend} ---')
 compute_rhs(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, dt, niter, plotter)
 
-u_final_nodal = modal2nodal_gt(vander.vander_gt, u0_modal_gt)
+u_final_nodal = np.asarray(modal2nodal_gt(vander.vander_gt, u0_modal_gt))
 
 # Timinig
 print(f'Vander: {vander_end - vander_start}s')
 
 # Error
 print('--- Error ---')
-l2_error = np.linalg.norm(u0_nodal_gt.reshape(-1) - u_final_nodal.reshape(-1)) / u0_nodal_gt.size
+l2_error = np.linalg.norm(u0_nodal.ravel() - u_final_nodal.ravel()) / u0_nodal.size
 print(f'{l2_error=}')
 
