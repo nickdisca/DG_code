@@ -102,7 +102,7 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 
 # if not debug:
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
+# plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
 
 u0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
 
@@ -139,4 +139,4 @@ if debug:
     init = True
 else:
     init = False
-plotter.plot_solution(u_final_nodal, init=init, show=False, save=True)
+# plotter.plot_solution(u_final_nodal, init=init, show=False, save=True)

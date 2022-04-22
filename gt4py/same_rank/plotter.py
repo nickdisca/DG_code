@@ -51,7 +51,8 @@ class Plotter():
             if init:
                 self.cbar = self.fig.colorbar(CS)
             else:
-                self.cbar.remove()
+                if self.cbar is not None:
+                    self.cbar.remove()
                 self.cbar = self.fig.colorbar(CS)
         elif plot_type == 'scatter':
             self.fig.clear()

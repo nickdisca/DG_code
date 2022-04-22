@@ -175,9 +175,9 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
         runge_kuta_stencil(uM_gt, rhs, dt)
         # print(f'Iteration {i} done')
         
-        if i % plot_freq == 0:
-            modal2nodal_stencil(vander.vander_gt, uM_gt, u_nodal)
-            plotter.plot_solution(u_nodal, init=False, plot_type=plot_type)
+        # if i % plot_freq == 0:
+        #     modal2nodal_stencil(vander.vander_gt, uM_gt, u_nodal)
+        #     plotter.plot_solution(u_nodal, init=False, plot_type=plot_type)
 
     loop_end = time.perf_counter()
 

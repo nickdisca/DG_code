@@ -109,15 +109,29 @@ def complete_flux_stencil(
 ):
     with computation(PARALLEL), interval(...):
         # modal -> qp mapping
-        a_0, a_1, a_2, a_3 = matmul_4_4(phi, u_modal)
+        # a_0, a_1, a_2, a_3 = matmul_4_4(phi, u_modal)
+        a_0 = phi[0,0,0][0,0] * u_modal[0,0,0][0]+ phi[0,0,0][0,1] * u_modal[0,0,0][1]+ phi[0,0,0][0,2] * u_modal[0,0,0][2]+ phi[0,0,0][0,3] * u_modal[0,0,0][3]
+        a_1 = phi[0,0,0][1,0] * u_modal[0,0,0][0]+ phi[0,0,0][1,1] * u_modal[0,0,0][1]+ phi[0,0,0][1,2] * u_modal[0,0,0][2]+ phi[0,0,0][1,3] * u_modal[0,0,0][3]
+        a_2 = phi[0,0,0][2,0] * u_modal[0,0,0][0]+ phi[0,0,0][2,1] * u_modal[0,0,0][1]+ phi[0,0,0][2,2] * u_modal[0,0,0][2]+ phi[0,0,0][2,3] * u_modal[0,0,0][3]
+        a_3 = phi[0,0,0][3,0] * u_modal[0,0,0][0]+ phi[0,0,0][3,1] * u_modal[0,0,0][1]+ phi[0,0,0][3,2] * u_modal[0,0,0][2]+ phi[0,0,0][3,3] * u_modal[0,0,0][3]
+
         # in this case fx = fy = f
         f[0,0,0][0] = a_0 * w[0,0,0][0]
         f[0,0,0][1] = a_1 * w[0,0,0][1]
         f[0,0,0][2] = a_2 * w[0,0,0][2]
         f[0,0,0][3] = a_3 * w[0,0,0][3]
 
-        x_0, x_1, x_2, x_3 = matmul_4_4_T(phi_grad_x, f)
-        y_0, y_1, y_2, y_3 = matmul_4_4_T(phi_grad_y, f)
+        # x_0, x_1, x_2, x_3 = matmul_4_4_T(phi_grad_x, f)
+        x_0 = phi_grad_x[0,0,0][0,0] * f[0,0,0][0]+ phi_grad_x[0,0,0][1,0] * f[0,0,0][1]+ phi_grad_x[0,0,0][2,0] * f[0,0,0][2]+ phi_grad_x[0,0,0][3,0] * f[0,0,0][3]
+        x_1 = phi_grad_x[0,0,0][0,1] * f[0,0,0][0]+ phi_grad_x[0,0,0][1,1] * f[0,0,0][1]+ phi_grad_x[0,0,0][2,1] * f[0,0,0][2]+ phi_grad_x[0,0,0][3,1] * f[0,0,0][3]
+        x_2 = phi_grad_x[0,0,0][0,2] * f[0,0,0][0]+ phi_grad_x[0,0,0][1,2] * f[0,0,0][1]+ phi_grad_x[0,0,0][2,2] * f[0,0,0][2]+ phi_grad_x[0,0,0][3,2] * f[0,0,0][3]
+        x_3 = phi_grad_x[0,0,0][0,3] * f[0,0,0][0]+ phi_grad_x[0,0,0][1,3] * f[0,0,0][1]+ phi_grad_x[0,0,0][2,3] * f[0,0,0][2]+ phi_grad_x[0,0,0][3,3] * f[0,0,0][3]
+
+        # y_0, y_1, y_2, y_3 = matmul_4_4_T(phi_grad_y, f)
+        y_0 = phi_grad_y[0,0,0][0,0] * f[0,0,0][0]+ phi_grad_y[0,0,0][1,0] * f[0,0,0][1]+ phi_grad_y[0,0,0][2,0] * f[0,0,0][2]+ phi_grad_y[0,0,0][3,0] * f[0,0,0][3]
+        y_1 = phi_grad_y[0,0,0][0,1] * f[0,0,0][0]+ phi_grad_y[0,0,0][1,1] * f[0,0,0][1]+ phi_grad_y[0,0,0][2,1] * f[0,0,0][2]+ phi_grad_y[0,0,0][3,1] * f[0,0,0][3]
+        y_2 = phi_grad_y[0,0,0][0,2] * f[0,0,0][0]+ phi_grad_y[0,0,0][1,2] * f[0,0,0][1]+ phi_grad_y[0,0,0][2,2] * f[0,0,0][2]+ phi_grad_y[0,0,0][3,2] * f[0,0,0][3]
+        y_3 = phi_grad_y[0,0,0][0,3] * f[0,0,0][0]+ phi_grad_y[0,0,0][1,3] * f[0,0,0][1]+ phi_grad_y[0,0,0][2,3] * f[0,0,0][2]+ phi_grad_y[0,0,0][3,3] * f[0,0,0][3]
 
         rhs[0,0,0][0] = (x_0 / bd_det_x + y_0 / bd_det_y) * determ
         rhs[0,0,0][1] = (x_1 / bd_det_x + y_1 / bd_det_y) * determ
