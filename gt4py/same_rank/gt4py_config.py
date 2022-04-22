@@ -1,13 +1,13 @@
 import numpy as np
 
-backend = "numpy"
+# backend = "numpy"
 
 # backend ="gt:cpu_ifirst" 
 # backend ="gt:cpu_kfirst" 
 
 # backend = "dace:cpu"
 
-# backend = "cuda"
+backend = "cuda"
 
 dtype = np.float64
 backend_opts = {

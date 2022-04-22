@@ -100,8 +100,9 @@ u0_nodal_gt = gt.storage.from_array(data=u0_nodal,
 
 plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 
-if not debug:
-    plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
+# if not debug:
+#     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
+plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
 
 u0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
 
@@ -115,16 +116,22 @@ wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), s
 
 print(f'\n\n--- Backend = {backend} ---')
 print(f'Domain: {nx = }; {ny = }\nTimesteping: {dt = }; {niter = }')
+
 compute_rhs(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, dt, niter, plotter)
 
-u_final_nodal = np.asarray(modal2nodal_gt(vander.vander_gt, u0_modal_gt))
+u_final_nodal = modal2nodal_gt(vander.vander_gt, u0_modal_gt)
+
+if backend == "cuda":
+    u_final_nodal.device_to_host()
+
+u_final = np.asarray(u_final_nodal)
 
 # Timinig
 print(f'Vander: {vander_end - vander_start}s')
 
 # Error
 print('--- Error ---')
-l2_error = np.linalg.norm(u0_nodal.ravel() - u_final_nodal.ravel()) / u0_nodal.size
+l2_error = np.linalg.norm(u0_nodal - u_final) / u0_nodal.size
 print(f'{l2_error=}')
 
 # Plot final time
@@ -132,7 +139,4 @@ if debug:
     init = True
 else:
     init = False
-plotter.plot_solution(u_final_nodal, init=init, show=True)
-
-
-# %%
+plotter.plot_solution(u_final_nodal, init=init, show=False, save=True)

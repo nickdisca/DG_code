@@ -25,7 +25,7 @@ class Plotter():
         self.fig, self.ax = plt.subplots()
 
 
-    def plot_solution(self,u,init=False, plot_type='contour',show=False):
+    def plot_solution(self,u,init=False, plot_type='contour',show=False, save=False):
         nx, ny, nz, vec = u.shape
         u.reshape((nx, ny, vec))
         x_u    = np.zeros(self.nx*self.r)
@@ -103,3 +103,5 @@ class Plotter():
             plt.show()
         else:
             plt.pause(0.005)
+        if save:
+            plt.savefig("img/final_step.svg", dpi=150)
