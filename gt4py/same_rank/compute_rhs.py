@@ -2,7 +2,7 @@ import numpy as np
 import time
 import gt4py.gtscript as gtscript
 import gt4py as gt
-from flux_function import flux_function_gt, integrate_flux_stencil, flux_function_stencil
+from flux_function import flux_function_gt, integrate_flux_stencil, flux_function_stencil, complete_flux_stencil
 from modal_conversion import modal2qp_gt, modal2bd_gt, modal2qp_stencil, modal2bd_stencil, modal2nodal_gt, modal2nodal_stencil
 from numerical_flux import flux_bd_gt, compute_flux_gt, integrate_numerical_flux_stencil, flux_bd_stencil
 
@@ -94,9 +94,8 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
 
     rhs = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,)))
-    
     u_nodal = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,)))
+        shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,))) # for plotting
 
     # --- internal integrals ---
     u_qp = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
@@ -141,9 +140,13 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
     loop_start = time.perf_counter()
     for i in range(niter):
         # --- Flux Integrals ---
-        modal2qp_stencil(vander.phi_gt, uM_gt, u_qp)
-        flux_function_stencil(u_qp, fx, fy)
-        integrate_flux(rhs, wts2d, fx, fy, vander, determ, bd_det_x, bd_det_y)
+        # modal2qp_stencil(vander.phi_gt, uM_gt, u_qp)
+        # flux_function_stencil(u_qp, fx, fy)
+        # integrate_flux(rhs, wts2d, fx, fy, vander, determ, bd_det_x, bd_det_y)
+        complete_flux_stencil(uM_gt, vander.phi_gt, vander.grad_phi_x_gt,
+            vander.grad_phi_y_gt, wts2d, fx, rhs, determ, bd_det_x, bd_det_y
+        )
+
 
         modal2bd_gt(vander.phi_bd_N_gt, uM_gt, u_n)
         modal2bd_gt(vander.phi_bd_S_gt, uM_gt, u_s)

@@ -22,13 +22,20 @@ def flux_bd_stencil(
     fx: gtscript.Field[(dtype, (2,))],
     fy: gtscript.Field[(dtype, (2,))]
 ):
-    with computation(PARALLEL), interval(...):
-        fx_0, fx_1, fy_0, fy_1, = flux_function(u)
-        fx[0,0,0][0] = fx_0
-        fx[0,0,0][1] = fx_1
+    # with computation(PARALLEL), interval(...):
+    #     fx_0, fx_1, fy_0, fy_1, = flux_function(u)
+    #     fx[0,0,0][0] = fx_0
+    #     fx[0,0,0][1] = fx_1
 
-        fy[0,0,0][0] = fy_0
-        fy[0,0,0][1] = fy_1
+    #     fy[0,0,0][0] = fy_0
+    #     fy[0,0,0][1] = fy_1
+
+    with computation(PARALLEL), interval(...):
+        fx[0,0,0][0] = u[0,0,0][0]
+        fx[0,0,0][1] = u[0,0,0][1]
+
+        fy[0,0,0][0] = u[0,0,0][0]
+        fy[0,0,0][1] = u[0,0,0][1]
 
 @gtscript.function
 def compute_flux_N(fy_n, fy_s, u_n, u_s):
@@ -78,16 +85,30 @@ def compute_flux_stencil(
     flux_w: gtscript.Field[(dtype, (2,))],
     flux_e: gtscript.Field[(dtype, (2,))]
 ):
+    # with computation(PARALLEL), interval(...):
+    #     flux_n_0, flux_n_1, flux_s_0, flux_s_1, flux_e_0, flux_e_1, flux_w_0, flux_w_1 = compute_fluxes(f_n, f_s, f_e, f_w, u_n, u_s, u_e, u_w)
+    #     flux_n[0,0,0][0] = flux_n_0
+    #     flux_n[0,0,0][1] = flux_n_1
+    #     flux_s[0,0,0][0] = flux_s_0
+    #     flux_s[0,0,0][1] = flux_s_1
+    #     flux_e[0,0,0][0] = flux_e_0
+    #     flux_e[0,0,0][1] = flux_e_1
+    #     flux_w[0,0,0][0] = flux_w_0
+    #     flux_w[0,0,0][1] = flux_w_1
+    
     with computation(PARALLEL), interval(...):
-        flux_n_0, flux_n_1, flux_s_0, flux_s_1, flux_e_0, flux_e_1, flux_w_0, flux_w_1 = compute_fluxes(f_n, f_s, f_e, f_w, u_n, u_s, u_e, u_w)
-        flux_n[0,0,0][0] = flux_n_0
-        flux_n[0,0,0][1] = flux_n_1
-        flux_s[0,0,0][0] = flux_s_0
-        flux_s[0,0,0][1] = flux_s_1
-        flux_e[0,0,0][0] = flux_e_0
-        flux_e[0,0,0][1] = flux_e_1
-        flux_w[0,0,0][0] = flux_w_0
-        flux_w[0,0,0][1] = flux_w_1
+        flux_n[0,0,0][0] = 0.5 * (f_n[0,0,0][0] + f_s[0,+1,0][0]) - 0.5 * (u_s[0,+1,0][0] - u_n[0,0,0][0])
+        flux_n[0,0,0][1] = 0.5 * (f_n[0,0,0][1] + f_s[0,+1,0][1]) - 0.5 * (u_s[0,+1,0][1] - u_n[0,0,0][1])
+
+        flux_s[0,0,0][0] = -0.5 * (f_s[0,0,0][0] + f_n[0,-1,0][0]) - 0.5 * (u_n[0,-1,0][0] - u_s[0,0,0][0])
+        flux_s[0,0,0][1] = -0.5 * (f_s[0,0,0][1] + f_n[0,-1,0][1]) - 0.5 * (u_n[0,-1,0][1] - u_s[0,0,0][1])
+
+        flux_e[0,0,0][0] = 0.5 * (f_e[0,0,0][0] + f_w[+1,0,0][0]) - 0.5 * (u_w[+1,0,0][0] - u_e[0,0,0][0])
+        flux_e[0,0,0][1] = 0.5 * (f_e[0,0,0][1] + f_w[+1,0,0][1]) - 0.5 * (u_w[+1,0,0][1] - u_e[0,0,0][1])
+
+        flux_w[0,0,0][0] = -0.5 * (f_w[0,0,0][0] + f_e[-1,0,0][0]) - 0.5 * (u_e[-1,0,0][0] - u_w[0,0,0][0])
+        flux_w[0,0,0][1] = -0.5 * (f_w[0,0,0][1] + f_e[-1,0,0][1]) - 0.5 * (u_e[-1,0,0][1] - u_w[0,0,0][1])
+
 
 
 
@@ -117,20 +138,20 @@ def integrate_numerical_flux_stencil(
 
 ):
     with computation(PARALLEL), interval(...):
-        f_n[0,0,0][0] = f_n[0,0,0][0] * w[0,0,0][0]
-        f_n[0,0,0][1] = f_n[0,0,0][1] * w[0,0,0][1]
+        f_n[0,0,0][0] *= w[0,0,0][0]
+        f_n[0,0,0][1] *= w[0,0,0][1]
         n_0, n_1, n_2, n_3 = matmul_2_4_T(phi_n, f_n)
 
-        f_s[0,0,0][0] = f_s[0,0,0][0] * w[0,0,0][0]
-        f_s[0,0,0][1] = f_s[0,0,0][1] * w[0,0,0][1]
+        f_s[0,0,0][0] *= w[0,0,0][0]
+        f_s[0,0,0][1] *= w[0,0,0][1]
         s_0, s_1, s_2, s_3 = matmul_2_4_T(phi_s, f_s)
 
-        f_e[0,0,0][0] = f_e[0,0,0][0] * w[0,0,0][0]
-        f_e[0,0,0][1] = f_e[0,0,0][1] * w[0,0,0][1]
+        f_e[0,0,0][0] *= w[0,0,0][0]
+        f_e[0,0,0][1] *= w[0,0,0][1]
         e_0, e_1, e_2, e_3 = matmul_2_4_T(phi_e, f_e)
 
-        f_w[0,0,0][0] = f_w[0,0,0][0] * w[0,0,0][0]
-        f_w[0,0,0][1] = f_w[0,0,0][1] * w[0,0,0][1]
+        f_w[0,0,0][0] *= w[0,0,0][0]
+        f_w[0,0,0][1] *= w[0,0,0][1]
         w_0, w_1, w_2, w_3 = matmul_2_4_T(phi_w, f_w)
 
         rhs[0,0,0][0] -= bd_det_x * (n_0+s_0) + bd_det_y * (e_0+w_0)

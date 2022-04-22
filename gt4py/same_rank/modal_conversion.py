@@ -62,15 +62,15 @@ def modal2qp_gt(phi, in_modal):
 @gtscript.stencil(backend=backend, **backend_opts)
 def modal2qp_stencil(
     phi: gtscript.Field[(dtype, (4, 4))],
-    in_nodal: gtscript.Field[(dtype, (4,))],
-    out_modal: gtscript.Field[(dtype, (4,))]
+    in_modal: gtscript.Field[(dtype, (4,))],
+    out_qp: gtscript.Field[(dtype, (4,))]
 ):
     with computation(PARALLEL), interval(...):
-        a_0, a_1, a_2, a_3 = matmul_4_4(phi, in_nodal)
-        out_modal[0,0,0][0] = a_0
-        out_modal[0,0,0][1] = a_1
-        out_modal[0,0,0][2] = a_2
-        out_modal[0,0,0][3] = a_3
+        a_0, a_1, a_2, a_3 = matmul_4_4(phi, in_modal)
+        out_qp[0,0,0][0] = a_0
+        out_qp[0,0,0][1] = a_1
+        out_qp[0,0,0][2] = a_2
+        out_qp[0,0,0][3] = a_3
 
 
 # def modal2bd_gt(phi, in_modal):
