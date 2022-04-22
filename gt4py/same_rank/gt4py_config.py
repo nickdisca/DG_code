@@ -1,8 +1,8 @@
 import numpy as np
 
-# backend = "numpy"
+backend = "numpy"
 
-backend ="gt:cpu_ifirst" 
+# backend ="gt:cpu_ifirst" 
 # backend ="gt:cpu_kfirst" 
 
 # backend = "dace:cpu"

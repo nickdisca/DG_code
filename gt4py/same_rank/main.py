@@ -9,14 +9,14 @@ from numpy.polynomial import legendre as L
 from vander import Vander
 from initial_conditions import set_initial_conditions
 from generate_matmul_function import generate_matmul_function
-from modal_conversion import nodal2modal, modal2nodal, nodal2modal_gt, modal2nodal_gt
+from modal_conversion import nodal2modal_gt, modal2nodal_gt
 from compute_mass import compute_mass
 from compute_rhs import compute_rhs
-from boundary_conditions import apply_pbc
 from plotter import Plotter
 from gt4py_config import backend, dtype, backend_opts
 
 import plotly
+from scalene import scalene_profiler
 
 debug = False
 
@@ -51,10 +51,10 @@ n_qp=n_qp_1D*n_qp_1D
 # timestep
 dt = 1e-3
 T = 1
-niter = int(T // dt)
+niter = int(T / dt)
 
 # plotting
-plot_freq = int(niter // 10)
+plot_freq = int(niter / 10)
 plot_type = "contour"
 
 plot_freq = 100
@@ -114,6 +114,7 @@ wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0),
 wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (len(wts), )))
 
 print(f'\n\n--- Backend = {backend} ---')
+print(f'Domain: {nx = }; {ny = }\nTimesteping: {dt = }; {niter = }')
 compute_rhs(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, dt, niter, plotter)
 
 u_final_nodal = np.asarray(modal2nodal_gt(vander.vander_gt, u0_modal_gt))
@@ -126,3 +127,12 @@ print('--- Error ---')
 l2_error = np.linalg.norm(u0_nodal.ravel() - u_final_nodal.ravel()) / u0_nodal.size
 print(f'{l2_error=}')
 
+# Plot final time
+if debug:
+    init = True
+else:
+    init = False
+plotter.plot_solution(u_final_nodal, init=init, show=True)
+
+
+# %%

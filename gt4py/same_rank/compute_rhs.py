@@ -3,7 +3,7 @@ import time
 import gt4py.gtscript as gtscript
 import gt4py as gt
 from flux_function import flux_function_gt, integrate_flux_stencil, flux_function_stencil
-from modal_conversion import modal2qp_gt, modal2bd_gt, modal2qp_stencil, modal2bd_stencil, modal2nodal_gt
+from modal_conversion import modal2qp_gt, modal2bd_gt, modal2qp_stencil, modal2bd_stencil, modal2nodal_gt, modal2nodal_stencil
 from numerical_flux import flux_bd_gt, compute_flux_gt, integrate_numerical_flux_stencil, flux_bd_stencil
 
 from matmul.matmul_4_4 import matmul_4_4
@@ -94,6 +94,9 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
 
     rhs = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,)))
+    
+    u_nodal = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,)))
 
     # --- internal integrals ---
     u_qp = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
@@ -169,9 +172,9 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
         runge_kuta_stencil(uM_gt, rhs, dt)
         # print(f'Iteration {i} done')
         
-        # if i % plot_freq == 0:
-        #     u0_nodal_gt = modal2nodal_gt(vander.vander_gt, uM_gt)
-        #     plotter.plot_solution(u0_nodal_gt, init=False, plot_type=plot_type)
+        if i % plot_freq == 0:
+            modal2nodal_stencil(vander.vander_gt, uM_gt, u_nodal)
+            plotter.plot_solution(u_nodal, init=False, plot_type=plot_type)
 
     loop_end = time.perf_counter()
 

@@ -14,19 +14,19 @@ def nodal2modal_gt(vander, in_nodal):
     vec = vander.shape[3]
     out_modal = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (vec,)))
-    nodal2modal(vander, in_nodal, out_modal)
+    nodal2modal_stencil(vander, in_nodal, out_modal)
     return out_modal
 
 def modal2nodal_gt(vander, in_modal):
     nx, ny, nz, vec = in_modal.shape
     out_nodal = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (vec,)))
-    nodal2modal(vander, in_modal, out_nodal)
+    modal2nodal_stencil(vander, in_modal, out_nodal)
     return out_nodal
 
 
 @gtscript.stencil(backend=backend, **backend_opts)
-def nodal2modal(
+def nodal2modal_stencil(
     vander: gtscript.Field[(dtype, (4, 4))],
     in_nodal: gtscript.Field[(dtype, (4,))],
     out_modal: gtscript.Field[(dtype, (4,))]
@@ -39,7 +39,7 @@ def nodal2modal(
         out_modal[0,0,0][3] = a_3
 
 @gtscript.stencil(backend=backend, **backend_opts)
-def modal2nodal(
+def modal2nodal_stencil(
     vander_inv: gtscript.Field[(dtype, (4, 4))],
     in_modal: gtscript.Field[(dtype, (4,))],
     out_nodal: gtscript.Field[(dtype, (4,))]
@@ -71,6 +71,7 @@ def modal2qp_stencil(
         out_modal[0,0,0][1] = a_1
         out_modal[0,0,0][2] = a_2
         out_modal[0,0,0][3] = a_3
+
 
 # def modal2bd_gt(phi, in_modal):
 #     nx, ny, nz, _ = in_modal.shape

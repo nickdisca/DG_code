@@ -25,7 +25,7 @@ class Plotter():
         self.fig, self.ax = plt.subplots()
 
 
-    def plot_solution(self,u,init=False, plot_type='plotly'):
+    def plot_solution(self,u,init=False, plot_type='contour',show=False):
         nx, ny, nz, vec = u.shape
         u.reshape((nx, ny, vec))
         x_u    = np.zeros(self.nx*self.r)
@@ -98,5 +98,8 @@ class Plotter():
         else:
             print("Plot type not recognised!")
         # self.cbar.draw_all()
-        plt.pause(2)
-        # plt.show()
+        if show:
+            plt.draw()
+            plt.show()
+        else:
+            plt.pause(0.005)
