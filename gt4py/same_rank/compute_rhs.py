@@ -8,6 +8,7 @@ from numerical_flux import flux_bd_gt, compute_flux_gt, integrate_numerical_flux
 
 from matmul.matmul_4_4 import matmul_4_4
 from gt4py_config import dtype, backend, backend_opts
+from stencil_funcs import stencil_funcs
 
 # @gtscript.stencil(backend=backend, **backend_opts)
 # def elemwise_mult(
@@ -140,12 +141,18 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
     loop_start = time.perf_counter()
     for i in range(niter):
         # --- Flux Integrals ---
-        # modal2qp_stencil(vander.phi_gt, uM_gt, u_qp)
-        # flux_function_stencil(u_qp, fx, fy)
-        # integrate_flux(rhs, wts2d, fx, fy, vander, determ, bd_det_x, bd_det_y)
-        complete_flux_stencil(uM_gt, vander.phi_gt, vander.grad_phi_x_gt,
-            vander.grad_phi_y_gt, wts2d, fx, rhs, determ, bd_det_x, bd_det_y
-        )
+
+        # OG ---
+        modal2qp_stencil(vander.phi_gt, uM_gt, u_qp)
+        flux_function_stencil(u_qp, fx, fy)
+        integrate_flux(rhs, wts2d, fx, fy, vander, determ, bd_det_x, bd_det_y)
+
+        # Fused ---
+        # complete_flux_stencil(uM_gt, vander.phi_gt, vander.grad_phi_x_gt,
+        #     vander.grad_phi_y_gt, wts2d, fx, rhs, determ, bd_det_x, bd_det_y
+        # )
+        # Generate func ---
+        stencil_funcs.modal2qp(vander.phi_gt, uM_gt, u_qp)
 
 
         modal2bd_gt(vander.phi_bd_N_gt, uM_gt, u_n)
