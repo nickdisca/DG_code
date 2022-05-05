@@ -12,7 +12,7 @@ from modal_conversion import nodal2modal_gt, modal2nodal_gt
 from compute_mass import compute_mass
 from compute_rhs import compute_rhs
 from plotter import Plotter
-from gt4py_config import backend, dtype, backend_opts
+from gt4py_config import backend, dtype, backend_opts, r, n_qp_1D
 
 import plotly
 from scalene import scalene_profiler
@@ -34,7 +34,7 @@ nx = 20; ny = 20
 hx = (b-a)/nx; hy = (d-c)/ny
 
 # polynomial degree of DG
-r = 1
+# r = 2
 # cardinality
 dim=(r+1)**2
 
@@ -42,21 +42,22 @@ dim=(r+1)**2
 quad_type="leg"
 
 # Number of quadrature points in one dimension
-n_qp_1D=2
+# n_qp_1D=4
 
 # Number of quadrature points
 n_qp=n_qp_1D*n_qp_1D
 
+
 # timestep
-dt = 1e-3
+dt = 1e-4
 T = 1
 niter = int(T / dt)
 
 # plotting
-plot_freq = int(niter / 10)
+plot_freq = int(niter / 2)
 plot_type = "contour"
 
-plot_freq = 100
+# plot_freq = 100
 # %%
 # rdist_gt = degree_distribution("unif",nx,ny,r_max);
 
@@ -109,9 +110,9 @@ mass, inv_mass = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c
 
 inv_mass_gt = gt.storage.from_array(inv_mass, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (dim, dim)))
 
-wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (dim, )))
+wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (n_qp, )))
 
-wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (len(wts), )))
+wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (n_qp_1D, )))
 
 print(f'\n\n--- Backend = {backend} ---')
 print(f'Domain: {nx = }; {ny = }\nTimesteping: {dt = }; {niter = }')

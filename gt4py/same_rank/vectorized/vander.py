@@ -73,14 +73,16 @@ class Vander:
     def conv_to_gt(self, backend, dtype=np.float64):
         dim = self.vander.shape[0]
         n_qp_1D = len(self.pts)
+        n_qp, dim = self.phi_val_cell.shape
+
+        # TODO: wtsd2d_gt defined twice
         self.wtsd2d_gt = gt.storage.from_array(data=self.wts2d,
-            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (dim,)), default_origin=(0,0,0))
+            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp,)), default_origin=(0,0,0))
         self.vander_gt = gt.storage.from_array(data=self.vander,
             backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (dim, dim)), default_origin=(0,0,0))
         self.inv_vander_gt = gt.storage.from_array(data=self.inv_vander,
             backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (dim, dim)), default_origin=(0,0,0))
 
-        n_qp, dim = self.phi_val_cell.shape
         self.phi_gt = gt.storage.from_array(data=self.phi_val_cell,
             backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp, dim)), default_origin=(0,0,0))
         self.grad_phi_x_gt = gt.storage.from_array(data=self.phi_grad_cell_x,

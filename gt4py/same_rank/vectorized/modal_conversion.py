@@ -3,7 +3,7 @@ import gt4py.gtscript as gtscript
 import gt4py as gt
 
 from boundary_conditions import apply_pbc
-from gt4py_config import dtype, backend, backend_opts
+from gt4py_config import dtype, backend, backend_opts, dim
 
 def nodal2modal_gt(vander, in_nodal):
     nx, ny, nz, _ = in_nodal.shape
@@ -23,18 +23,18 @@ def modal2nodal_gt(vander, in_modal):
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def nodal2modal_stencil(
-    vander: gtscript.Field[(dtype, (4, 4))],
-    in_nodal: gtscript.Field[(dtype, (4,))],
-    out_modal: gtscript.Field[(dtype, (4,))]
+    vander: gtscript.Field[(dtype, (dim, dim))],
+    in_nodal: gtscript.Field[(dtype, (dim,))],
+    out_modal: gtscript.Field[(dtype, (dim,))]
 ):
     with computation(PARALLEL), interval(...):
         out_modal = vander @ in_nodal
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def modal2nodal_stencil(
-    vander_inv: gtscript.Field[(dtype, (4, 4))],
-    in_modal: gtscript.Field[(dtype, (4,))],
-    out_nodal: gtscript.Field[(dtype, (4,))]
+    vander_inv: gtscript.Field[(dtype, (dim, dim))],
+    in_modal: gtscript.Field[(dtype, (dim,))],
+    out_nodal: gtscript.Field[(dtype, (dim,))]
 ):
     with computation(PARALLEL), interval(...):
         out_nodal = vander_inv @ in_modal

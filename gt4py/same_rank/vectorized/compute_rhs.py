@@ -21,9 +21,9 @@ def compute_rhs(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, 
     alloc_start = time.perf_counter()
 
     rhs = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,)))
+        shape=(nx, ny, nz), dtype=(dtype, (dim,)))
     u_nodal = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,))) # for plotting
+        shape=(nx, ny, nz), dtype=(dtype, (dim,))) # for plotting
 
     # --- internal integrals ---
     u_qp = gt.storage.zeros(backend=backend, default_origin=(0,0,0),

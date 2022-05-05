@@ -1,21 +1,21 @@
 import gt4py.gtscript as gtscript
 import gt4py as gt
 
-from gt4py_config import dtype, backend, backend_opts
+from gt4py_config import dtype, backend, backend_opts, dim, n_qp, n_qp_1D
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def flux_stencil(
-    phi: gtscript.Field[(dtype, (4, 4))],
-    u_modal: gtscript.Field[(dtype, (4,))],
-    u_qp: gtscript.Field[(dtype, (4,))],
+    phi: gtscript.Field[(dtype, (n_qp, dim))],
+    u_modal: gtscript.Field[(dtype, (dim,))],
+    u_qp: gtscript.Field[(dtype, (n_qp,))],
 
-    fx: gtscript.Field[(dtype, (4,))],
-    fy: gtscript.Field[(dtype, (4,))],
+    fx: gtscript.Field[(dtype, (n_qp,))],
+    fy: gtscript.Field[(dtype, (n_qp,))],
 
-    phi_grad_x: gtscript.Field[(dtype, (4, 4))],
-    phi_grad_y: gtscript.Field[(dtype, (4, 4))],
-    w: gtscript.Field[(dtype, (4,))],
-    rhs: gtscript.Field[(dtype, (4,))],
+    phi_grad_x: gtscript.Field[(dtype, (n_qp, dim))],
+    phi_grad_y: gtscript.Field[(dtype, (n_qp, dim))],
+    w: gtscript.Field[(dtype, (n_qp,))],
+    rhs: gtscript.Field[(dtype, (dim,))],
     determ: float,
     bd_det_x: float,
     bd_det_y: float
@@ -28,17 +28,17 @@ def flux_stencil(
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def modal2bd(
-    phi_bd_N: gtscript.Field[(dtype, (2, 4))],
-    phi_bd_S: gtscript.Field[(dtype, (2, 4))],
-    phi_bd_E: gtscript.Field[(dtype, (2, 4))],
-    phi_bd_W: gtscript.Field[(dtype, (2, 4))],
+    phi_bd_N: gtscript.Field[(dtype, (n_qp_1D, dim))],
+    phi_bd_S: gtscript.Field[(dtype, (n_qp_1D, dim))],
+    phi_bd_E: gtscript.Field[(dtype, (n_qp_1D, dim))],
+    phi_bd_W: gtscript.Field[(dtype, (n_qp_1D, dim))],
 
-    u_n: gtscript.Field[(dtype, (2,))],
-    u_s: gtscript.Field[(dtype, (2,))],
-    u_e: gtscript.Field[(dtype, (2,))],
-    u_w: gtscript.Field[(dtype, (2,))],
+    u_n: gtscript.Field[(dtype, (n_qp_1D,))],
+    u_s: gtscript.Field[(dtype, (n_qp_1D,))],
+    u_e: gtscript.Field[(dtype, (n_qp_1D,))],
+    u_w: gtscript.Field[(dtype, (n_qp_1D,))],
 
-    u_modal: gtscript.Field[(dtype, (4,))],
+    u_modal: gtscript.Field[(dtype, (dim,))],
     
 ):
     with computation(PARALLEL), interval(...):
@@ -51,15 +51,15 @@ def modal2bd(
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def flux_bd_stencil(
-    u_n: gtscript.Field[(dtype, (2,))],
-    u_s: gtscript.Field[(dtype, (2,))],
-    u_e: gtscript.Field[(dtype, (2,))],
-    u_w: gtscript.Field[(dtype, (2,))],
+    u_n: gtscript.Field[(dtype, (n_qp_1D,))],
+    u_s: gtscript.Field[(dtype, (n_qp_1D,))],
+    u_e: gtscript.Field[(dtype, (n_qp_1D,))],
+    u_w: gtscript.Field[(dtype, (n_qp_1D,))],
 
-    f_n: gtscript.Field[(dtype, (2,))],
-    f_s: gtscript.Field[(dtype, (2,))],
-    f_e: gtscript.Field[(dtype, (2,))],
-    f_w: gtscript.Field[(dtype, (2,))]
+    f_n: gtscript.Field[(dtype, (n_qp_1D,))],
+    f_s: gtscript.Field[(dtype, (n_qp_1D,))],
+    f_e: gtscript.Field[(dtype, (n_qp_1D,))],
+    f_w: gtscript.Field[(dtype, (n_qp_1D,))]
 ):
     with computation(PARALLEL), interval(...):
         f_n = u_n
@@ -69,20 +69,20 @@ def flux_bd_stencil(
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def compute_num_flux(
-    u_n: gtscript.Field[(dtype, (2,))],
-    u_s: gtscript.Field[(dtype, (2,))],
-    u_e: gtscript.Field[(dtype, (2,))],
-    u_w: gtscript.Field[(dtype, (2,))],
+    u_n: gtscript.Field[(dtype, (n_qp_1D,))],
+    u_s: gtscript.Field[(dtype, (n_qp_1D,))],
+    u_e: gtscript.Field[(dtype, (n_qp_1D,))],
+    u_w: gtscript.Field[(dtype, (n_qp_1D,))],
 
-    f_n: gtscript.Field[(dtype, (2,))],
-    f_s: gtscript.Field[(dtype, (2,))],
-    f_e: gtscript.Field[(dtype, (2,))],
-    f_w: gtscript.Field[(dtype, (2,))],
+    f_n: gtscript.Field[(dtype, (n_qp_1D,))],
+    f_s: gtscript.Field[(dtype, (n_qp_1D,))],
+    f_e: gtscript.Field[(dtype, (n_qp_1D,))],
+    f_w: gtscript.Field[(dtype, (n_qp_1D,))],
 
-    flux_n: gtscript.Field[(dtype, (2,))],
-    flux_s: gtscript.Field[(dtype, (2,))],
-    flux_e: gtscript.Field[(dtype, (2,))],
-    flux_w: gtscript.Field[(dtype, (2,))]
+    flux_n: gtscript.Field[(dtype, (n_qp_1D,))],
+    flux_s: gtscript.Field[(dtype, (n_qp_1D,))],
+    flux_e: gtscript.Field[(dtype, (n_qp_1D,))],
+    flux_w: gtscript.Field[(dtype, (n_qp_1D,))]
 ):
     with computation(PARALLEL), interval(...):
         flux_n = 0.5 * (f_n + f_s[0,+1,0]) - 0.5 * (u_s[0,+1,0] - u_n)
@@ -92,19 +92,19 @@ def compute_num_flux(
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def integrate_num_flux(
-    phi_bd_N: gtscript.Field[(dtype, (2, 4))],
-    phi_bd_S: gtscript.Field[(dtype, (2, 4))],
-    phi_bd_E: gtscript.Field[(dtype, (2, 4))],
-    phi_bd_W: gtscript.Field[(dtype, (2, 4))],
+    phi_bd_N: gtscript.Field[(dtype, (n_qp_1D, dim))],
+    phi_bd_S: gtscript.Field[(dtype, (n_qp_1D, dim))],
+    phi_bd_E: gtscript.Field[(dtype, (n_qp_1D, dim))],
+    phi_bd_W: gtscript.Field[(dtype, (n_qp_1D, dim))],
 
-    flux_n: gtscript.Field[(dtype, (2,))],
-    flux_s: gtscript.Field[(dtype, (2,))],
-    flux_e: gtscript.Field[(dtype, (2,))],
-    flux_w: gtscript.Field[(dtype, (2,))],
+    flux_n: gtscript.Field[(dtype, (n_qp_1D,))],
+    flux_s: gtscript.Field[(dtype, (n_qp_1D,))],
+    flux_e: gtscript.Field[(dtype, (n_qp_1D,))],
+    flux_w: gtscript.Field[(dtype, (n_qp_1D,))],
 
-    w: gtscript.Field[(dtype, (2,))],
+    w: gtscript.Field[(dtype, (n_qp_1D,))],
 
-    rhs: gtscript.Field[(dtype, (4,))],
+    rhs: gtscript.Field[(dtype, (dim,))],
     bd_det_x: float,
     bd_det_y: float
 ):
@@ -121,9 +121,9 @@ def integrate_num_flux(
         
 @gtscript.stencil(backend=backend, **backend_opts)
 def rk_step(
-    inv_mass: gtscript.Field[(dtype, (4,4))],
-    rhs: gtscript.Field[(dtype, (4,))],
-    u_modal: gtscript.Field[(dtype, (4,))],
+    inv_mass: gtscript.Field[(dtype, (dim, dim))],
+    rhs: gtscript.Field[(dtype, (dim,))],
+    u_modal: gtscript.Field[(dtype, (dim,))],
     dt: float
 ):
     with computation(PARALLEL), interval(...):
@@ -133,9 +133,9 @@ def rk_step(
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def modal2nodal(
-    phi: gtscript.Field[(dtype, (4,4))],
-    u_modal: gtscript.Field[(dtype, (4,))],
-    u_nodal: gtscript.Field[(dtype, (4,))],
+    phi: gtscript.Field[(dtype, (dim, dim))],
+    u_modal: gtscript.Field[(dtype, (dim,))],
+    u_nodal: gtscript.Field[(dtype, (dim,))],
 ):
     with computation(PARALLEL), interval(...):
         u_nodal = phi @ u_modal
