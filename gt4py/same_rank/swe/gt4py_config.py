@@ -24,7 +24,7 @@ dim=(r+1)**2
 n_qp = n_qp_1D**2
 
 # runge-kutta
-runge_kutta = 2
+runge_kutta = 1
 
 # dtypes
 dtype_modal2qp_matrix = (dtype, (n_qp, dim))

@@ -105,6 +105,8 @@ def integrate_num_flux(
     w: gtscript.Field[(dtype, (n_qp_1D,))],
 
     rhs: gtscript.Field[(dtype, (dim,))],
+    inv_mass: gtscript.Field[(dtype, (dim, dim))],
+
     bd_det_x: float,
     bd_det_y: float
 ):
@@ -118,18 +120,50 @@ def integrate_num_flux(
         rhs -= phi_bd_S.T @ flux_s * bd_det_x
         rhs -= phi_bd_E.T @ flux_e * bd_det_y
         rhs -= phi_bd_W.T @ flux_w * bd_det_y
+
+        rhs = (inv_mass @ rhs)
         
 @gtscript.stencil(backend=backend, **backend_opts)
-def rk_step(
-    inv_mass: gtscript.Field[(dtype, (dim, dim))],
+def rk_step1(
     rhs: gtscript.Field[(dtype, (dim,))],
     u_modal: gtscript.Field[(dtype, (dim,))],
-    dt: float
+    dt: float,
+    out: gtscript.Field[(dtype, (dim,))]
 ):
     with computation(PARALLEL), interval(...):
-        # BUG: parantheses around matmul is required !!!
-        u_modal += dt * (inv_mass @ rhs)
+        out = u_modal + dt * rhs
 
+@gtscript.stencil(backend=backend, **backend_opts)
+def rk_step2(
+    k1: gtscript.Field[(dtype, (dim,))],
+    k2: gtscript.Field[(dtype, (dim,))],
+    u_modal: gtscript.Field[(dtype, (dim,))],
+    dt: float,
+    out: gtscript.Field[(dtype, (dim,))]
+):
+    with computation(PARALLEL), interval(...):
+        out = 0.5 * (u_modal + k1 + dt * k2)
+
+@gtscript.stencil(backend=backend, **backend_opts)
+def rk_step2_3(
+    k1: gtscript.Field[(dtype, (dim,))],
+    k2: gtscript.Field[(dtype, (dim,))],
+    u_modal: gtscript.Field[(dtype, (dim,))],
+    dt: float,
+    out: gtscript.Field[(dtype, (dim,))]
+):
+    with computation(PARALLEL), interval(...):
+        out = 0.75 * u_modal + 0.25 * k1 + 0.25 * dt * k2
+@gtscript.stencil(backend=backend, **backend_opts)
+def rk_step3_3(
+    k2: gtscript.Field[(dtype, (dim,))],
+    k3: gtscript.Field[(dtype, (dim,))],
+    u_modal: gtscript.Field[(dtype, (dim,))],
+    dt: float,
+    out: gtscript.Field[(dtype, (dim,))]
+):
+    with computation(PARALLEL), interval(...):
+        out = (u_modal + 2*k2 + 2*dt*k3) / 3
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def modal2nodal(

@@ -24,21 +24,20 @@ debug = False
 radius=6.37122e6
 
 # Equation type
-eq_type="linear"
+eq_type="swe"
 
 # domain
 if eq_type == 'linear':
     a = 0; b = 1; c = 0; d =1
-elif eq_type == 'adv_sphere':
-    a = 0; b = 2*np.pi; c = -np.pi; d = np.pi
+elif eq_type == 'swe':
+    a = 0; b = 1e7; c = 0; d = 1e7
 
 # number of elements in X and Y
-nx = 40; ny = 40
+nx = 20; ny = 20
 
 hx = (b-a)/nx; hy = (d-c)/ny
+dx = np.min((hx, hy))
 
-# polynomial degree of DG
-# r = 2
 # cardinality
 dim=(r+1)**2
 
@@ -54,18 +53,21 @@ n_qp=n_qp_1D*n_qp_1D
 
 # timestep
 # dt = 1e-4
-courant = 0.01
+courant = 0.0001
 
-dt = courant * np.min((hx, hy)) / (r + 1)
+dt = courant * dx / (r + 1)
 
-T = 1
+if eq_type == 'linear':
+    T = 1
+elif eq_type == 'swe':
+    T = 86400 * 5
 niter = int(T / dt)
 
 # plotting
 plot_freq = int(niter / 10)
 plot_type = "contour"
 
-# plot_freq = 1
+plot_freq = 1
 # %%
 # rdist_gt = degree_distribution("unif",nx,ny,r_max);
 
@@ -100,20 +102,31 @@ vander_start = time.perf_counter()
 vander = Vander(nx, ny, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d, backend=backend)
 vander_end = time.perf_counter()
 
-neq, u0_nodal = set_initial_conditions(x_c, y_c, a, b, c, d, dim, vander, "linear")
+neq, u0_nodal = set_initial_conditions(x_c, y_c, a, b, c, d, dim, vander, eq_type)
 
-# plot_solution(u0_nodal, x_c, y_c, r+1, nx, ny, neq, hx, hy, "contour")
-u0_nodal_gt = gt.storage.from_array(data=u0_nodal,
-    backend=backend, default_origin=(0,0,0), shape=(nx,ny,1), dtype=(dtype, (dim,)))
+if eq_type == 'swe':
+    h0 = u0_nodal[0]
+    u0 = u0_nodal[1]
+    v0 = u0_nodal[2]
+
+
+    h0_nodal_gt = gt.storage.from_array(data=h0,
+        backend=backend, default_origin=(0,0,0), shape=(nx,ny,1), dtype=(dtype, (dim,)))
+    hu0_nodal_gt = gt.storage.from_array(data=u0*h0,
+        backend=backend, default_origin=(0,0,0), shape=(nx,ny,1), dtype=(dtype, (dim,)))
+    hv0_nodal_gt = gt.storage.from_array(data=v0*h0,
+        backend=backend, default_origin=(0,0,0), shape=(nx,ny,1), dtype=(dtype, (dim,)))
 
 plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 
 # if not debug:
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-# plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
+plotter.plot_solution(h0_nodal_gt, init=True, plot_type=plotter.plot_type)
 
-u0_ref = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
-u0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
+h0_ref = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
+h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
+hu0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hu0_nodal_gt)
+hv0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hv0_nodal_gt)
 
 mass, inv_mass = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, eq_type)
 
@@ -127,9 +140,9 @@ print(f'\n\n--- Backend = {backend} ---')
 print(f'Domain: {nx = }; {ny = }\nTimesteping: {dt = }; {niter = }')
 print(f'Order: space {r+1}; time {runge_kutta}')
 
-run(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, dt, niter, plotter)
+run((h0_modal_gt, hu0_modal_gt, hv0_modal_gt), vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, dx, dt, niter, plotter)
 
-u_final_nodal = modal2nodal_gt(vander.vander_gt, u0_modal_gt)
+u_final_nodal = modal2nodal_gt(vander.vander_gt, h0_modal_gt)
 
 if backend == "cuda":
     u_final_nodal.device_to_host()
@@ -146,7 +159,7 @@ print('--- Error ---')
 determ = hx * hy / 4
 tmp = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
     shape=(nx, ny, 1), dtype=(dtype, (n_qp,)))
-integration(vander.phi_gt, wts2d_gt, np.sqrt((u0_ref - u_final)**2), determ, tmp)
+integration(vander.phi_gt, wts2d_gt, np.sqrt((h0_ref - u_final)**2), determ, tmp)
 l2_error = np.sum(tmp)
 print(f'{l2_error=}')
 
