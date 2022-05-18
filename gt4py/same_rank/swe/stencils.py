@@ -39,7 +39,7 @@ def flux_stencil_swe(
     with computation(PARALLEL), interval(...):
         h_qp = phi @ h
         hu_qp = phi @ hu
-        hu_qp = phi @ hv
+        hv_qp = phi @ hv
 
         fh_x = hu_qp
         fh_y = hv_qp
@@ -108,7 +108,9 @@ def flux_bd_stencil_swe(
     f_n_hv: gtscript.Field[(dtype, (n_qp_1D,))],
     f_s_hv: gtscript.Field[(dtype, (n_qp_1D,))],
     f_e_hv: gtscript.Field[(dtype, (n_qp_1D,))],
-    f_w_hv: gtscript.Field[(dtype, (n_qp_1D,))]
+    f_w_hv: gtscript.Field[(dtype, (n_qp_1D,))],
+
+    g: float
 ):
     with computation(PARALLEL), interval(...):
         f_n_h = hv_n
@@ -118,13 +120,13 @@ def flux_bd_stencil_swe(
 
         f_n_hu = hu_n * hv_n / h_n
         f_s_hu = hu_s * hv_s / h_s
-        f_e_hu = hu_e * hu_e / h_e + h_e * h_e * 9.81 / 2
-        f_w_hu = hu_w * hu_w / h_w + h_w * h_w * 9.81 / 2
+        f_e_hu = hu_e * hu_e / h_e + h_e * h_e * g / 2
+        f_w_hu = hu_w * hu_w / h_w + h_w * h_w * g / 2
 
         f_e_hv = hu_e * hv_e / h_e
         f_w_hv = hu_w * hv_w / h_w
-        f_n_hv = hv_n * hv_n / h_n + h_n * h_n * 9.81 / 2
-        f_s_hv = hv_s * hv_s / h_s + h_s * h_s * 9.81 / 2
+        f_n_hv = hv_n * hv_n / h_n + h_n * h_n * g / 2
+        f_s_hv = hv_s * hv_s / h_s + h_s * h_s * g / 2
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def compute_num_flux(
@@ -179,10 +181,10 @@ def integrate_num_flux(
         flux_e *= w
         flux_w *= w
 
-        rhs -= phi_bd_N.T @ flux_n * bd_det_x
-        rhs -= phi_bd_S.T @ flux_s * bd_det_x
-        rhs -= phi_bd_E.T @ flux_e * bd_det_y
-        rhs -= phi_bd_W.T @ flux_w * bd_det_y
+        rhs -= (phi_bd_N.T @ flux_n) * bd_det_x
+        rhs -= (phi_bd_S.T @ flux_s) * bd_det_x
+        rhs -= (phi_bd_E.T @ flux_e) * bd_det_y
+        rhs -= (phi_bd_W.T @ flux_w) * bd_det_y
 
         rhs = (inv_mass @ rhs) / radius
         

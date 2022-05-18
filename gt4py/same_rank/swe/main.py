@@ -21,7 +21,8 @@ debug = False
 
 # %%
 # Radius of the earth (for spherical geometry)
-radius=6.37122e6
+# radius=6.37122e6
+radius=1
 
 # Equation type
 eq_type="swe"
@@ -56,18 +57,19 @@ n_qp=n_qp_1D*n_qp_1D
 courant = 0.0001
 
 dt = courant * dx / (r + 1)
+alpha = courant * dx / dt
 
 if eq_type == 'linear':
     T = 1
 elif eq_type == 'swe':
-    T = 86400 * 5
+    T = 1e7
 niter = int(T / dt)
 
 # plotting
 plot_freq = int(niter / 10)
 plot_type = "contour"
 
-plot_freq = 1
+plot_freq = 100
 # %%
 # rdist_gt = degree_distribution("unif",nx,ny,r_max);
 
@@ -140,7 +142,7 @@ print(f'\n\n--- Backend = {backend} ---')
 print(f'Domain: {nx = }; {ny = }\nTimesteping: {dt = }; {niter = }')
 print(f'Order: space {r+1}; time {runge_kutta}')
 
-run((h0_modal_gt, hu0_modal_gt, hv0_modal_gt), vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, dx, dt, niter, plotter)
+run((h0_modal_gt, hu0_modal_gt, hv0_modal_gt), vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, alpha, dt, niter, plotter)
 
 u_final_nodal = modal2nodal_gt(vander.vander_gt, h0_modal_gt)
 

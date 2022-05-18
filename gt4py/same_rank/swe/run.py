@@ -8,12 +8,12 @@ from gt4py_config import dtype, backend, backend_opts, runge_kutta
 import stencils
 import boundary_conditions
 
-def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, ny, dx, dt, niter, plotter):
-    alpha = dx / dt
+def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, ny, alpha, dt, niter, plotter):
     determ = hx * hy / 4
     bd_det_x = hx / 2
     bd_det_y = hy / 2
-    radius=6.37122e6
+    # radius=6.37122e6
+    radius = 1.0
     nz = 1
     plot_freq = plotter.plot_freq
     plot_type = plotter.plot_type
@@ -67,7 +67,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
         shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,)))
 
     # --- boundary integrals ---
-    ## NOTE Default origin is NOT (0,0,0)
+    ## NOTE: Padding -> Default origin is NOT (0,0,0)
     h_n = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
         shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
     h_s = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
@@ -170,7 +170,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
             )
             # --- Timestepping ---
             stencils.rk_step1(rhs_h, h, dt, h)
-            stencils.rk_step1(rhs_hv, hu, dt, hu)
+            stencils.rk_step1(rhs_hu, hu, dt, hu)
             stencils.rk_step1(rhs_hv, hv, dt, hv)
         # elif runge_kutta == 2:
         #     compute_rhs(
@@ -212,9 +212,10 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
 
 
         # --- Output --- 
-        print(f'Iteration {i} done')
+        print(f'Iteration {i}: time = {dt*i}s done')
         if i % plot_freq == 0:
             stencils.modal2nodal(vander.vander_gt, h, u_nodal)
+            print('plotting')
             plotter.plot_solution(u_nodal, init=False, plot_type=plot_type)
 
     loop_end = time.perf_counter()
@@ -231,7 +232,7 @@ def compute_rhs(
     determ, bd_det_x, bd_det_y,
     vander, inv_mass, wts2d, wts1d, nx, ny, alpha, radius
 ):
-        g = 9.81
+        g = 9.80616
         h, hu, hv = cons_var
         rhs_h, rhs_hu, rhs_hv = rhs
         h_qp, hu_qp, hv_qp = cons_qp
@@ -298,7 +299,7 @@ def compute_rhs(
         stencils.flux_bd_stencil_swe(
             h_n, h_s, h_e, h_w, hu_n, hu_s, hu_e, hu_w,
             hv_n, hv_s, hv_e, hv_w, f_n_h, f_s_h, f_e_h, f_w_h,
-            f_n_hu, f_s_hu, f_e_hu, f_w_hu, f_n_hv, f_s_hv, f_e_hv, f_w_hv,
+            f_n_hu, f_s_hu, f_e_hu, f_w_hu, f_n_hv, f_s_hv, f_e_hv, f_w_hv, g,
             origin=(0,0,0), domain=(nx+2, ny+2, 1)
         )
 
