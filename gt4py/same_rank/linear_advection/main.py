@@ -36,7 +36,8 @@ elif eq_type == 'adv_sphere':
     a = 0; b = 2*np.pi; c = -np.pi; d = np.pi
 
 # number of elements in X and Y
-nx = 160; ny = 160
+n = 640
+nx = n; ny = n
 
 hx = (b-a)/nx; hy = (d-c)/ny
 
@@ -115,7 +116,6 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
 # plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
 
-u0_ref = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
 u0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
 
 mass, inv_mass = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, eq_type)
@@ -149,7 +149,7 @@ print('--- Error ---')
 determ = hx * hy / 4
 tmp = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
     shape=(nx, ny, 1), dtype=(dtype, (n_qp,)))
-integration(vander.phi_gt, wts2d_gt, np.sqrt((u0_ref - u_final)**2), determ, tmp)
+integration(vander.phi_gt, wts2d_gt, np.sqrt((u0_nodal_gt - u_final)**2), determ, tmp)
 l2_error = np.sum(tmp)
 print(f'{l2_error=}')
 
