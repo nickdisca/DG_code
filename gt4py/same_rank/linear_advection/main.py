@@ -17,6 +17,9 @@ from gt4py_config import backend, dtype, backend_opts, r, n_qp_1D, runge_kutta
 import plotly
 from scalene import scalene_profiler
 
+# silence warning
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+
 debug = False
 
 # %%
@@ -33,7 +36,7 @@ elif eq_type == 'adv_sphere':
     a = 0; b = 2*np.pi; c = -np.pi; d = np.pi
 
 # number of elements in X and Y
-nx = 40; ny = 40
+nx = 160; ny = 160
 
 hx = (b-a)/nx; hy = (d-c)/ny
 

@@ -17,6 +17,9 @@ from gt4py_config import backend, dtype, backend_opts, r, n_qp_1D, runge_kutta
 import plotly
 from scalene import scalene_profiler
 
+# silence warning
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+
 debug = False
 
 # %%
@@ -34,7 +37,7 @@ elif eq_type == 'swe':
     a = 0; b = 1e7; c = 0; d = 1e7
 
 # number of elements in X and Y
-nx = 20; ny = 20
+nx = 50; ny = 50
 
 hx = (b-a)/nx; hy = (d-c)/ny
 dx = np.min((hx, hy))

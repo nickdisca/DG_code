@@ -47,7 +47,7 @@ class Plotter():
                     
         if plot_type == 'contour':
             # self.fig.clear()
-            CS = self.ax.contourf(X, Y, Z)
+            CS = self.ax.contourf(X, Y, Z, cmap='jet')
             if init:
                 self.cbar = self.fig.colorbar(CS)
             else:

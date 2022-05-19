@@ -16,7 +16,7 @@ backend_opts = {
 }
 
 # dims
-r = 2
+r = 1
 n_qp_1D = r+1
 
 
