@@ -1,0 +1,41 @@
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 10; ny = 10
+Timesteping: dt = 0.001; niter = 1000
+Order: space 1; time 1
+--- Timings ---
+Loop: 0.7883226499980083s
+Allocation: 0.0025173590111080557s
+Vander: 0.03489603300113231s
+--- Error ---
+l2_error = CPUStorage(0.00983724)
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 10; ny = 10
+Timesteping: dt = 0.001; niter = 1000
+Order: space 1; time 1
+--- Timings ---
+Loop: 0.8031698859995231s
+Allocation: 0.002382054997724481s
+Vander: 0.026078454000526108s
+--- Error ---
+l2_error = CPUStorage(0.00983724)
+
+
+
+Batch Job Summary Report (version 21.01.1) for Job "job_cpu.sh" (38606390) on daint
+
+Job information (1/2)
+-----------------------------------------------------------------------------------------------------
+             Submit            Eligible               Start                 End    Elapsed Time limit
+------------------- ------------------- ------------------- ------------------- ---------- ----------
+2022-05-19T16:08:04 2022-05-19T16:08:04 2022-05-19T16:08:35 2022-05-19T16:09:32   00:00:57   00:30:00
+-----------------------------------------------------------------------------------------------------
+
+Job information (2/2)
+-------------------------------------------------------------
+    Username      Account    Partition   NNodes        Energy
+------------ ------------ ------------ -------- -------------
+     kszenes      csstaff        debug        1      4.737 kJ
+

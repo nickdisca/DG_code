@@ -12,7 +12,7 @@ from modal_conversion import nodal2modal_gt, modal2nodal_gt, integration
 from compute_mass import compute_mass
 from run import run
 from plotter import Plotter
-from gt4py_config import backend, dtype, backend_opts, r, n_qp_1D, runge_kutta
+from gt4py_config import backend, dtype, backend_opts, r, n_qp_1D, runge_kutta, n
 
 import plotly
 from scalene import scalene_profiler
@@ -36,7 +36,6 @@ elif eq_type == 'adv_sphere':
     a = 0; b = 2*np.pi; c = -np.pi; d = np.pi
 
 # number of elements in X and Y
-n = 640
 nx = n; ny = n
 
 hx = (b-a)/nx; hy = (d-c)/ny
@@ -126,7 +125,7 @@ wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0),
 
 wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (n_qp_1D, )))
 
-print(f'\n\n--- Backend = {backend} ---')
+print(f'\n--- Backend = {backend} ---')
 print(f'Domain: {nx = }; {ny = }\nTimesteping: {dt = }; {niter = }')
 print(f'Order: space {r+1}; time {runge_kutta}')
 
@@ -149,9 +148,11 @@ print('--- Error ---')
 determ = hx * hy / 4
 tmp = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
     shape=(nx, ny, 1), dtype=(dtype, (n_qp,)))
-integration(vander.phi_gt, wts2d_gt, np.sqrt((u0_nodal_gt - u_final)**2), determ, tmp)
+# integration(vander.phi_gt, wts2d_gt, np.sqrt((u0_nodal_gt - u_final)**2), determ, tmp)
+tmp = np.einsum('ijklm,ijkm->ijkl', vander.phi_gt, np.sqrt((u0_nodal_gt - u_final)**2)) * wts2d_gt * determ
+
 l2_error = np.sum(tmp)
-print(f'{l2_error=}')
+print(f'{l2_error = }\n')
 
 # Plot final time
 if debug:
