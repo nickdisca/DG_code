@@ -20,7 +20,7 @@ else:
     # spatial rank
     r = 0
     # runge-kutta
-    runge_kutta = 1
+    runge_kutta = 2
 
 
 n_qp_1D = r+1
