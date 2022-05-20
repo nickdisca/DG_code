@@ -8,21 +8,22 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 
 # Radius of the earth (for spherical geometry)
-# radius=6.37122e6;
+# radius=6.37122e6
 radius = 1
 
 # Equation type
-eq_type="linear";
+# eq_type="linear";
 # eq_type="adv_sphere";
-#eq_type="swe";
+eq_type="swe";
 
 # number of elements in X and Y
-d1=2; d2=2
+d1=20; d2=20
 
 
 # definition of the domain [a,b]x[c,d]
 # a=0; b=2*np.pi; c=-np.pi/2; d=np.pi/2;
-a=0; b=1; c=0; d=1
+# a=0; b=1; c=0; d=1
+a=0; b=1e7; c=0; d=1e7
 
 # length of the 1D intervals
 hx=(b-a)/d1; hy=(d-c)/d2
@@ -44,9 +45,10 @@ n_qp=n_qp_1D*n_qp_1D
 
 # Time interval, initial and final time
 t=0
-T=1000
+# T=1000
 #T=86400
 #T=5*86400
+T = 1 * (b-a)
 
 # Order of the RK scheme (1,2,3,4)
 RK=1
@@ -54,13 +56,20 @@ RK=1
 # Time step
 # For "linadv":  dt=1/r_max^2*min(hx,hy)*0.1;
 # For "adv_sphere" with earth radius
-dt = 1e-3
+# dt = 1e-3
 
 # Plotting frequency (time steps)
-plot_freq=10
+plot_freq=50
 
 # Derived temporal loop parameters
-Courant=dt/min(hx,hy)
+# Courant=dt/min(hx,hy)
+Courant = 0.0001
+
+dx =min(hx,hy)
+dt = Courant * dx / (r_max+1)
+
+
+
 N_it=math.ceil(T/dt)
 
 # Coriolis function currently zero
@@ -82,7 +91,7 @@ def plot_solution(u,x_c,y_c,r,d1,d2,neq,hx,hy):
     for k in range(neq):
         for j in range(d2):
             for i in range(d1):
-                Z[i*r:(i+1)*r,j*r:(j+1)*r] = u[i,j,n].reshape(r,r)
+                Z[i*r:(i+1)*r,j*r:(j+1)*r] = u[i,j,0].reshape(r,r)
     # Z[np.abs(Z) < np.amax(Z)/1000.0] = 0.0   # Clip all values less than 1/1000 of peak
                 
     fig, ax = plt.subplots()
@@ -255,6 +264,8 @@ def comp_flux_bd(d1,d2,neq,u_n,u_s,u_e,u_w,pts_x,pts_y,hx,hy,eq_type,radius,x_c,
 
         g = 9.80616
         fun_alpha = lambda g,u1,u2,u3 : np.amax( np.sqrt(np.abs(g*u1))+np.sqrt(np.square(u2/u1)+np.square(u3/u1)) )
+        courant = 0.0001
+        alpha_const = courant * dx / dt
         for j in range(d2):
             for i in range(d1):
                 i_n=i; j_n=(j+1)%d2;     # Find the index of neighbor sharing north edge
@@ -266,25 +277,25 @@ def comp_flux_bd(d1,d2,neq,u_n,u_s,u_e,u_w,pts_x,pts_y,hx,hy,eq_type,radius,x_c,
                 alpha = max( fun_alpha(g,u_n[i,j,0],u_n[i,j,1],u_n[i,j,2]), 
                              fun_alpha(g,u_s[i_n,j_n,0],u_s[i_n,j_n,1],u_s[i_n,j_n,2]))
                 for n in range(neq):
-                    flux_n[i,j,n] = 1/2*(fy_n[i,j,n]+fy_s[i_n,j_n,n]) - alpha/2 * (u_s[i_n,j_n,n] - u_n[i,j,n])
+                    flux_n[i,j,n] = 1/2*(fy_n[i,j,n]+fy_s[i_n,j_n,n]) - alpha_const/2 * (u_s[i_n,j_n,n] - u_n[i,j,n])
 
                 # Calculate the maximum wave speed over the south face (same for all QP)
                 alpha = max( fun_alpha(g,u_s[i,j,0],u_s[i,j,1],u_s[i,j,2]), 
                              fun_alpha(g,u_n[i_s,j_s,0],u_n[i_s,j_s,1],u_n[i_s,j_s,2]))
                 for n in range(neq):
-                    flux_s[i,j,n] = 1/2*(fy_s[i,j,n]+fy_n[i_s,j_s,n]) - alpha/2 * (u_n[i_s,j_s,n] - u_s[i,j,n])
+                    flux_s[i,j,n] = 1/2*(fy_s[i,j,n]+fy_n[i_s,j_s,n]) - alpha_const/2 * (u_n[i_s,j_s,n] - u_s[i,j,n])
 
                 # Calculate the maximum wave speed over the east face (same for all QP)
                 alpha = max( fun_alpha(g,u_e[i,j,0],u_e[i,j,1],u_e[i,j,2]),
                              fun_alpha(g,u_w[i_e,j_e,0],u_w[i_e,j_e,1],u_w[i_e,j_e,2]))
                 for n in range(neq):
-                    flux_e[i,j,n] = 1/2*(fy_e[i,j,n]+fy_w[i_e,j_e,n]) - alpha/2 * (u_w[i_e,j_e,n] - u_e[i,j,n])
+                    flux_e[i,j,n] = 1/2*(fy_e[i,j,n]+fy_w[i_e,j_e,n]) - alpha_const/2 * (u_w[i_e,j_e,n] - u_e[i,j,n])
 
                 # Calculate the maximum wave speed over the west face (same for all QP)
                 alpha = max( fun_alpha(g,u_w[i,j,0],u_w[i,j,1],u_w[i,j,2]),
                              fun_alpha(g,u_e[i_w,j_w,0],u_e[i_w,j_w,1],u_e[i_w,j_w,2]))
                 for n in range(neq):
-                    flux_w[i,j,n] = 1/2*(fy_w[i,j,n]+fy_e[i_w,j_w,n]) - alpha/2 * (u_e[i_w,j_w,n] - u_w[i,j,n])
+                    flux_w[i,j,n] = 1/2*(fy_w[i,j,n]+fy_e[i_w,j_w,n]) - alpha_const/2 * (u_e[i_w,j_w,n] - u_w[i,j,n])
 
 
     else :
@@ -432,7 +443,7 @@ def initial_conditions(eq_type, d1, d2, unif2d_x, unif2d_y, rdist) :
 #        u0_fun=lambda x,y:  h0 + h1*np.sin(mounds*x)*np.sin(mounds*y)  # Try the origin
 # This one is a blob centered on the domain.
         u0_fun=lambda x,y:  h0+h1/2*(1+np.cos(np.pi*np.sqrt(np.square(x-xc)+np.square(y-yc))/R))*(np.sqrt(np.square(x-xc)+np.square(y-yc))<R)
-        u0_fun=lambda x,y: np.ones(unif2d_x[1].shape)
+        # u0_fun=lambda x,y: np.ones(unif2d_x[1].shape)
         for j in range(d2):
             for i in range(d1):
                 local_pos_x = x_c[i] + 0.5*hx*unif2d_x[rdist[i,j]]
