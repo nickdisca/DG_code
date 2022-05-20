@@ -26,6 +26,9 @@ class Plotter():
 
 
     def plot_solution(self,u,init=False, plot_type='contour',show=False, save=False):
+        # z component to plot
+        z_comp = 1
+
         x_u    = np.zeros(self.nx*self.r)
         y_u    = np.zeros(self.ny*self.r)
         unif   = np.linspace(-1,1,self.r)
@@ -40,7 +43,7 @@ class Plotter():
         for k in range(self.neq):
             for j in range(self.ny):
                 for i in range(self.nx):
-                    Z[i*self.r:(i+1)*self.r,j*self.r:(j+1)*self.r] = u[i,j,0,:].reshape(self.r,self.r)
+                    Z[i*self.r:(i+1)*self.r,j*self.r:(j+1)*self.r] = u[i,j,z_comp,:].reshape(self.r,self.r)
         # Z[np.abs(Z) < np.amax(Z)/1000.0] = 0.0   # Clip all values less than 1/1000 of peak
                     
         if plot_type == 'contour':
