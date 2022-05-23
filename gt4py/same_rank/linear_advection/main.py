@@ -62,7 +62,7 @@ courant = 0.01
 dx = np.min((hx, hy))
 dt = courant * dx / (r + 1)
 alpha = courant * dx / dt
-# alpha = 1.0
+alpha = 1.0
 
 T = 1
 niter = int(T / dt)
@@ -119,6 +119,7 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 # plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
 
 u0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
+u0_m = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
 
 mass, inv_mass = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, eq_type)
 
@@ -128,6 +129,8 @@ wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0),
 
 wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (n_qp_1D, )))
 
+tmp = np.sqrt(np.einsum('ijkl, ijkl', u0_m, np.einsum('ijklm,ijkm->ijkl', mass, u0_m)))
+
 print(f'\n--- Backend = {backend} ---')
 print(f'Domain: {nx = }; {ny = }\nTimesteping: {courant = } {dt = }; {niter = }')
 print(f'Diffusion constanc: {alpha = }')
@@ -135,7 +138,7 @@ print(f'Order: space {r+1}; time {runge_kutta}')
 
 run(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, alpha, dt, niter, plotter)
 
-u_final_nodal = modal2nodal_gt(vander.vander_gt, u0_modal_gt)
+u_final_nodal = modal2nodal_gt(vander.phi_gt, u0_modal_gt)
 
 if backend == "cuda":
     u_final_nodal.device_to_host()
@@ -147,28 +150,21 @@ print(f'Vander: {vander_end - vander_start}s')
 
 print('--- Extrema ---')
 
-initial_max = np.max(np.abs(u0_nodal_gt))
-initial_min = np.min(np.abs(u0_nodal_gt))
-final_max = np.max(np.abs(u_final))
-final_min = np.min(np.abs(u_final))
-
-print(f'Initial: {initial_max = }; {initial_min = }')
-print(f'Final: {final_max = }; {final_min = }')
-
 # Integrals
 print('--- Integrals ---')
 determ = hx * hy / 4
 
-intial_int = np.sum(np.sqrt((u0_nodal_gt)**2) * wts2d_gt * determ)
-final_int = np.sum(np.sqrt((u_final)**2) * wts2d_gt * determ)
-print(f'{intial_int = }; {final_int = }')
+initial_int = np.sqrt(np.einsum('ijkl, ijkl', u0_m, np.einsum('ijklm,ijkm->ijkl', mass, u0_m)))
+final_int = np.sqrt(np.einsum('ijkl, ijkl', u0_modal_gt, np.einsum('ijklm,ijkm->ijkl', mass, u0_modal_gt)))
+print(f'{initial_int = }; {final_int = }')
 
 # Error
 print('--- Error ---')
-l_infty_error = np.max(np.abs(u0_nodal_gt - u_final)) / np.max(np.abs(u0_nodal_gt))
-l2_error = np.sum(np.einsum('ijklm,ijkm->ijkl', vander.phi_gt, np.sqrt((u0_nodal_gt - u_final)**2)) * wts2d_gt * determ)
-print(f'{l2_error = }')
-print(f'{l_infty_error = }\n')
+l2_error = np.sqrt(np.einsum('ijkl, ijkl', (u0_m - u0_modal_gt), np.einsum('ijklm,ijkm->ijkl', mass, (u0_m - u0_modal_gt))))
+print(f'L2 error: Absolute {l2_error}; Relative {l2_error / initial_int}')
+
+# l_infty_error = np.max(np.abs(u0_qp - u0_modal_gt)) / np.max(np.abs(u0_qp))
+# print(f'{l_infty_error = }\n')
 
 # Plot final time
 if debug:
