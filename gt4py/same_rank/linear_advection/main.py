@@ -160,7 +160,7 @@ print('--- Integrals ---')
 determ = hx * hy / 4
 
 intial_int = np.sum(np.sqrt((u0_nodal_gt)**2) * wts2d_gt * determ)
-final_int = np.sum(np.sqrt((u_final)**2) * wts2d_gt * determ))
+final_int = np.sum(np.sqrt((u_final)**2) * wts2d_gt * determ)
 print(f'{intial_int = }; {final_int = }')
 
 # Error
