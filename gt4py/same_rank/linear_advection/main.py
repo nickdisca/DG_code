@@ -113,7 +113,7 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 
 # if not debug:
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-# plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
+plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
 
 u0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
 
@@ -143,20 +143,17 @@ print(f'Vander: {vander_end - vander_start}s')
 
 # Error
 print('--- Error ---')
-# l2_error = np.sum(np.sqrt((u0_nodal - u_final)**2) * wts2d)
-# l2_error = np.sum(np.sqrt((u0_nodal - u_final)**2) * wts2d) / np.sum(np.sqrt(u0_nodal**2) * wts2d)
 determ = hx * hy / 4
-tmp = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-    shape=(nx, ny, 1), dtype=(dtype, (n_qp,)))
-# integration(vander.phi_gt, wts2d_gt, np.sqrt((u0_nodal_gt - u_final)**2), determ, tmp)
+l_infty_error = np.max(np.abs(u0_nodal_gt - u_final)) / np.max(np.abs(u0_nodal_gt))
 tmp = np.einsum('ijklm,ijkm->ijkl', vander.phi_gt, np.sqrt((u0_nodal_gt - u_final)**2)) * wts2d_gt * determ
 
 l2_error = np.sum(tmp)
-print(f'{l2_error = }\n')
+print(f'{l2_error = }')
+print(f'{np.max(np.abs(u0_nodal_gt - u_final)) = }; {np.max(np.abs(u_final_nodal)) = }; {np.max(np.abs(u0_nodal_gt)) = } {l_infty_error = }\n')
 
 # Plot final time
 if debug:
     init = True
 else:
     init = False
-# plotter.plot_solution(u_final_nodal, init=init, show=False, save=True)
+plotter.plot_solution(u_final_nodal, init=True, show=True, save=False)
