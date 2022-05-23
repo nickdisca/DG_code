@@ -82,13 +82,21 @@ def compute_num_flux(
     flux_n: gtscript.Field[(dtype, (n_qp_1D,))],
     flux_s: gtscript.Field[(dtype, (n_qp_1D,))],
     flux_e: gtscript.Field[(dtype, (n_qp_1D,))],
-    flux_w: gtscript.Field[(dtype, (n_qp_1D,))]
+    flux_w: gtscript.Field[(dtype, (n_qp_1D,))],
+
+    alpha: float
+
 ):
     with computation(PARALLEL), interval(...):
-        flux_n = 0.5 * (f_n + f_s[0,+1,0]) - 0.5 * (u_s[0,+1,0] - u_n)
-        flux_s = -0.5 * (f_s + f_n[0,-1,0]) - 0.5 * (u_n[0,-1,0] - u_s)
-        flux_e = 0.5 * (f_e + f_w[+1,0,0]) - 0.5 * (u_w[+1,0,0] - u_e)
-        flux_w = -0.5 * (f_w + f_e[-1,0,0]) - 0.5 * (u_e[-1,0,0] - u_w)
+        # flux_n = 0.5 * (f_n + f_s[0,+1,0]) - 0.5 * (u_s[0,+1,0] - u_n)
+        # flux_s = -0.5 * (f_s + f_n[0,-1,0]) - 0.5 * (u_n[0,-1,0] - u_s)
+        # flux_e = 0.5 * (f_e + f_w[+1,0,0]) - 0.5 * (u_w[+1,0,0] - u_e)
+        # flux_w = -0.5 * (f_w + f_e[-1,0,0]) - 0.5 * (u_e[-1,0,0] - u_w)
+
+        flux_n = 0.5 * (f_n + f_s[0,+1,0]) - 0.5 * alpha * (u_s[0,+1,0] - u_n)
+        flux_s = -0.5 * (f_s + f_n[0,-1,0]) - 0.5 * alpha * (u_n[0,-1,0] - u_s)
+        flux_e = 0.5 * (f_e + f_w[+1,0,0]) - 0.5 * alpha * (u_w[+1,0,0] - u_e)
+        flux_w = -0.5 * (f_w + f_e[-1,0,0]) - 0.5 * alpha * (u_e[-1,0,0] - u_w)
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def integrate_num_flux(

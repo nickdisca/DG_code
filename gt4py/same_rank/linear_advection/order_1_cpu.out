@@ -1,0 +1,24 @@
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 1280; ny = 1280
+Timesteping: dt = 7.8125e-06; niter = 128000
+Order: space 1; time 1
+--- Timings ---
+Loop: 2330.4114252660074s
+Allocation: 0.10519776697037742s
+Vander: 0.0698810110334307s
+--- Error ---
+l2_error = CPUStorage(0.00171299)
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 2560; ny = 2560
+Timesteping: dt = 3.90625e-06; niter = 256000
+Order: space 1; time 1
+--- Timings ---
+Loop: 19750.781292653002s
+Allocation: 0.4234111520345323s
+Vander: 0.20730771799571812s
+--- Error ---
+l2_error = CPUStorage(0.0009637)
+

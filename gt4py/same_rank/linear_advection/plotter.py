@@ -100,7 +100,8 @@ class Plotter():
             print("Plot type not recognised!")
         # self.cbar.draw_all()
         if show:
-            plt.draw()
+            print('plt.show')
+            # plt.draw()
             plt.show()
         else:
             plt.pause(0.005)

@@ -8,7 +8,7 @@ from gt4py_config import dtype, backend, backend_opts, runge_kutta
 import stencils
 import boundary_conditions
 
-def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, ny, dt, niter, plotter):
+def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, ny, alpha, dt, niter, plotter):
     determ = hx * hy / 4
     bd_det_x = hx / 2
     bd_det_y = hy / 2
@@ -82,7 +82,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 uM_gt, rhs, u_qp, fx, fy, u_n, u_s, u_e, u_w,
                 f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
-                wts2d, wts1d, nx, ny, dt
+                wts2d, wts1d, nx, ny, dt, alpha
             )
             # --- Timestepping ---
             stencils.rk_step1(rhs, uM_gt, dt, uM_gt)
@@ -91,14 +91,14 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 uM_gt, rhs, u_qp, fx, fy, u_n, u_s, u_e, u_w,
                 f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
-                wts2d, wts1d, nx, ny, dt
+                wts2d, wts1d, nx, ny, dt, alpha
             )
             stencils.rk_step1(rhs, uM_gt, dt, k1) # computes k1 = u_bar
             compute_rhs(
                 k1, k2, u_qp, fx, fy, u_n, u_s, u_e, u_w,
                 f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
-                wts2d, wts1d, nx, ny, dt
+                wts2d, wts1d, nx, ny, dt, alpha
             )
             # stencils.rk_step2(rhs, k2, uM_gt, dt, uM_gt)
             stencils.rk_step2_paper(k1, k2, uM_gt, dt, uM_gt)
@@ -108,7 +108,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 uM_gt, rhs, u_qp, fx, fy, u_n, u_s, u_e, u_w,
                 f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
-                wts2d, wts1d, nx, ny, dt
+                wts2d, wts1d, nx, ny, dt, alpha
             )
             stencils.rk_step1(rhs, uM_gt, dt, k1) # k1 = u_bar
             # k2 = L(u_bar)
@@ -116,7 +116,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 k1, rhs, u_qp, fx, fy, u_n, u_s, u_e, u_w,
                 f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
-                wts2d, wts1d, nx, ny, dt
+                wts2d, wts1d, nx, ny, dt, alpha
             )
             
             stencils.rk_step2_3(k1, rhs, uM_gt, dt, k2)
@@ -124,7 +124,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 k2, k3, u_qp, fx, fy, u_n, u_s, u_e, u_w,
                 f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
-                wts2d, wts1d, nx, ny, dt
+                wts2d, wts1d, nx, ny, dt, alpha
             )
             stencils.rk_step3_3(k2, k3, uM_gt, dt, uM_gt)
 
@@ -148,7 +148,7 @@ def compute_rhs(
     uM_gt, rhs, u_qp, fx, fy, u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w,
     flux_n, flux_s, flux_e, flux_w, 
     determ, bd_det_x, bd_det_y,
-    vander, inv_mass, wts2d, wts1d, nx, ny, dt
+    vander, inv_mass, wts2d, wts1d, nx, ny, dt, alpha
 ):
         # --- Flux Integral ---
         stencils.flux_stencil(
@@ -180,7 +180,7 @@ def compute_rhs(
         }
         stencils.compute_num_flux(
             u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w,
-            flux_n, flux_s, flux_e, flux_w,
+            flux_n, flux_s, flux_e, flux_w, alpha,
             origin=origins, domain=(nx, ny, 1)
         )
 
