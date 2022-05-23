@@ -5,4 +5,3 @@ n h l2_error time(numpy) time(cpu) time(gpu)
 160 0.00625 3.75356295e-06 nan 534.1 nan
 320 0.003125 6.63082595e-07 nan 3526.8 nan
 640 0.0015625 1.16060295e-07 nan 27853.2 nan
- 
