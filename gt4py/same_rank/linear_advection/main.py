@@ -156,4 +156,4 @@ if debug:
     init = True
 else:
     init = False
-plotter.plot_solution(u_final_nodal, init=True, show=True, save=False)
+plotter.plot_solution(u_final_nodal, init=False, show=True, save=False)

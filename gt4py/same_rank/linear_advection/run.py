@@ -111,14 +111,13 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 wts2d, wts1d, nx, ny, dt
             )
             stencils.rk_step1(rhs, uM_gt, dt, k1) # k1 = u_bar
-            # k2 = L(u_bar)
+            # rhs = L(u_bar)
             compute_rhs(
                 k1, rhs, u_qp, fx, fy, u_n, u_s, u_e, u_w,
                 f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 wts2d, wts1d, nx, ny, dt
             )
-            
             stencils.rk_step2_3(k1, rhs, uM_gt, dt, k2)
             compute_rhs(
                 k2, k3, u_qp, fx, fy, u_n, u_s, u_e, u_w,
@@ -131,9 +130,9 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
 
         # === OUTPUT DONE === 
         # print(f'Iteration {i} done')
-        # if i % plot_freq == 0:
-        #     stencils.modal2nodal(vander.vander_gt, uM_gt, u_nodal)
-        #     plotter.plot_solution(u_nodal, init=False, plot_type=plot_type)
+        if i % plot_freq == 0:
+            stencils.modal2nodal(vander.vander_gt, uM_gt, u_nodal)
+            plotter.plot_solution(u_nodal, init=False, plot_type=plot_type)
         # === OUTPUT DONE ===
 
     loop_end = time.perf_counter()
