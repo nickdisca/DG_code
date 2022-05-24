@@ -4,6 +4,15 @@ import gt4py as gt
 from gt4py_config import dtype, backend, backend_opts, dim, n_qp, n_qp_1D
 
 @gtscript.stencil(backend=backend, **backend_opts)
+def modal2nodal(
+    phi: gtscript.Field[(dtype, (dim, dim))],
+    u_modal: gtscript.Field[(dtype, (dim,))],
+    u_nodal: gtscript.Field[(dtype, (dim,))],
+):
+    with computation(PARALLEL), interval(...):
+        u_nodal = phi @ u_modal
+
+@gtscript.stencil(backend=backend, **backend_opts)
 def flux_stencil(
     phi: gtscript.Field[(dtype, (n_qp, dim))],
     u_modal: gtscript.Field[(dtype, (dim,))],
@@ -166,16 +175,17 @@ def rk_step2_paper(
 @gtscript.stencil(backend=backend, **backend_opts)
 def rk_step2_3(
     k1: gtscript.Field[(dtype, (dim,))],
-    rhs: gtscript.Field[(dtype, (dim,))],
+    k2: gtscript.Field[(dtype, (dim,))],
     u_modal: gtscript.Field[(dtype, (dim,))],
     dt: float,
     out: gtscript.Field[(dtype, (dim,))]
 ):
     with computation(PARALLEL), interval(...):
-        out = 0.75 * u_modal + 0.25 * k1 + 0.25 * dt * rhs
+        out = u_modal + 0.25 * dt * (k1 + k2)
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def rk_step3_3(
+    k1: gtscript.Field[(dtype, (dim,))],
     k2: gtscript.Field[(dtype, (dim,))],
     k3: gtscript.Field[(dtype, (dim,))],
     u_modal: gtscript.Field[(dtype, (dim,))],
@@ -183,13 +193,27 @@ def rk_step3_3(
     out: gtscript.Field[(dtype, (dim,))]
 ):
     with computation(PARALLEL), interval(...):
-        out = (u_modal + 2*k2 + 2*dt*k3) / 3
+        out = u_modal + dt / 6 * (k1 + k2 + 4 * k3)
 
 @gtscript.stencil(backend=backend, **backend_opts)
-def modal2nodal(
-    phi: gtscript.Field[(dtype, (dim, dim))],
+def rk_step1_4(
+    k1: gtscript.Field[(dtype, (dim,))],
     u_modal: gtscript.Field[(dtype, (dim,))],
-    u_nodal: gtscript.Field[(dtype, (dim,))],
+    dt: float,
+    out: gtscript.Field[(dtype, (dim,))]
 ):
     with computation(PARALLEL), interval(...):
-        u_nodal = phi @ u_modal
+        out = u_modal + dt / 2 * k1
+
+@gtscript.stencil(backend=backend, **backend_opts)
+def rk_step2_4(
+    k1: gtscript.Field[(dtype, (dim,))],
+    k2: gtscript.Field[(dtype, (dim,))],
+    k3: gtscript.Field[(dtype, (dim,))],
+    k4: gtscript.Field[(dtype, (dim,))],
+    u_modal: gtscript.Field[(dtype, (dim,))],
+    dt: float,
+    out: gtscript.Field[(dtype, (dim,))]
+):
+    with computation(PARALLEL), interval(...):
+        out = u_modal + dt / 6 * (k1 + 2*k2 + 2*k3 + k4)

@@ -103,29 +103,56 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
             # stencils.rk_step2(rhs, k2, uM_gt, dt, uM_gt)
             stencils.rk_step2_paper(k1, k2, uM_gt, dt, uM_gt)
         elif runge_kutta == 3:
-            # rhs = L(u)
             compute_rhs(
-                uM_gt, rhs, u_qp, fx, fy, u_n, u_s, u_e, u_w,
+                uM_gt, k1, u_qp, fx, fy, u_n, u_s, u_e, u_w,
                 f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 wts2d, wts1d, nx, ny, dt, alpha
             )
-            stencils.rk_step1(rhs, uM_gt, dt, k1) # k1 = u_bar
-            # rhs = L(u_bar)
+            stencils.rk_step1(k1, uM_gt, dt, rhs)
             compute_rhs(
-                k1, rhs, u_qp, fx, fy, u_n, u_s, u_e, u_w,
+                rhs, k2, u_qp, fx, fy, u_n, u_s, u_e, u_w,
                 f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 wts2d, wts1d, nx, ny, dt, alpha
             )
-            stencils.rk_step2_3(k1, rhs, uM_gt, dt, k2)
+            stencils.rk_step2_3(k1, k2, uM_gt, dt, rhs)
             compute_rhs(
-                k2, k3, u_qp, fx, fy, u_n, u_s, u_e, u_w,
+                rhs, k3, u_qp, fx, fy, u_n, u_s, u_e, u_w,
                 f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 wts2d, wts1d, nx, ny, dt, alpha
             )
-            stencils.rk_step3_3(k2, k3, uM_gt, dt, uM_gt)
+            stencils.rk_step3_3(k1, k2, k3, uM_gt, dt, uM_gt)
+        elif runge_kutta == 4:
+            compute_rhs(
+                uM_gt, k1, u_qp, fx, fy, u_n, u_s, u_e, u_w,
+                f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
+                determ, bd_det_x, bd_det_y, vander, inv_mass,
+                wts2d, wts1d, nx, ny, dt, alpha
+            )
+            stencils.rk_step1_4(k1, uM_gt, dt, rhs)
+            compute_rhs(
+                rhs, k2, u_qp, fx, fy, u_n, u_s, u_e, u_w,
+                f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
+                determ, bd_det_x, bd_det_y, vander, inv_mass,
+                wts2d, wts1d, nx, ny, dt, alpha
+            )
+            stencils.rk_step1_4(k2, uM_gt, dt, rhs)
+            compute_rhs(
+                rhs, k3, u_qp, fx, fy, u_n, u_s, u_e, u_w,
+                f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
+                determ, bd_det_x, bd_det_y, vander, inv_mass,
+                wts2d, wts1d, nx, ny, dt, alpha
+            )
+            stencils.rk_step1(k3, uM_gt, dt, rhs)
+            compute_rhs(
+                rhs, k4, u_qp, fx, fy, u_n, u_s, u_e, u_w,
+                f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
+                determ, bd_det_x, bd_det_y, vander, inv_mass,
+                wts2d, wts1d, nx, ny, dt, alpha
+            )
+            stencils.rk_step2_4(k1, k2, k3, k4, uM_gt, dt, uM_gt)
 
 
         # === OUTPUT DONE === 
