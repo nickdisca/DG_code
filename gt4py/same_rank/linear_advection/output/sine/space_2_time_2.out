@@ -90,3 +90,23 @@ L2 error: Absolute 3.2800139746539095e-06; Relative 6.560133329191988e-06
 
 srun: Job 38702546 step creation temporarily disabled, retrying (Requested nodes are busy)
 srun: Step created for job 38702546
+srun: got SIGCONT
+slurmstepd: error: *** STEP 38702546.6 ON nid00242 CANCELLED AT 2022-05-24T15:02:30 ***
+srun: forcing job termination
+
+
+Batch Job Summary Report (version 21.01.1) for Job "job_cpu.sh" (38702546) on daint
+
+Job information (1/2)
+-----------------------------------------------------------------------------------------------------
+             Submit            Eligible               Start                 End    Elapsed Time limit
+------------------- ------------------- ------------------- ------------------- ---------- ----------
+2022-05-24T12:24:51 2022-05-24T12:24:51 2022-05-24T12:24:57 2022-05-24T15:02:30   02:37:33 1-00:00:00
+-----------------------------------------------------------------------------------------------------
+
+Job information (2/2)
+-------------------------------------------------------------
+    Username      Account    Partition   NNodes        Energy
+------------ ------------ ------------ -------- -------------
+     kszenes      csstaff       normal        1   2457.951 kJ
+
