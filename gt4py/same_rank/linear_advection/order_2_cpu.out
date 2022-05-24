@@ -1,0 +1,21 @@
+srun: got SIGCONT
+slurmstepd: error: *** STEP 38674760.0 ON nid02068 CANCELLED AT 2022-05-23T16:33:27 ***
+srun: forcing job termination
+srun: Job step aborted: Waiting up to 92 seconds for job step to finish.
+
+
+Batch Job Summary Report (version 21.01.1) for Job "job_cpu.sh" (38674760) on daint
+
+Job information (1/2)
+-----------------------------------------------------------------------------------------------------
+             Submit            Eligible               Start                 End    Elapsed Time limit
+------------------- ------------------- ------------------- ------------------- ---------- ----------
+2022-05-22T22:38:09 2022-05-22T22:38:09 2022-05-22T22:39:47 2022-05-23T16:33:27   17:53:40 1-00:00:00
+-----------------------------------------------------------------------------------------------------
+
+Job information (2/2)
+-------------------------------------------------------------
+    Username      Account    Partition   NNodes        Energy
+------------ ------------ ------------ -------- -------------
+     kszenes      csstaff       normal        1  10901.776 kJ
+

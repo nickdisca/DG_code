@@ -1,0 +1,105 @@
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 20; ny = 20
+Timesteping: courant = 0.01 dt = 0.0005; niter = 2000
+Diffusion constanc: alpha = 1.0
+Order: space 1; time 2
+--- Timings ---
+Loop: 4.229622573002416s
+Allocation: 0.0028075939990230836s
+Vander: 0.038439859003119636s
+--- Integrals ---
+initial_int = 0.07340763916006404; final_int = 0.012031157495872491
+--- Error ---
+L2 error: Absolute 0.07065008132816636; Relative 0.9624350018138456
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 40; ny = 40
+Timesteping: courant = 0.01 dt = 0.00025; niter = 4000
+Diffusion constanc: alpha = 1.0
+Order: space 1; time 2
+--- Timings ---
+Loop: 8.427668361000542s
+Allocation: 0.0029030360019532964s
+Vander: 0.04191547600203194s
+--- Integrals ---
+initial_int = 0.07358209587254215; final_int = 0.016334714558448246
+--- Error ---
+L2 error: Absolute 0.0683077787108161; Relative 0.9283206451354397
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 80; ny = 80
+Timesteping: courant = 0.01 dt = 0.000125; niter = 8000
+Diffusion constanc: alpha = 1.0
+Order: space 1; time 2
+--- Timings ---
+Loop: 17.315032722995966s
+Allocation: 0.0033557460046722554s
+Vander: 0.03691845600405941s
+--- Integrals ---
+initial_int = 0.07358510139928107; final_int = 0.022552781168023475
+--- Error ---
+L2 error: Absolute 0.06368510137264352; Relative 0.8654618959764827
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 160; ny = 160
+Timesteping: courant = 0.01 dt = 6.25e-05; niter = 16000
+Diffusion constanc: alpha = 1.0
+Order: space 1; time 2
+--- Timings ---
+Loop: 37.46481586700247s
+Allocation: 0.005291134999424685s
+Vander: 0.04070720600429922s
+--- Integrals ---
+initial_int = 0.07358515147979583; final_int = 0.030578075882241533
+--- Error ---
+L2 error: Absolute 0.05599193481137849; Relative 0.7609134952552502
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 320; ny = 320
+Timesteping: courant = 0.01 dt = 3.125e-05; niter = 32000
+Diffusion constanc: alpha = 1.0
+Order: space 1; time 2
+--- Timings ---
+Loop: 83.28936948000046s
+Allocation: 0.01130041300348239s
+Vander: 0.040886648996092845s
+--- Integrals ---
+initial_int = 0.07358515287441927; final_int = 0.04009836359238164
+--- Error ---
+L2 error: Absolute 0.04495187260400835; Relative 0.6108823702618842
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 640; ny = 640
+Timesteping: courant = 0.01 dt = 1.5625e-05; niter = 64000
+Diffusion constanc: alpha = 1.0
+Order: space 1; time 2
+--- Timings ---
+Loop: 293.20541314s
+Allocation: 0.03763056199386483s
+Vander: 0.056992909994733054s
+--- Integrals ---
+initial_int = 0.07358515289920255; final_int = 0.05001064873140276
+--- Error ---
+L2 error: Absolute 0.03210872721733651; Relative 0.4363479037859616
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 1280; ny = 1280
+Timesteping: courant = 0.01 dt = 7.8125e-06; niter = 128000
+Diffusion constanc: alpha = 1.0
+Order: space 1; time 2
+--- Timings ---
+Loop: 4727.345555101005s
+Allocation: 0.1418448980039102s
+Vander: 0.10305634500400629s
+--- Integrals ---
+initial_int = 0.07358515289977619; final_int = 0.05867199028928542
+--- Error ---
+L2 error: Absolute 0.020399026683204285; Relative 0.27721661067943953
+

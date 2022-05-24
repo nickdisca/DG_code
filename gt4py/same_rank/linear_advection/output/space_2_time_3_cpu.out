@@ -1,0 +1,75 @@
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 20; ny = 20
+Timesteping: courant = 0.01 dt = 0.00025; niter = 4000
+Diffusion constanc: alpha = 1.0
+Order: space 2; time 3
+--- Timings ---
+Loop: 12.739978155994322s
+Allocation: 0.0027461250429041684s
+Vander: 0.05007180996472016s
+--- Integrals ---
+initial_int = 0.06475035616352627; final_int = 0.04993612938261957
+--- Error ---
+L2 error: Absolute 0.028141468994066866; Relative 0.43461489112115326
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 40; ny = 40
+Timesteping: courant = 0.01 dt = 0.000125; niter = 8000
+Diffusion constanc: alpha = 1.0
+Order: space 2; time 3
+--- Timings ---
+Loop: 24.97658545896411s
+Allocation: 0.002810079022310674s
+Vander: 0.04194974299753085s
+--- Integrals ---
+initial_int = 0.07098809377929087; final_int = 0.06484804284132423
+--- Error ---
+L2 error: Absolute 0.012761462889520271; Relative 0.1797690599947217
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 80; ny = 80
+Timesteping: courant = 0.01 dt = 6.25e-05; niter = 16000
+Diffusion constanc: alpha = 1.0
+Order: space 2; time 3
+--- Timings ---
+Loop: 56.28230127401184s
+Allocation: 0.00420970399864018s
+Vander: 0.05069565697340295s
+--- Integrals ---
+initial_int = 0.07290889626150769; final_int = 0.0716835498826193
+--- Error ---
+L2 error: Absolute 0.002989430598145724; Relative 0.041002274776226394
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 160; ny = 160
+Timesteping: courant = 0.01 dt = 3.125e-05; niter = 32000
+Diffusion constanc: alpha = 1.0
+Order: space 2; time 3
+--- Timings ---
+Loop: 126.61332148197107s
+Allocation: 0.008538695983588696s
+Vander: 0.05427191796479747s
+--- Integrals ---
+initial_int = 0.07341430794056246; final_int = 0.07323695878036876
+--- Error ---
+L2 error: Absolute 0.0006580589868489487; Relative 0.008963634001450031
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 320; ny = 320
+Timesteping: courant = 0.01 dt = 1.5625e-05; niter = 64000
+Diffusion constanc: alpha = 1.0
+Order: space 2; time 3
+--- Timings ---
+Loop: 884.5346767360461s
+Allocation: 0.026662643998861313s
+Vander: 0.09426252596313134s
+--- Integrals ---
+initial_int = 0.07354232785287151; final_int = 0.07351892299072649
+--- Error ---
+L2 error: Absolute 0.00016173083600975726; Relative 0.00219915306914564
+

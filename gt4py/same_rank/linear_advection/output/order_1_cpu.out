@@ -1,0 +1,30 @@
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 1280; ny = 1280
+Timesteping: courant = 0.01 dt = 7.8125e-06; niter = 128000
+Diffusion constanc: alpha = 1.0
+Order: space 1; time 1
+--- Timings ---
+Loop: 2615.9983987779706s
+Allocation: 0.14134953398024663s
+Vander: 0.09931159199913964s
+--- Integrals ---
+initial_int = 0.07358515289977619; final_int = 0.05878162460114182
+--- Error ---
+L2 error: Absolute 0.02025011737227942; Relative 0.27519297812508875
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 2560; ny = 2560
+Timesteping: courant = 0.01 dt = 3.90625e-06; niter = 256000
+Diffusion constanc: alpha = 1.0
+Order: space 1; time 1
+--- Timings ---
+Loop: 18787.820860833046s
+Allocation: 0.5834354819962755s
+Vander: 0.2993272499879822s
+--- Integrals ---
+initial_int = 0.0735851528997927; final_int = 0.0650382862936398
+--- Error ---
+L2 error: Absolute 0.011724900081725435; Relative 0.15933785036354076
+

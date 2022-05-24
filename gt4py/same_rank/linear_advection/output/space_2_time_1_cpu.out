@@ -1,0 +1,75 @@
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 20; ny = 20
+Timesteping: courant = 0.01 dt = 0.00016666666666666666; niter = 6000
+Diffusion constanc: alpha = 1.0
+Order: space 3; time 1
+--- Timings ---
+Loop: 6.416862769983709s
+Allocation: 0.0028316130046732724s
+Vander: 0.046404035994783044s
+--- Integrals ---
+initial_int = 0.07328057728824647; final_int = 0.07561962937330309
+--- Error ---
+L2 error: Absolute 0.0071135346111740475; Relative 0.09707257877067779
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 40; ny = 40
+Timesteping: courant = 0.01 dt = 8.333333333333333e-05; niter = 12000
+Diffusion constanc: alpha = 1.0
+Order: space 3; time 1
+--- Timings ---
+Loop: 13.364756650000345s
+Allocation: 0.003014919988345355s
+Vander: 0.050179462996311486s
+--- Integrals ---
+initial_int = 0.07356333414365818; final_int = 0.07577465002154904
+--- Error ---
+L2 error: Absolute 0.003772983695209584; Relative 0.05128891640285787
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 80; ny = 80
+Timesteping: courant = 0.01 dt = 4.1666666666666665e-05; niter = 24000
+Diffusion constanc: alpha = 1.0
+Order: space 3; time 1
+--- Timings ---
+Loop: 34.51606163603719s
+Allocation: 0.005287634034175426s
+Vander: 0.05752757500158623s
+--- Integrals ---
+initial_int = 0.07358372614276347; final_int = 0.07471614032701669
+--- Error ---
+L2 error: Absolute 0.001955784171008323; Relative 0.0265790314452656
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 160; ny = 160
+Timesteping: courant = 0.01 dt = 2.0833333333333333e-05; niter = 48000
+Diffusion constanc: alpha = 1.0
+Order: space 3; time 1
+--- Timings ---
+Loop: 163.88150431902613s
+Allocation: 0.014216237992513925s
+Vander: 0.09960436698747799s
+--- Integrals ---
+initial_int = 0.07358506193982339; final_int = 0.07414422594471175
+--- Error ---
+L2 error: Absolute 0.000992844866475324; Relative 0.013492478504499401
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 320; ny = 320
+Timesteping: courant = 0.01 dt = 1.0416666666666666e-05; niter = 96000
+Diffusion constanc: alpha = 1.0
+Order: space 3; time 1
+--- Timings ---
+Loop: 1412.718276337022s
+Allocation: 0.04960525798378512s
+Vander: 0.26244079298339784s
+--- Integrals ---
+initial_int = 0.07358514716464781; final_int = 0.0738624518271352
+--- Error ---
+L2 error: Absolute 0.0005324046430141482; Relative 0.00723521883869968
+

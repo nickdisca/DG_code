@@ -30,9 +30,16 @@ eq_type="linear";
 # domain
 a = 0; b = 1; c = 0; d =1
 # number of elements in X and Y
-nx = 20; ny = 20
+nx = 50; ny = 50
+
+# final time
+T = 1
 
 hx = (b-a)/nx; hy = (d-c)/ny
+
+# timestep
+dt = np.min([hx, hy]) * 0.01
+niter = int(T / dt)
 
 # polynomial degree of DG
 r = 1
@@ -114,7 +121,7 @@ wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0),
 
 wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (len(wts), )))
 
-print(f'\n\n--- Backend = {backend} ---')
+print(f'--- Backend = {backend} ---')
 print(f'Domain: {nx = }; {ny = }\nTimesteping: {dt = }; {niter = }')
 
 compute_rhs(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, dt, niter, plotter)
@@ -132,7 +139,7 @@ print(f'Vander: {vander_end - vander_start}s')
 # Error
 print('--- Error ---')
 l2_error = np.linalg.norm(u0_nodal - u_final) / u0_nodal.size
-print(f'{l2_error=}')
+print(f'{l2_error= }\n\n')
 
 # Plot final time
 if debug:

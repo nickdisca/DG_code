@@ -194,3 +194,26 @@ creating .gt_cache/py39_1013/cuda/stencils/modal2nodal/m_modal2nodal__cuda_7ad24
 creating .gt_cache/py39_1013/cuda/stencils/modal2nodal/m_modal2nodal__cuda_7ad2427805_pyext_BUILD/_GT_/stencils/modal2nodal
 g++ -pthread -shared -Wl,-rpath,/opt/python/3.9.4.1/lib,--build-id .gt_cache/py39_1013/cuda/stencils/modal2nodal/m_modal2nodal__cuda_7ad2427805_pyext_BUILD/.gt_cache/py39_1013/cuda/stencils/modal2nodal/m_modal2nodal__cuda_7ad2427805_pyext_BUILD/bindings.o -L/usr/local/cuda-11.0/lib64 -L/opt/python/3.9.4.1/lib -lcudart -o .gt_cache/py39_1013/cuda/stencils/modal2nodal/m_modal2nodal__cuda_7ad2427805_pyext_BUILD/_GT_/stencils/modal2nodal/m_modal2nodal__cuda_7ad2427805_pyext.cpython-39-x86_64-linux-gnu.so -O3 -DNDEBUG -fopenmp -O3 -DNDEBUG -fopenmp -O3 -DNDEBUG -fopenmp -O3 -DNDEBUG -fopenmp -O3 -DNDEBUG -fopenmp -O3 -DNDEBUG -fopenmp -O3 -DNDEBUG -fopenmp -O3 -DNDEBUG -fopenmp -O3 -DNDEBUG -fopenmp -O3 -DNDEBUG -fopenmp -O3 -DNDEBUG -fopenmp -O3 -DNDEBUG -fopenmp -O3 -DNDEBUG -fopenmp -O3 -DNDEBUG -fopenmp
 copying .gt_cache/py39_1013/cuda/stencils/modal2nodal/m_modal2nodal__cuda_7ad2427805_pyext_BUILD/_GT_/stencils/modal2nodal/m_modal2nodal__cuda_7ad2427805_pyext.cpython-39-x86_64-linux-gnu.so -> /users/kszenes/DG_code/gt4py/same_rank/linear_advection/.gt_cache/py39_1013/cuda/stencils/modal2nodal
+
+
+Batch Job Summary Report (version 21.01.1) for Job "job_gpu.sh" (38674778) on daint
+
+Job information (1/3)
+-----------------------------------------------------------------------------------------------------
+             Submit            Eligible               Start                 End    Elapsed Time limit
+------------------- ------------------- ------------------- ------------------- ---------- ----------
+2022-05-22T22:40:49 2022-05-22T22:40:49 2022-05-22T22:42:20 2022-05-23T16:33:40   17:51:20 1-00:00:00
+-----------------------------------------------------------------------------------------------------
+
+Job information (2/3)
+-------------------------------------------------------------
+    Username      Account    Partition   NNodes        Energy
+------------ ------------ ------------ -------- -------------
+     kszenes      csstaff       normal        1   9392.627 kJ
+
+Job information (3/3) - GPU utilization data
+----------------------------------------------------
+   Node name       Usage      Max mem Execution time
+------------ ----------- ------------ --------------
+    nid02520        94 %     9743 MiB       17:50:57
+
