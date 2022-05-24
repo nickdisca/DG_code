@@ -256,3 +256,18 @@ L2 error: Absolute 0.0017137888583196638; Relative 0.023289868675015007
 
 /users/kszenes/DG_code/gt4py/same_rank/linear_advection/plotter.py:107: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
   plt.pause(0.005)
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 320; ny = 320
+Timesteping: courant = 0.01 dt = 7.8125e-06; niter = 128000
+Diffusion constanc: alpha = 1.0
+Order: space 4; time 1
+--- Timings ---
+Loop: 5665.516813967028s
+Allocation: 0.07821154000703245s
+Vander: 0.6824178609531373s
+--- Extrema ---
+--- Integrals ---
+initial_int = 0.07358515374577833; final_int = 0.1649011371376982
+--- Error ---
+L2 error: Absolute 0.14746924125483357; Relative 2.0040624194971404

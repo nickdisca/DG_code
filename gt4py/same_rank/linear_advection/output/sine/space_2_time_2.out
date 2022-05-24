@@ -1,0 +1,92 @@
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 20; ny = 20
+Timesteping: courant = 0.01 dt = 0.00025; niter = 4000
+Diffusion constanc: alpha = 1.0
+Order: space 2; time 2
+--- Timings ---
+Loop: 8.32671455200034s
+Allocation: 0.002749826000581379s
+Vander: 0.05270379000012326s
+--- Integrals ---
+initial_int = 0.4918427527158587; final_int = 0.4892479068097165
+--- Error ---
+L2 error: Absolute 0.0042037059015967455; Relative 0.00854684933016642
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 40; ny = 40
+Timesteping: courant = 0.01 dt = 0.000125; niter = 8000
+Diffusion constanc: alpha = 1.0
+Order: space 2; time 2
+--- Timings ---
+Loop: 16.971514079999906s
+Allocation: 0.0029389070004981477s
+Vander: 0.04656793300000572s
+--- Integrals ---
+initial_int = 0.4979480567658558; final_int = 0.497614326521097
+--- Error ---
+L2 error: Absolute 0.0009004860147934802; Relative 0.001808393471082276
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 80; ny = 80
+Timesteping: courant = 0.01 dt = 6.25e-05; niter = 16000
+Diffusion constanc: alpha = 1.0
+Order: space 2; time 2
+--- Timings ---
+Loop: 37.82980720700016s
+Allocation: 0.0038598780001848354s
+Vander: 0.042760264000207826s
+--- Integrals ---
+initial_int = 0.4994862222888519; final_int = 0.4994441498799798
+--- Error ---
+L2 error: Absolute 0.00021385048494815376; Relative 0.0004281409084082492
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 160; ny = 160
+Timesteping: courant = 0.01 dt = 3.125e-05; niter = 32000
+Diffusion constanc: alpha = 1.0
+Order: space 2; time 2
+--- Timings ---
+Loop: 86.52441733299929s
+Allocation: 0.00900899800035404s
+Vander: 0.05400458999974944s
+--- Integrals ---
+initial_int = 0.49987150604012176; final_int = 0.4998662318216404
+--- Error ---
+L2 error: Absolute 5.271739220428649e-05; Relative 0.00010546188683948545
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 320; ny = 320
+Timesteping: courant = 0.01 dt = 1.5625e-05; niter = 64000
+Diffusion constanc: alpha = 1.0
+Order: space 2; time 2
+--- Timings ---
+Loop: 596.6472678720002s
+Allocation: 0.027085212000201864s
+Vander: 0.09311145299943746s
+--- Integrals ---
+initial_int = 0.499967873413679; final_int = 0.4999672134061707
+--- Error ---
+L2 error: Absolute 1.3131967348161021e-05; Relative 2.6265622345889182e-05
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 640; ny = 640
+Timesteping: courant = 0.01 dt = 7.8125e-06; niter = 128000
+Diffusion constanc: alpha = 1.0
+Order: space 2; time 2
+--- Timings ---
+Loop: 4961.976968684001s
+Allocation: 0.09906332900027337s
+Vander: 0.2328078339996864s
+--- Integrals ---
+initial_int = 0.4999919681598772; final_int = 0.4999918856198721
+--- Error ---
+L2 error: Absolute 3.2800139746539095e-06; Relative 6.560133329191988e-06
+
+srun: Job 38702546 step creation temporarily disabled, retrying (Requested nodes are busy)
+srun: Step created for job 38702546

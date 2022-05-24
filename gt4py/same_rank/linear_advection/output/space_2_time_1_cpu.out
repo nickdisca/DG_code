@@ -73,3 +73,18 @@ initial_int = 0.07358514716464781; final_int = 0.0738624518271352
 --- Error ---
 L2 error: Absolute 0.0005324046430141482; Relative 0.00723521883869968
 
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 640; ny = 640
+Timesteping: courant = 0.01 dt = 5.208333333333333e-06; niter = 192000
+Diffusion constanc: alpha = 1.0
+Order: space 3; time 1
+--- Timings ---
+Loop: 9120.059176767012s
+Allocation: 0.18865834799362347s
+Vander: 0.8943112029810436s
+--- Integrals ---
+initial_int = 0.0735851525396938; final_int = 0.07374215865452641
+--- Error ---
+L2 error: Absolute 0.0016984662870940565; Relative 0.023081643897902612
+

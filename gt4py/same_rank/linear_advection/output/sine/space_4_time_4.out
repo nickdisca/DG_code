@@ -1,0 +1,64 @@
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 20; ny = 20
+Timesteping: courant = 0.01 dt = 0.000125; niter = 8000
+Diffusion constanc: alpha = 1.0
+Order: space 4; time 4
+--- Timings ---
+Loop: 35.27902270300001s
+Allocation: 0.002677179999409418s
+Vander: 0.06102918000033242s
+--- Integrals ---
+initial_int = 0.5000014930445602; final_int = 0.5000014917105503
+--- Error ---
+L2 error: Absolute 2.0613424771797343e-06; Relative 4.12267264369154e-06
+
+srun: Job 38702579 step creation temporarily disabled, retrying (Requested nodes are busy)
+srun: Step created for job 38702579
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 40; ny = 40
+Timesteping: courant = 0.01 dt = 6.25e-05; niter = 16000
+Diffusion constanc: alpha = 1.0
+Order: space 4; time 4
+--- Timings ---
+Loop: 90.80652145800013s
+Allocation: 0.00356534799993824s
+Vander: 0.056703751999521046s
+--- Integrals ---
+initial_int = 0.5000000937923074; final_int = 0.5000000937818333
+--- Error ---
+L2 error: Absolute 1.287948197555872e-07; Relative 2.575895911913302e-07
+
+srun: Job 38702579 step creation temporarily disabled, retrying (Requested nodes are busy)
+srun: Step created for job 38702579
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 80; ny = 80
+Timesteping: courant = 0.01 dt = 3.125e-05; niter = 32000
+Diffusion constanc: alpha = 1.0
+Order: space 4; time 4
+--- Timings ---
+Loop: 367.90297583399934s
+Allocation: 0.007149756000217167s
+Vander: 0.08841521799968177s
+--- Integrals ---
+initial_int = 0.5000000058694909; final_int = 0.5000000058694039
+--- Error ---
+L2 error: Absolute 8.049268644203929e-09; Relative 1.6098537099427426e-08
+
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 160; ny = 160
+Timesteping: courant = 0.01 dt = 1.5625e-05; niter = 64000
+Diffusion constanc: alpha = 1.0
+Order: space 4; time 4
+--- Timings ---
+Loop: 3192.8642807379993s
+Allocation: 0.021567194999988715s
+Vander: 0.20810888899995916s
+--- Integrals ---
+initial_int = 0.5000000003669541; final_int = 0.5000000003669547
+--- Error ---
+L2 error: Absolute 5.030743713284125e-10; Relative 1.0061487419184042e-09
+
