@@ -2,9 +2,7 @@
 import numpy as np
 import time
 import gt4py as gt
-import gt4py.gtscript as gtscript
 import quadpy as qp
-from numpy.polynomial import legendre as L
 
 from vander import Vander
 from initial_conditions import set_initial_conditions
@@ -12,7 +10,7 @@ from modal_conversion import nodal2modal_gt, modal2nodal_gt, integration
 from compute_mass import compute_mass
 from run import run
 from plotter import Plotter
-from gt4py_config import backend, dtype, backend_opts, r, n_qp_1D, runge_kutta
+from gt4py_config import backend, dtype, r, n_qp_1D, runge_kutta, n
 
 import plotly
 from scalene import scalene_profiler
@@ -37,7 +35,7 @@ elif eq_type == 'swe':
     a = 0; b = 1e7; c = 0; d = 1e7
 
 # number of elements in X and Y
-nx = 50; ny = 50
+nx = n; ny = n
 
 hx = (b-a)/nx; hy = (d-c)/ny
 dx = np.min((hx, hy))
@@ -127,6 +125,7 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 # if not debug:
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
 plotter.plot_solution(h0_nodal_gt, init=True, plot_type=plotter.plot_type)
+time.sleep(10)
 
 h0_ref = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
 h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
@@ -156,17 +155,6 @@ u_final = np.asarray(u_final_nodal)
 
 # Timinig
 print(f'Vander: {vander_end - vander_start}s')
-
-# Error
-print('--- Error ---')
-# l2_error = np.sum(np.sqrt((u0_nodal - u_final)**2) * wts2d)
-# l2_error = np.sum(np.sqrt((u0_nodal - u_final)**2) * wts2d) / np.sum(np.sqrt(u0_nodal**2) * wts2d)
-determ = hx * hy / 4
-tmp = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-    shape=(nx, ny, 1), dtype=(dtype, (n_qp,)))
-integration(vander.phi_gt, wts2d_gt, np.sqrt((h0_ref - u_final)**2), determ, tmp)
-l2_error = np.sum(tmp)
-print(f'{l2_error=}')
 
 # Plot final time
 if debug:
