@@ -1,9 +1,8 @@
 import numpy as np
 import time
-import gt4py.gtscript as gtscript
 import gt4py as gt
 
-from gt4py_config import dtype, backend, backend_opts, runge_kutta
+from gt4py_config import dtype, backend, runge_kutta
 
 import stencils
 import boundary_conditions
@@ -35,13 +34,31 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
         shape=(nx, ny, nz), dtype=(dtype, (dim,))) # for plotting
 
     # --- runge kutta --- 
-    k1 = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+    k1_h = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (dim,)))
-    k2 = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+    k2_h = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (dim,)))
-    k3 = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+    k3_h = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (dim,)))
-    k4 = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+    k4_h = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (dim,)))
+
+    k1_hu = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (dim,)))
+    k2_hu = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (dim,)))
+    k3_hu = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (dim,)))
+    k4_hu = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (dim,)))
+
+    k1_hv = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (dim,)))
+    k2_hv = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (dim,)))
+    k3_hv = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+        shape=(nx, ny, nz), dtype=(dtype, (dim,)))
+    k4_hv = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (dim,)))
 
     # --- internal integrals ---
@@ -172,44 +189,138 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
             stencils.rk_step1(rhs_h, h, dt, h)
             stencils.rk_step1(rhs_hu, hu, dt, hu)
             stencils.rk_step1(rhs_hv, hv, dt, hv)
-        # elif runge_kutta == 2:
-        #     compute_rhs(
-        #         uM_gt, rhs, u_qp, fx, fy, u_n, u_s, u_e, u_w,
-        #         f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
-        #         determ, bd_det_x, bd_det_y, vander, inv_mass,
-        #         wts2d, wts1d, nx, ny, dt
-        #     )
-        #     stencils.rk_step1(rhs, uM_gt, dt, k1)
-        #     compute_rhs(
-        #         k1, k2, u_qp, fx, fy, u_n, u_s, u_e, u_w,
-        #         f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
-        #         determ, bd_det_x, bd_det_y, vander, inv_mass,
-        #         wts2d, wts1d, nx, ny, dt
-        #     )
-        #     stencils.rk_step2(k1, k2, uM_gt, dt, uM_gt)
-        # elif runge_kutta == 3:
-        #     compute_rhs(
-        #         uM_gt, rhs, u_qp, fx, fy, u_n, u_s, u_e, u_w,
-        #         f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
-        #         determ, bd_det_x, bd_det_y, vander, inv_mass,
-        #         wts2d, wts1d, nx, ny, dt
-        #     )
-        #     stencils.rk_step1(rhs, uM_gt, dt, k1)
-        #     compute_rhs(
-        #         k1, k2, u_qp, fx, fy, u_n, u_s, u_e, u_w,
-        #         f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
-        #         determ, bd_det_x, bd_det_y, vander, inv_mass,
-        #         wts2d, wts1d, nx, ny, dt
-        #     )
-        #     stencils.rk_step2_3(k1, k2, uM_gt, dt, uM_gt)
-        #     compute_rhs(
-        #         k2, k3, u_qp, fx, fy, u_n, u_s, u_e, u_w,
-        #         f_n, f_s, f_e, f_w, flux_n, flux_s, flux_e, flux_w,
-        #         determ, bd_det_x, bd_det_y, vander, inv_mass,
-        #         wts2d, wts1d, nx, ny, dt
-        #     )
-        #     stencils.rk_step3_3(k2, k3, uM_gt, dt, uM_gt)
-
+        elif runge_kutta == 2:
+            compute_rhs(
+                (h, hu, hv), (k1_h, k1_hu, k1_hv), (h_qp, hu_qp, hv_qp), 
+                (fh_x, fhu_x, fhv_x), (fh_y, fhu_y, fhv_y),
+                (h_n, hu_n, hv_n), (h_s, hu_s, hv_s),
+                (h_e, hu_e, hv_e), (h_w, hu_w, hv_w),
+                (f_n_h, f_n_hu, f_n_hv), (f_s_h, f_s_hu, f_s_hv),
+                (f_e_h, f_e_hu, f_e_hv), (f_w_h, f_w_hu, f_w_hv),
+                (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
+                determ, bd_det_x, bd_det_y, vander, inv_mass,
+                wts2d, wts1d, nx, ny, nz, alpha, radius
+            )
+            # --- Timestepping ---
+            stencils.rk_step1(k1_h, h, dt, rhs_h)
+            stencils.rk_step1(k1_hu, hu, dt, rhs_hu)
+            stencils.rk_step1(k1_hv, hv, dt, rhs_hv)
+            compute_rhs(
+                (rhs_h, rhs_hu, rhs_hv), (k2_h, k2_hu, k2_hv), (h_qp, hu_qp, hv_qp), 
+                (fh_x, fhu_x, fhv_x), (fh_y, fhu_y, fhv_y),
+                (h_n, hu_n, hv_n), (h_s, hu_s, hv_s),
+                (h_e, hu_e, hv_e), (h_w, hu_w, hv_w),
+                (f_n_h, f_n_hu, f_n_hv), (f_s_h, f_s_hu, f_s_hv),
+                (f_e_h, f_e_hu, f_e_hv), (f_w_h, f_w_hu, f_w_hv),
+                (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
+                determ, bd_det_x, bd_det_y, vander, inv_mass,
+                wts2d, wts1d, nx, ny, nz, alpha, radius
+            )
+            stencils.rk_step2(k1_h, k2_h, h, dt, h)
+            stencils.rk_step2(k1_hu, k2_hu, hu, dt, hu)
+            stencils.rk_step2(k1_hv, k2_hv, hv, dt, hv)
+        elif runge_kutta == 3:
+            compute_rhs(
+                (h, hu, hv), (k1_h, k1_hu, k1_hv), (h_qp, hu_qp, hv_qp), 
+                (fh_x, fhu_x, fhv_x), (fh_y, fhu_y, fhv_y),
+                (h_n, hu_n, hv_n), (h_s, hu_s, hv_s),
+                (h_e, hu_e, hv_e), (h_w, hu_w, hv_w),
+                (f_n_h, f_n_hu, f_n_hv), (f_s_h, f_s_hu, f_s_hv),
+                (f_e_h, f_e_hu, f_e_hv), (f_w_h, f_w_hu, f_w_hv),
+                (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
+                determ, bd_det_x, bd_det_y, vander, inv_mass,
+                wts2d, wts1d, nx, ny, nz, alpha, radius
+            )
+            # --- Timestepping ---
+            stencils.rk_step1(k1_h, h, dt, rhs_h)
+            stencils.rk_step1(k1_hu, hu, dt, rhs_hu)
+            stencils.rk_step1(k1_hv, hv, dt, rhs_hv)
+            compute_rhs(
+                (rhs_h, rhs_hu, rhs_hv), (k2_h, k2_hu, k2_hv), (h_qp, hu_qp, hv_qp), 
+                (fh_x, fhu_x, fhv_x), (fh_y, fhu_y, fhv_y),
+                (h_n, hu_n, hv_n), (h_s, hu_s, hv_s),
+                (h_e, hu_e, hv_e), (h_w, hu_w, hv_w),
+                (f_n_h, f_n_hu, f_n_hv), (f_s_h, f_s_hu, f_s_hv),
+                (f_e_h, f_e_hu, f_e_hv), (f_w_h, f_w_hu, f_w_hv),
+                (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
+                determ, bd_det_x, bd_det_y, vander, inv_mass,
+                wts2d, wts1d, nx, ny, nz, alpha, radius
+            )
+            stencils.rk_step2_3(k1_h, k2_h, h, dt, rhs_h)
+            stencils.rk_step2_3(k1_hu, k2_hu, hu, dt, rhs_hu)
+            stencils.rk_step2_3(k1_hv, k2_hv, hv, dt, rhs_hv)
+            compute_rhs(
+                (rhs_h, rhs_hu, rhs_hv), (k3_h, k3_hu, k3_hv), (h_qp, hu_qp, hv_qp), 
+                (fh_x, fhu_x, fhv_x), (fh_y, fhu_y, fhv_y),
+                (h_n, hu_n, hv_n), (h_s, hu_s, hv_s),
+                (h_e, hu_e, hv_e), (h_w, hu_w, hv_w),
+                (f_n_h, f_n_hu, f_n_hv), (f_s_h, f_s_hu, f_s_hv),
+                (f_e_h, f_e_hu, f_e_hv), (f_w_h, f_w_hu, f_w_hv),
+                (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
+                determ, bd_det_x, bd_det_y, vander, inv_mass,
+                wts2d, wts1d, nx, ny, nz, alpha, radius
+            )
+            stencils.rk_step3_3(k1_h, k2_h, k3_h, h, dt, h)
+            stencils.rk_step3_3(k1_hu, k2_hu, k3_hu, hu, dt, hu)
+            stencils.rk_step3_3(k1_hv, k2_hv, k3_hv, hv, dt, hv)
+        elif runge_kutta == 4:
+            compute_rhs(
+                (h, hu, hv), (k1_h, k1_hu, k1_hv), (h_qp, hu_qp, hv_qp), 
+                (fh_x, fhu_x, fhv_x), (fh_y, fhu_y, fhv_y),
+                (h_n, hu_n, hv_n), (h_s, hu_s, hv_s),
+                (h_e, hu_e, hv_e), (h_w, hu_w, hv_w),
+                (f_n_h, f_n_hu, f_n_hv), (f_s_h, f_s_hu, f_s_hv),
+                (f_e_h, f_e_hu, f_e_hv), (f_w_h, f_w_hu, f_w_hv),
+                (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
+                determ, bd_det_x, bd_det_y, vander, inv_mass,
+                wts2d, wts1d, nx, ny, nz, alpha, radius
+            )
+            # --- Timestepping ---
+            stencils.rk_step1_4(k1_h, h, dt, rhs_h)
+            stencils.rk_step1_4(k1_hu, hu, dt, rhs_hu)
+            stencils.rk_step1_4(k1_hv, hv, dt, rhs_hv)
+            compute_rhs(
+                (rhs_h, rhs_hu, rhs_hv), (k2_h, k2_hu, k2_hv), (h_qp, hu_qp, hv_qp), 
+                (fh_x, fhu_x, fhv_x), (fh_y, fhu_y, fhv_y),
+                (h_n, hu_n, hv_n), (h_s, hu_s, hv_s),
+                (h_e, hu_e, hv_e), (h_w, hu_w, hv_w),
+                (f_n_h, f_n_hu, f_n_hv), (f_s_h, f_s_hu, f_s_hv),
+                (f_e_h, f_e_hu, f_e_hv), (f_w_h, f_w_hu, f_w_hv),
+                (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
+                determ, bd_det_x, bd_det_y, vander, inv_mass,
+                wts2d, wts1d, nx, ny, nz, alpha, radius
+            )
+            stencils.rk_step1_4(k2_h, h, dt, rhs_h)
+            stencils.rk_step1_4(k2_hu, hu, dt, rhs_hu)
+            stencils.rk_step1_4(k2_hv, hv, dt, rhs_hv)
+            compute_rhs(
+                (rhs_h, rhs_hu, rhs_hv), (k3_h, k3_hu, k3_hv), (h_qp, hu_qp, hv_qp), 
+                (fh_x, fhu_x, fhv_x), (fh_y, fhu_y, fhv_y),
+                (h_n, hu_n, hv_n), (h_s, hu_s, hv_s),
+                (h_e, hu_e, hv_e), (h_w, hu_w, hv_w),
+                (f_n_h, f_n_hu, f_n_hv), (f_s_h, f_s_hu, f_s_hv),
+                (f_e_h, f_e_hu, f_e_hv), (f_w_h, f_w_hu, f_w_hv),
+                (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
+                determ, bd_det_x, bd_det_y, vander, inv_mass,
+                wts2d, wts1d, nx, ny, nz, alpha, radius
+            )
+            stencils.rk_step1(k3_h, h, dt, rhs_h)
+            stencils.rk_step1(k3_hu, hu, dt, rhs_hu)
+            stencils.rk_step1(k3_hv, hv, dt, rhs_hv)
+            compute_rhs(
+                (rhs_h, rhs_hu, rhs_hv), (k4_h, k4_hu, k4_hv), (h_qp, hu_qp, hv_qp), 
+                (fh_x, fhu_x, fhv_x), (fh_y, fhu_y, fhv_y),
+                (h_n, hu_n, hv_n), (h_s, hu_s, hv_s),
+                (h_e, hu_e, hv_e), (h_w, hu_w, hv_w),
+                (f_n_h, f_n_hu, f_n_hv), (f_s_h, f_s_hu, f_s_hv),
+                (f_e_h, f_e_hu, f_e_hv), (f_w_h, f_w_hu, f_w_hv),
+                (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
+                determ, bd_det_x, bd_det_y, vander, inv_mass,
+                wts2d, wts1d, nx, ny, nz, alpha, radius
+            )
+            stencils.rk_step2_4(k1_h, k2_h, k3_h, k4_h,  h, dt, h)
+            stencils.rk_step2_4(k1_hu, k2_hu, k3_hu, k4_hu, hu, dt, hu)
+            stencils.rk_step2_4(k1_hv, k2_hv, k3_hv, k4_hv, hv, dt, hv)
 
         # --- Output --- 
         print(f'Iteration {i}: time = {dt*i}s done')
