@@ -2,9 +2,7 @@
 import numpy as np
 import time
 import gt4py as gt
-import gt4py.gtscript as gtscript
 import quadpy as qp
-from numpy.polynomial import legendre as L
 
 from vander import Vander
 from initial_conditions import set_initial_conditions
@@ -149,9 +147,7 @@ u_final = np.asarray(u_final_nodal)
 print(f'Vander: {vander_end - vander_start}s')
 
 # Integrals
-print('--- Integrals ---')
-determ = hx * hy / 4
-
+print('--- Mass ---')
 initial_int = np.sqrt(np.einsum('ijkl, ijkl', u0_m, np.einsum('ijklm,ijkm->ijkl', mass, u0_m)))
 final_int = np.sqrt(np.einsum('ijkl, ijkl', u0_modal_gt, np.einsum('ijklm,ijkm->ijkl', mass, u0_modal_gt)))
 print(f'{initial_int = }; {final_int = }')
