@@ -1,10 +1,10 @@
 import numpy as np
 import sys
 
-if len(sys.argv) == 5:
+if len(sys.argv) == 6:
     _, nx, nz, r, runge_kutta, backend = sys.argv
     nx = int(nx)
-    nx = int(nz)
+    nz = int(nz)
     r = int(r)
     runge_kutta = int(runge_kutta)
     if backend == 'cpu':

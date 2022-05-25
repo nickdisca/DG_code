@@ -129,7 +129,7 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 # if not debug:
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
 plotter.plot_solution(h0_nodal_gt, init=True, plot_type=plotter.plot_type)
-time.sleep(10)
+# time.sleep(10)
 
 h0_ref = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
 h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
