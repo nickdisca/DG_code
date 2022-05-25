@@ -130,3 +130,38 @@ L2 error: Absolute 1.3970597474200318e-05; Relative 0.00018985616513147598
 
 /users/kszenes/DG_code/gt4py/same_rank/linear_advection/plotter.py:107: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
   plt.pause(0.005)
+
+--- Backend = gt:cpu_ifirst ---
+Domain: nx = 320; ny = 320
+Timesteping: courant = 0.01 dt = 7.8125e-06; niter = 128000
+Diffusion constanc: alpha = 1.0
+Order: space 4; time 2
+--- Timings ---
+Loop: 11428.792164300976s
+Allocation: 0.0778437849949114s
+Vander: 0.6778361520264298s
+--- Extrema ---
+--- Integrals ---
+initial_int = 0.07358515374577833; final_int = 0.07358515352639058
+--- Error ---
+L2 error: Absolute 3.1156302460976816e-06; Relative 4.234047341752587e-05
+srun: got SIGCONT
+slurmstepd: error: *** STEP 38700923.5 ON nid00542 CANCELLED AT 2022-05-24T15:02:31 ***
+srun: forcing job termination
+
+
+Batch Job Summary Report (version 21.01.1) for Job "job_cpu.sh" (38700923) on daint
+
+Job information (1/2)
+-----------------------------------------------------------------------------------------------------
+             Submit            Eligible               Start                 End    Elapsed Time limit
+------------------- ------------------- ------------------- ------------------- ---------- ----------
+2022-05-24T10:53:44 2022-05-24T10:53:44 2022-05-24T10:53:49 2022-05-24T15:02:30   04:08:41 1-00:00:00
+-----------------------------------------------------------------------------------------------------
+
+Job information (2/2)
+-------------------------------------------------------------
+    Username      Account    Partition   NNodes        Energy
+------------ ------------ ------------ -------- -------------
+     kszenes      csstaff       normal        1   3743.968 kJ
+
