@@ -62,7 +62,7 @@ dt = courant * dx / (r + 1)
 alpha = courant * dx / dt
 alpha = 1.0
 
-T = 1
+T = 10
 niter = int(T / dt)
 
 # plotting
@@ -148,14 +148,14 @@ print(f'Vander: {vander_end - vander_start}s')
 
 # Integrals
 print('--- Mass ---')
-initial_int = np.sqrt(np.einsum('ijkl, ijkl', u0_m, np.einsum('ijklm,ijkm->ijkl', mass, u0_m)))
-final_int = np.sqrt(np.einsum('ijkl, ijkl', u0_modal_gt, np.einsum('ijklm,ijkm->ijkl', mass, u0_modal_gt)))
-print(f'{initial_int = }; {final_int = }')
+initial_mass = np.sqrt(np.einsum('ijkl, ijkl', u0_m, np.einsum('ijklm,ijkm->ijkl', mass, u0_m)))
+final_mass = np.sqrt(np.einsum('ijkl, ijkl', u0_modal_gt, np.einsum('ijklm,ijkm->ijkl', mass, u0_modal_gt)))
+print(f'{initial_mass = }; {final_mass = }')
 
 # Error
 print('--- Error ---')
 l2_error = np.sqrt(np.einsum('ijkl, ijkl', (u0_m - u0_modal_gt), np.einsum('ijklm,ijkm->ijkl', mass, (u0_m - u0_modal_gt))))
-print(f'L2 error: Absolute {l2_error}; Relative {l2_error / initial_int}\n')
+print(f'L2 error: Absolute {l2_error}; Relative {l2_error / initial_mass}\n')
 
 # l_infty_error = np.max(np.abs(u0_qp - u0_modal_gt)) / np.max(np.abs(u0_qp))
 # print(f'{l_infty_error = }\n')

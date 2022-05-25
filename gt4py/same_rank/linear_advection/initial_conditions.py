@@ -19,6 +19,9 @@ def set_initial_conditions(x_c, y_c, a, b, c, d, dim, vander, eq_type="linear"):
         # -- 2D sin ---
         u0_fun = lambda x, y: np.sin(2 * np.pi * x) * np.sin(2 * np.pi * y)
 
+        # --- Constant  ---
+        # u0_fun = lambda x, y: 1
+
         # u0_fun=lambda x, y: np.ones(unif2d_x.shape) # constant state
         for i in range(nx):
             for j in range(ny):
