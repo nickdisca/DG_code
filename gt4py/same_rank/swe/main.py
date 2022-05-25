@@ -12,7 +12,7 @@ from modal_conversion import nodal2modal_gt, modal2nodal_gt, integration
 from compute_mass import compute_mass
 from run import run
 from plotter import Plotter
-from gt4py_config import backend, dtype, backend_opts, r, n_qp_1D, runge_kutta
+from gt4py_config import backend, dtype, r, n_qp_1D, runge_kutta, n
 
 import plotly
 from scalene import scalene_profiler
@@ -37,7 +37,7 @@ elif eq_type == 'swe':
     a = 0; b = 1e7; c = 0; d = 1e7
 
 # number of elements in X and Y
-nx = 50; ny = 50
+nx = n; ny = n
 
 hx = (b-a)/nx; hy = (d-c)/ny
 dx = np.min((hx, hy))

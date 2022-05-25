@@ -8,11 +8,11 @@ from numpy.polynomial import legendre as L
 
 from vander import Vander
 from initial_conditions import set_initial_conditions
-from modal_conversion import nodal2modal_gt, modal2nodal_gt, integration
+from modal_conversion import nodal2modal_gt, modal2nodal_gt
 from compute_mass import compute_mass
 from run import run
 from plotter import Plotter
-from gt4py_config import backend, dtype, backend_opts, r, n_qp_1D, runge_kutta, n
+from gt4py_config import backend, dtype, r, n_qp_1D, runge_kutta, n
 
 import plotly
 from scalene import scalene_profiler
