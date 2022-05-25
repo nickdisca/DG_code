@@ -2,9 +2,7 @@
 import numpy as np
 import time
 import gt4py as gt
-import gt4py.gtscript as gtscript
 import quadpy as qp
-from numpy.polynomial import legendre as L
 
 from vander import Vander
 from initial_conditions import set_initial_conditions
@@ -127,6 +125,7 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 # if not debug:
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
 plotter.plot_solution(h0_nodal_gt, init=True, plot_type=plotter.plot_type)
+time.sleep(10)
 
 h0_ref = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
 h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
@@ -156,17 +155,6 @@ u_final = np.asarray(u_final_nodal)
 
 # Timinig
 print(f'Vander: {vander_end - vander_start}s')
-
-# Error
-print('--- Error ---')
-# l2_error = np.sum(np.sqrt((u0_nodal - u_final)**2) * wts2d)
-# l2_error = np.sum(np.sqrt((u0_nodal - u_final)**2) * wts2d) / np.sum(np.sqrt(u0_nodal**2) * wts2d)
-determ = hx * hy / 4
-tmp = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-    shape=(nx, ny, 1), dtype=(dtype, (n_qp,)))
-integration(vander.phi_gt, wts2d_gt, np.sqrt((h0_ref - u_final)**2), determ, tmp)
-l2_error = np.sum(tmp)
-print(f'{l2_error=}')
 
 # Plot final time
 if debug:

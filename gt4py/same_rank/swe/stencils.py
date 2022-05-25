@@ -208,16 +208,6 @@ def rk_step1(
         out = u_modal + dt * rhs
 
 @gtscript.stencil(backend=backend, **backend_opts)
-def rk_step1(
-    rhs: gtscript.Field[(dtype, (dim,))],
-    u_modal: gtscript.Field[(dtype, (dim,))],
-    dt: float,
-    out: gtscript.Field[(dtype, (dim,))]
-):
-    with computation(PARALLEL), interval(...):
-        out = u_modal + dt * rhs
-
-@gtscript.stencil(backend=backend, **backend_opts)
 def rk_step2(
     rhs: gtscript.Field[(dtype, (dim,))],
     k2: gtscript.Field[(dtype, (dim,))],

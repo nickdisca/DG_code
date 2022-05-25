@@ -1,9 +1,8 @@
 import numpy as np
 import time
-import gt4py.gtscript as gtscript
 import gt4py as gt
 
-from gt4py_config import dtype, backend, backend_opts, runge_kutta
+from gt4py_config import dtype, backend, runge_kutta
 
 import stencils
 import boundary_conditions
@@ -61,6 +60,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
         shape=(nx, ny, nz), dtype=(dtype, (dim,)))
     k4_hv = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (dim,)))
+        
     # --- internal integrals ---
     h_qp = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (n_qp2d,)))
