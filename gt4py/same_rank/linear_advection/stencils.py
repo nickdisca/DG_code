@@ -3,6 +3,8 @@ import gt4py as gt
 
 from gt4py_config import dtype, backend, backend_opts, dim, n_qp, n_qp_1D
 
+import numpy as np
+
 @gtscript.stencil(backend=backend, **backend_opts)
 def modal2nodal(
     phi: gtscript.Field[(dtype, (dim, dim))],
@@ -18,8 +20,8 @@ def flux_stencil(
     u_modal: gtscript.Field[(dtype, (dim,))],
     u_qp: gtscript.Field[(dtype, (n_qp,))],
 
-    fx: gtscript.Field[(dtype, (n_qp,))],
-    fy: gtscript.Field[(dtype, (n_qp,))],
+    # fx: gtscript.Field[(dtype, (n_qp,))],
+    # fy: gtscript.Field[(dtype, (n_qp,))],
 
     phi_grad_x: gtscript.Field[(dtype, (n_qp, dim))],
     phi_grad_y: gtscript.Field[(dtype, (n_qp, dim))],
@@ -29,11 +31,15 @@ def flux_stencil(
     bd_det_x: float,
     bd_det_y: float
 ):
+    tmp: gtscript.Field[(np.float64, (4,))] = 0
     with computation(PARALLEL), interval(...):
-        u_qp = phi @ u_modal
-        fx = u_qp * w
-        fy = u_qp * w
-        rhs = (phi_grad_x.T @ fx / bd_det_x + phi_grad_y.T @ fy / bd_det_y) * determ
+        tmp = phi @ u_modal
+
+        # u_qp = phi @ u_modal
+        # fx = tmp * w
+        # fy = tmp * w
+        # rhs = (phi_grad_x.T @ fx / bd_det_x + phi_grad_y.T @ fy / bd_det_y) * determ
+        # pass
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def modal2bd(

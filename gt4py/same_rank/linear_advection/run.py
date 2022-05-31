@@ -8,7 +8,7 @@ from gt4py_config import dtype, backend, backend_opts, runge_kutta
 import stencils
 import boundary_conditions
 
-def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, ny, alpha, dt, niter, plotter):
+def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, ny, alpha, dt, niter, plotter, mass):
     determ = hx * hy / 4
     bd_det_x = hx / 2
     bd_det_y = hy / 2
@@ -155,10 +155,11 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
 
 
         # === OUTPUT DONE === 
-        # print(f'Iteration {i} done')
-        # if i % plot_freq == 0:
-        #     stencils.modal2nodal(vander.vander_gt, uM_gt, u_nodal)
-        #     plotter.plot_solution(u_nodal, init=False, plot_type=plot_type)
+        if i % plot_freq == 0:
+            current_mass = np.sqrt(np.einsum('ijkl, ijkl', uM_gt, np.einsum('ijklm,ijkm->ijkl', mass, uM_gt)))
+            print(f'Iteration {i} done: {current_mass = }')
+            stencils.modal2nodal(vander.vander_gt, uM_gt, u_nodal)
+            plotter.plot_solution(u_nodal, init=False, plot_type=plot_type)
         # === OUTPUT DONE ===
 
     loop_end = time.perf_counter()
@@ -176,8 +177,12 @@ def compute_rhs(
     vander, inv_mass, wts2d, wts1d, nx, ny, dt, alpha
 ):
         # --- Flux Integral ---
+        # stencils.flux_stencil(
+        #     vander.phi_gt, uM_gt, u_qp, fx, fy, vander.grad_phi_x_gt,
+        #     vander.grad_phi_y_gt, wts2d, rhs, determ, bd_det_x, bd_det_y
+        # )
         stencils.flux_stencil(
-            vander.phi_gt, uM_gt, u_qp, fx, fy, vander.grad_phi_x_gt,
+            vander.phi_gt, uM_gt, u_qp, vander.grad_phi_x_gt,
             vander.grad_phi_y_gt, wts2d, rhs, determ, bd_det_x, bd_det_y
         )
 

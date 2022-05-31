@@ -62,11 +62,12 @@ dt = courant * dx / (r + 1)
 alpha = courant * dx / dt
 alpha = 1.0
 
-T = 10
+T = 1
 niter = int(T / dt)
 
 # plotting
-plot_freq = int(niter / 10)
+# plot_freq = int(niter / 10)
+plot_freq = 1
 plot_type = "contour"
 
 # plot_freq = 1
@@ -134,7 +135,7 @@ print(f'Domain: {nx = }; {ny = }\nTimesteping: {courant = } {dt = }; {niter = }'
 print(f'Diffusion constanc: {alpha = }')
 print(f'Order: space {r+1}; time {runge_kutta}')
 
-run(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, alpha, dt, niter, plotter)
+run(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, alpha, dt, niter, plotter, mass)
 
 u_final_nodal = modal2nodal_gt(vander.phi_gt, u0_modal_gt)
 
