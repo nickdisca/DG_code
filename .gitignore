@@ -2,3 +2,5 @@
 *cache
 *.json
 *.svg
+*.DS_STORE
+*.dace.conf
