@@ -13,7 +13,7 @@ def set_initial_conditions(x_c, y_c, a, b, c, d, dim, vander, eq_type="linear"):
         neq = 1
         u0 = np.zeros((nx, ny, neq, dim))
         # -- Cosine bell --
-        h0 = 0; h1 = 1; R = (b-a)/20; domaine_x_c = (a+b)/2; domaine_y_c=(c+d)/2
+        h0 = 0; h1 = 1; R = (b-a)/10; domaine_x_c = (a+b)/2; domaine_y_c=(c+d)/2
         u0_fun=lambda x, y:  h0+0.5*h1*(1+np.cos(np.pi*np.sqrt(np.square(x - domaine_x_c)+np.square(y - domaine_y_c))/R))*((np.sqrt(np.square(x-domaine_x_c)+np.square(y-domaine_y_c)))<R)
 
         # -- 2D sin ---

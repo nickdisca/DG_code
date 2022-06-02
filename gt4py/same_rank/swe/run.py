@@ -377,6 +377,17 @@ def compute_rhs(
             rhs_h, rhs_hu, rhs_hv, g, determ, bd_det_x, bd_det_y
         )
 
+        import gt4py_config as gtconfig
+        np.set_printoptions(precision=4, linewidth=150)
+        # print(f"{np.asarray(rhs_h).reshape(gtconfig.dim, nx*ny, order='F') = }\n{np.asarray(rhs_hu).reshape(gtconfig.dim, nx*ny, order='C') = }\n{np.asarray(rhs_hv).reshape(gtconfig.dim, nx*ny, order='F') = }")
+        # print(f'{determ = }, {bd_det_x = }, {bd_det_y = }')
+        # print(f'{fhu_x = }')
+        # print(f'{fhv_y = }')
+        # print(f'{rhs_hu = }\n{rhs_hv = }')
+        # print(f'{wts2d = }')
+        # print(f'{vander.grad_phi_x_gt.shape = }')
+        # quit()
+
         # --- Boundary Integral ---
         origins = {
             "_all_": (0,0,0),'u_n': (1,1,0), 'u_s': (1,1,0), 'u_e': (1,1,0), 'u_w': (1,1,0)

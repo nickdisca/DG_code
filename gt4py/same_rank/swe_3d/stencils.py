@@ -57,9 +57,9 @@ def flux_stencil_swe(
         fhv_x = hu_qp * hv_qp / h_qp
         fhv_y = hv_qp * hv_qp / h_qp + h_qp * h_qp * g / 2
 
-        rhs_h = (phi_grad_x.T @ fh_x / bd_det_x + phi_grad_y.T @ fh_y / bd_det_y) * determ
-        rhs_hu = (phi_grad_x.T @ fhu_x / bd_det_x + phi_grad_y.T @ fhu_y / bd_det_y) * determ
-        rhs_hv = (phi_grad_x.T @ fhv_x / bd_det_x + phi_grad_y.T @ fhv_y / bd_det_y) * determ
+        rhs_h = (phi_grad_x.T @ (fh_x * w) / bd_det_x + phi_grad_y.T @ (fh_y * w) / bd_det_y) * determ
+        rhs_hu = (phi_grad_x.T @ (fhu_x * w) / bd_det_x + phi_grad_y.T @ (fhu_y * w) / bd_det_y) * determ
+        rhs_hv = (phi_grad_x.T @ (fhv_x * w) / bd_det_x + phi_grad_y.T @ (fhv_y * w) / bd_det_y) * determ
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def modal2bd(

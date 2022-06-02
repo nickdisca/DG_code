@@ -54,11 +54,11 @@ n_qp=n_qp_1D*n_qp_1D
 
 
 # timestep
-# dt = 1e-4
 courant = 0.0001
+# courant = 0.0000001
 
 dt = courant * dx / (r + 1)
-alpha = courant * dx / dt
+alpha = 1 * courant * dx / dt
 
 if eq_type == 'linear':
     T = 1
@@ -124,8 +124,8 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 
 # if not debug:
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-plotter.plot_solution(h0_nodal_gt, init=True, plot_type=plotter.plot_type)
-time.sleep(10)
+plotter.plot_solution(hv0_nodal_gt, init=True, plot_type=plotter.plot_type)
+# time.sleep(10)
 
 h0_ref = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
 h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)

@@ -19,12 +19,12 @@ else:
 
     # === ORDER ===
     # spatial rank
-    r = 1
+    r = 2
     # runge-kutta
-    runge_kutta = 2
+    runge_kutta = 1
     
-    nx = 10
-    nz = 2
+    nx = 20
+    nz = 1
 
 n_qp_1D = r+1
 dim=(r+1)**2

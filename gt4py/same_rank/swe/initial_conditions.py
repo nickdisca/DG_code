@@ -32,6 +32,7 @@ def set_initial_conditions(x_c, y_c, a, b, c, d, dim, vander, eq_type="linear"):
 
         h0=1000; h1=100; Cx=a+(b-a)*1/2; Cy=c+(d-c)*1/2; sigma=(a+b)/20
         h0_fun = lambda x, y:  h0 + h1 * np.exp(- ((x - Cx)**2 + (y - Cy)**2) / (2 * sigma**2))
+        # h0_fun = lambda x, y:  h0
 
         for i in range(nx):
             for j in range(ny):

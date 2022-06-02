@@ -5,6 +5,13 @@ from gt4py_config import dtype, backend, backend_opts, dim, n_qp, n_qp_1D
 
 import numpy as np
 
+externals = {
+    # "DTYPE": np.float64,
+    "N_QP": n_qp,
+    "N_QP_1D": n_qp_1D,
+    "DIM": dim,
+}
+
 @gtscript.stencil(backend=backend, **backend_opts)
 def modal2nodal(
     phi: gtscript.Field[(dtype, (dim, dim))],
@@ -14,11 +21,11 @@ def modal2nodal(
     with computation(PARALLEL), interval(...):
         u_nodal = phi @ u_modal
 
-@gtscript.stencil(backend=backend, **backend_opts)
+@gtscript.stencil(backend=backend, externals=externals, **backend_opts)
 def flux_stencil(
     phi: gtscript.Field[(dtype, (n_qp, dim))],
     u_modal: gtscript.Field[(dtype, (dim,))],
-    u_qp: gtscript.Field[(dtype, (n_qp,))],
+    # u_qp: gtscript.Field[(dtype, (n_qp,))],
 
     # fx: gtscript.Field[(dtype, (n_qp,))],
     # fy: gtscript.Field[(dtype, (n_qp,))],
@@ -31,14 +38,15 @@ def flux_stencil(
     bd_det_x: float,
     bd_det_y: float
 ):
-    tmp: gtscript.Field[(np.float64, (4,))] = 0
+    from __externals__ import N_QP
+    u_qp: gtscript.Field[(np.float64, (N_QP,))] = 0
+    fx: gtscript.Field[(np.float64, (N_QP,))] = 0
+    fy: gtscript.Field[(np.float64, (N_QP,))] = 0
     with computation(PARALLEL), interval(...):
-        tmp = phi @ u_modal
-
-        # u_qp = phi @ u_modal
-        # fx = tmp * w
-        # fy = tmp * w
-        # rhs = (phi_grad_x.T @ fx / bd_det_x + phi_grad_y.T @ fy / bd_det_y) * determ
+        u_qp = phi @ u_modal
+        fx = u_qp * w
+        fy = u_qp * w
+        rhs = (phi_grad_x.T @ fx / bd_det_x + phi_grad_y.T @ fy / bd_det_y) * determ
         # pass
 
 @gtscript.stencil(backend=backend, **backend_opts)
@@ -103,11 +111,6 @@ def compute_num_flux(
 
 ):
     with computation(PARALLEL), interval(...):
-        # flux_n = 0.5 * (f_n + f_s[0,+1,0]) - 0.5 * (u_s[0,+1,0] - u_n)
-        # flux_s = -0.5 * (f_s + f_n[0,-1,0]) - 0.5 * (u_n[0,-1,0] - u_s)
-        # flux_e = 0.5 * (f_e + f_w[+1,0,0]) - 0.5 * (u_w[+1,0,0] - u_e)
-        # flux_w = -0.5 * (f_w + f_e[-1,0,0]) - 0.5 * (u_e[-1,0,0] - u_w)
-
         flux_n = 0.5 * (f_n + f_s[0,+1,0]) - 0.5 * alpha * (u_s[0,+1,0] - u_n)
         flux_s = -0.5 * (f_s + f_n[0,-1,0]) - 0.5 * alpha * (u_n[0,-1,0] - u_s)
         flux_e = 0.5 * (f_e + f_w[+1,0,0]) - 0.5 * alpha * (u_w[+1,0,0] - u_e)

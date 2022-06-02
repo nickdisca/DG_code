@@ -25,7 +25,7 @@ class Plotter():
         self.fig, self.ax = plt.subplots()
 
 
-    def plot_solution(self, u, z_comp=1, init=False, plot_type='contour',show=False, save=False):
+    def plot_solution(self, u, z_comp=0, init=False, plot_type='contour',show=False, save=False):
         # z component to plot
         # z_comp = 1
 

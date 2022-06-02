@@ -20,9 +20,9 @@ else:
     # spatial rank
     r = 1
     # runge-kutta
-    runge_kutta = 2
+    runge_kutta = 1
     
-    n = 10
+    n = 3
 
 n_qp_1D = r+1
 dim=(r+1)**2

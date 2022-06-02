@@ -66,8 +66,8 @@ T = 1
 niter = int(T / dt)
 
 # plotting
-# plot_freq = int(niter / 10)
-plot_freq = 1
+plot_freq = int(niter / 10)
+# plot_freq = 1
 plot_type = "contour"
 
 # plot_freq = 1
