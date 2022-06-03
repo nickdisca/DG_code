@@ -330,8 +330,8 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
             stencils.rk_step2_4(k1_hv, k2_hv, k3_hv, k4_hv, hv, dt, hv)
 
         # --- Output --- 
-        print(f'Iteration {i}: time = {dt*i}s ({dt*i/86400 :.1f} days)')
         if i % plot_freq == 0:
+            print(f'Iteration {i}: time = {dt*i}s ({dt*i/3600:.1f} {dt*i/86400 :.1f} days)')
             stencils.modal2nodal(vander.vander_gt, h, tmp)
             print('plotting')
             plotter.plot_solution(tmp, init=False, plot_type=plot_type)
@@ -451,22 +451,19 @@ def compute_rhs(
         }
         stencils.compute_num_flux(
             h_n, h_s, h_e, h_w, f_n_h, f_s_h, f_e_h, f_w_h,
-            flux_n_h, flux_s_h, flux_e_h, flux_w_h, cos_n, cos_s,
-            alpha_n, alpha_s, alpha_e, alpha_w,
+            flux_n_h, flux_s_h, flux_e_h, flux_w_h, cos_n, cos_s, alpha,
             origin=origins, domain=(nx, ny, 1)
         )
 
         stencils.compute_num_flux(
             hu_n, hu_s, hu_e, hu_w, f_n_hu, f_s_hu, f_e_hu, f_w_hu,
-            flux_n_hu, flux_s_hu, flux_e_hu, flux_w_hu, cos_n, cos_s,
-            alpha_n, alpha_s, alpha_e, alpha_w,
+            flux_n_hu, flux_s_hu, flux_e_hu, flux_w_hu, cos_n, cos_s, alpha,
             origin=origins, domain=(nx, ny, 1)
         )
 
         stencils.compute_num_flux(
             hv_n, hv_s, hv_e, hv_w, f_n_hv, f_s_hv, f_e_hv, f_w_hv,
-            flux_n_hv, flux_s_hv, flux_e_hv, flux_w_hv, cos_n, cos_s,
-            alpha_n, alpha_s, alpha_e, alpha_w,
+            flux_n_hv, flux_s_hv, flux_e_hv, flux_w_hv, cos_n, cos_s, alpha,
             origin=origins, domain=(nx, ny, 1)
         )
 

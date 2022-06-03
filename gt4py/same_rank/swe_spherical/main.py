@@ -73,8 +73,8 @@ elif eq_type == 'swe':
 elif eq_type == 'swe_sphere':
     day_in_sec = 86400
     T = 1 * day_in_sec
-    alpha = 200.0 
-    dt = 20.0
+    alpha = 170.0 
+    dt = 10.0
 
 niter = int(T / dt)
 
@@ -170,6 +170,7 @@ cos_w_gt = gt.storage.from_array(cos_w, backend=backend, default_origin=(0,0,0),
 print(f'\n\n--- Backend = {backend} ---')
 print(f'Domain: {nx = }; {ny = }\nTimesteping: {dt = }; {niter = }')
 print(f'Order: space {r+1}; time {runge_kutta}')
+print(f'Diffusion constant flux: {alpha = }')
 
 run((h0_modal_gt, hu0_modal_gt, hv0_modal_gt), vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, cos_gt, sin_gt, (cos_n_gt, cos_s_gt, cos_e_gt, cos_w_gt), coriolis_gt, radius, alpha, dt, niter, plotter)
 
