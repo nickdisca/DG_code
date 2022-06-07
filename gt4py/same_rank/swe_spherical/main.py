@@ -15,6 +15,7 @@ from gt4py_config import backend, dtype, r, n_qp_1D, runge_kutta, n
 import plotly
 from scalene import scalene_profiler
 
+from stencils import modal2nodal
 # silence warning
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
@@ -58,16 +59,11 @@ n_qp=n_qp_1D*n_qp_1D
 
 
 # timestep
-courant = 0.0001
+courant = 0.000001
 # courant = 0.0000001
 
 dt = courant * dx / (r + 1)
 alpha = 1 * courant * dx / dt
-
-print(f'{alpha = }')
-quit()
-
-
 
 if eq_type == 'linear':
     T = 1
@@ -77,9 +73,10 @@ elif eq_type == 'swe_sphere':
     day_in_sec = 86400
     T = 1 * day_in_sec
     alpha = 170.0 
-    dt = 10.0
+    dt = 5.0
 
 niter = int(T / dt)
+niter = 10
 
 # plotting
 plot_freq = int(niter / 10)
@@ -126,6 +123,9 @@ if eq_type == 'swe' or eq_type == "swe_sphere":
     h0 = u0_nodal[0]
     u0 = u0_nodal[1]
     v0 = u0_nodal[2]
+
+    g = 9.80616
+    alpha = np.max(np.sqrt(g*h0) + np.sqrt(u0**2 + v0**2))
 
 
     h0_nodal_gt = gt.storage.from_array(data=h0,
@@ -192,4 +192,7 @@ if debug:
     init = True
 else:
     init = False
-# plotter.plot_solution(u_final_nodal, init=init, show=False, save=True)
+modal2nodal(vander.vander_gt, h0_modal_gt, h0_nodal_gt)
+modal2nodal(vander.vander_gt, hu0_modal_gt, hu0_nodal_gt)
+modal2nodal(vander.vander_gt, hv0_modal_gt, hv0_nodal_gt)
+plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=init, show=False, save=True)

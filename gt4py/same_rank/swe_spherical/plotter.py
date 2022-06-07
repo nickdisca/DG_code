@@ -108,4 +108,4 @@ class Plotter():
             else:
                 plt.pause(0.005)
             if save:
-                plt.savefig("img/final_step.svg", dpi=150)
+                plt.savefig("img/final_step.png", dpi=150)

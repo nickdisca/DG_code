@@ -437,6 +437,7 @@ def compute_rhs(
         origins = {
             "_all_": (1,1,0),'flux_n': (0,0,0), 'flux_s': (0,0,0), 'flux_e': (0,0,0), 'flux_w': (0,0,0)
         }
+
         stencils.compute_num_flux(
             h_n, h_s, h_e, h_w, f_n_h, f_s_h, f_e_h, f_w_h,
             flux_n_h, flux_s_h, flux_e_h, flux_w_h, cos_n, cos_s, alpha,
