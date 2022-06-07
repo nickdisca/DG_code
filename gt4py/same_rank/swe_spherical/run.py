@@ -332,9 +332,11 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
         # --- Output --- 
         if i % plot_freq == 0:
             print(f'Iteration {i}: time = {dt*i}s ({dt*i/3600:.1f} {dt*i/86400 :.1f} days)')
-            stencils.modal2nodal(vander.vander_gt, h, tmp)
+            stencils.modal2nodal(vander.vander_gt, h, k1_h)
+            stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
+            stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
             print('plotting')
-            plotter.plot_solution(tmp, init=False, plot_type=plot_type)
+            plotter.plot_solution((h, hu, hv), init=False, plot_type=plot_type)
 
     loop_end = time.perf_counter()
 
@@ -382,21 +384,6 @@ def compute_rhs(
             vander.grad_phi_x_gt, vander.grad_phi_y_gt, wts2d,
             rhs_h, rhs_hu, rhs_hv, cos_fact, g, determ, bd_det_x, bd_det_y
         )
-        # print(f"{rhs_h = }")
-        # print(f"{rhs_hu = }")
-        # print(f"{rhs_hv = }")
-        # quit()
-
-        # import gt4py_config as gtconfig
-        # np.set_printoptions(precision=4, linewidth=150)
-        # print(f"{np.asarray(rhs_h).reshape(gtconfig.dim, nx*ny, order='F') = }\n{np.asarray(rhs_hu).reshape(gtconfig.dim, nx*ny, order='C') = }\n{np.asarray(rhs_hv).reshape(gtconfig.dim, nx*ny, order='F') = }")
-        # print(f'{determ = }, {bd_det_x = }, {bd_det_y = }')
-        # print(f'{fhu_x = }')
-        # print(f'{fhv_y = }')
-        # print(f'{rhs_hu = }\n{rhs_hv = }')
-        # print(f'{wts2d = }')
-        # print(f'{vander.grad_phi_x_gt.shape = }')
-        # quit()
 
         # --- Boundary Integral ---
         origins = {
