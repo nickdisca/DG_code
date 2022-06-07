@@ -10,19 +10,19 @@ if len(sys.argv) == 5:
         backend ="gt:cpu_ifirst" 
 else:
     # === BACKENDS ===
-    backend = "numpy"
-    # backend ="gt:cpu_ifirst" 
+    # backend = "numpy"
+    backend ="gt:cpu_ifirst" 
     # backend ="gt:cpu_kfirst" 
     # backend = "dace:cpu"
     # backend = "cuda"
 
     # === ORDER ===
     # spatial rank
-    r = 1
+    r = 3
     # runge-kutta
-    runge_kutta = 1
+    runge_kutta = 4
     
-    n = 3
+    n = 20
 
 n_qp_1D = r+1
 dim=(r+1)**2

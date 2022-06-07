@@ -323,11 +323,11 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
             stencils.rk_step2_4(k1_hv, k2_hv, k3_hv, k4_hv, hv, dt, hv)
 
         # --- Output --- 
-        print(f'Iteration {i}: time = {dt*i}s done')
-        if i % plot_freq == 0:
-            stencils.modal2nodal(vander.vander_gt, h, u_nodal)
-            print('plotting')
-            plotter.plot_solution(u_nodal, init=False, plot_type=plot_type)
+        # print(f'Iteration {i}: time = {dt*i}s done')
+        # if i % plot_freq == 0:
+        #     stencils.modal2nodal(vander.vander_gt, h, u_nodal)
+        #     print('plotting')
+        #     plotter.plot_solution(u_nodal, init=False, plot_type=plot_type)
 
     loop_end = time.perf_counter()
 

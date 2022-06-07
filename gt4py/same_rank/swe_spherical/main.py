@@ -71,12 +71,12 @@ elif eq_type == 'swe':
     T = 1e7
 elif eq_type == 'swe_sphere':
     day_in_sec = 86400
-    T = 1 * day_in_sec
+    T = 0.5 * day_in_sec
     alpha = 170.0 
     dt = 5.0
 
 niter = int(T / dt)
-niter = 10
+niter = 1
 
 # plotting
 plot_freq = int(niter / 10)

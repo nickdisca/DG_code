@@ -64,7 +64,8 @@ alpha = courant * dx / dt
 if eq_type == 'linear':
     T = 1
 elif eq_type == 'swe':
-    T = 1e7
+    day_in_sec = 3600 * 24
+    T = 1 * day_in_sec
 niter = int(T / dt)
 
 # plotting
@@ -128,7 +129,7 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 
 # if not debug:
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-plotter.plot_solution(h0_nodal_gt, init=True, plot_type=plotter.plot_type)
+# plotter.plot_solution(h0_nodal_gt, init=True, plot_type=plotter.plot_type)
 
 h0_ref = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
 h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
@@ -147,7 +148,7 @@ wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0),
 wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (n_qp_1D,)))
 
 print(f'\n\n--- Backend = {backend} ---')
-print(f'Domain: {nx = }; {ny = }\nTimesteping: {dt = }; {niter = }')
+print(f'Domain: {nx = }; {ny = }; {nz = }\nTimesteping: {dt = }; {niter = }')
 print(f'Order: space {r+1}; time {runge_kutta}')
 
 run((h0_modal_gt, hu0_modal_gt, hv0_modal_gt), vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, nz, alpha, dt, niter, plotter)

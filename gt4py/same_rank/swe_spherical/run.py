@@ -330,14 +330,14 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
             stencils.rk_step2_4(k1_hv, k2_hv, k3_hv, k4_hv, hv, dt, hv)
 
         # --- Output --- 
-        if i % plot_freq == 0:
-            print(f'Iteration {i}: time = {dt*i}s ({dt*i/3600:.1f} {dt*i/86400 :.1f} days)')
-            # k1_* serve as temps
-            stencils.modal2nodal(vander.vander_gt, h, k1_h)
-            stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
-            stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
-            print('plotting')
-            plotter.plot_solution((k1_h, k1_hu, k1_hv), init=False, plot_type=plot_type)
+        # if i % plot_freq == 0:
+        #     print(f'Iteration {i}: time = {dt*i}s ({dt*i/3600:.1f} {dt*i/86400 :.1f} days)')
+        #     # k1_* serve as temps
+        #     stencils.modal2nodal(vander.vander_gt, h, k1_h)
+        #     stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
+        #     stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
+        #     print('plotting')
+        #     plotter.plot_solution((k1_h, k1_hu, k1_hv), init=False, plot_type=plot_type)
 
     loop_end = time.perf_counter()
 
