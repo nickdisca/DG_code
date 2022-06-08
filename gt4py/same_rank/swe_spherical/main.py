@@ -76,7 +76,7 @@ elif eq_type == 'swe_sphere':
     dt = 5.0
 
 niter = int(T / dt)
-niter = 1
+niter = 10000
 
 # plotting
 plot_freq = int(niter / 10)
@@ -197,4 +197,4 @@ else:
 modal2nodal(vander.vander_gt, h0_modal_gt, h0_nodal_gt)
 modal2nodal(vander.vander_gt, hu0_modal_gt, hu0_nodal_gt)
 modal2nodal(vander.vander_gt, hv0_modal_gt, hv0_nodal_gt)
-plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=init, show=False, save=True)
+# plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=init, show=False, save=True)

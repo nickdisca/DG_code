@@ -10,8 +10,8 @@ if len(sys.argv) == 5:
         backend ="gt:cpu_ifirst" 
 else:
     # === BACKENDS ===
-    # backend = "numpy"
-    backend ="gt:cpu_ifirst" 
+    backend = "numpy"
+    # backend ="gt:cpu_ifirst" 
     # backend ="gt:cpu_kfirst" 
     # backend = "dace:cpu"
     # backend = "cuda"
