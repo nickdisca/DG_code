@@ -59,11 +59,8 @@ n_qp=n_qp_1D*n_qp_1D
 
 
 # timestep
-courant = 0.000001
-# courant = 0.0000001
-
-dt = courant * dx / (r + 1)
-alpha = 1 * courant * dx / dt
+# courant = 0.1
+# dt = courant * dx / (r + 1)
 
 if eq_type == 'linear':
     T = 1
@@ -71,8 +68,8 @@ elif eq_type == 'swe':
     T = 1e7
 elif eq_type == 'swe_sphere':
     day_in_sec = 86400
-    T = 0.5 * day_in_sec
-    alpha = 170.0 
+    T = 1 * day_in_sec
+    # alpha = 170.0 
     dt = 5.0
 
 niter = int(T / dt)
@@ -131,6 +128,10 @@ if eq_type == 'swe' or eq_type == "swe_sphere":
 
     g = 9.80616
     alpha = np.max(np.sqrt(g*h0) + np.sqrt(u0**2 + v0**2))
+    courant = 0.009
+    dt = courant * min((radius * np.sin(hx) * np.sin(hy), radius * np.sin(hx) * np.cos(hy))) / ((r+1) * alpha)
+    # print(f'{dt = }')
+    # quit()
 
     h0_nodal_gt = gt.storage.from_array(data=h0,
         backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,)))
@@ -207,4 +208,4 @@ else:
 modal2nodal(vander.vander_gt, h0_modal_gt, h0_nodal_gt)
 modal2nodal(vander.vander_gt, hu0_modal_gt, hu0_nodal_gt)
 modal2nodal(vander.vander_gt, hv0_modal_gt, hv0_nodal_gt)
-# plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=init, show=False, save=True)
+plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=init, show=False, save=True)
