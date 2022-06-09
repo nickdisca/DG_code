@@ -8,7 +8,7 @@ def compute_rhs(
     vander, inv_mass, wts2d, wts1d, nx, ny, dt, alpha
 ):
         stencils.flux_stencil(
-            vander.phi_gt, uM_gt, vander.grad_phi_x_gt,
+            vander.phi_gt, uM_gt, u_qp, fx, fy, vander.grad_phi_x_gt,
             vander.grad_phi_y_gt, wts2d, rhs, determ, bd_det_x, bd_det_y
         )
 
@@ -20,10 +20,10 @@ def compute_rhs(
             vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
             vander.phi_bd_W_gt, u_n, u_s, u_e, u_w, uM_gt
         )
-        # boundary_conditions.apply_pbc(u_n)
-        # boundary_conditions.apply_pbc(u_s)
-        # boundary_conditions.apply_pbc(u_e)
-        # boundary_conditions.apply_pbc(u_w)
+        boundary_conditions.apply_pbc(u_n)
+        boundary_conditions.apply_pbc(u_s)
+        boundary_conditions.apply_pbc(u_e)
+        boundary_conditions.apply_pbc(u_w)
 
         stencils.flux_bd_stencil(
             u_n, u_s, u_e, u_w, f_n, f_s, f_e, f_w

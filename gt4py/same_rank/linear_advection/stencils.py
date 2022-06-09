@@ -25,10 +25,10 @@ def modal2nodal(
 def flux_stencil(
     phi: gtscript.Field[(dtype, (n_qp, dim))],
     u_modal: gtscript.Field[(dtype, (dim,))],
-    # u_qp: gtscript.Field[(dtype, (n_qp,))],
+    u_qp: gtscript.Field[(dtype, (n_qp,))],
 
-    # fx: gtscript.Field[(dtype, (n_qp,))],
-    # fy: gtscript.Field[(dtype, (n_qp,))],
+    fx: gtscript.Field[(dtype, (n_qp,))],
+    fy: gtscript.Field[(dtype, (n_qp,))],
 
     phi_grad_x: gtscript.Field[(dtype, (n_qp, dim))],
     phi_grad_y: gtscript.Field[(dtype, (n_qp, dim))],
@@ -38,10 +38,6 @@ def flux_stencil(
     bd_det_x: float,
     bd_det_y: float
 ):
-    from __externals__ import N_QP
-    u_qp: gtscript.Field[(np.float64, (N_QP,))] = 0
-    fx: gtscript.Field[(np.float64, (N_QP,))] = 0
-    fy: gtscript.Field[(np.float64, (N_QP,))] = 0
     with computation(PARALLEL), interval(...):
         u_qp = phi @ u_modal
         fx = u_qp * w

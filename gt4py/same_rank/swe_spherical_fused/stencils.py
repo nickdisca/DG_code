@@ -251,8 +251,6 @@ def compute_num_flux(
     cos_s: gtscript.Field[(dtype, (n_qp_1D,))],
 
     alpha: float
-
-
 ):
     with computation(PARALLEL), interval(...):
         # BUG: alpha needs to be at end
