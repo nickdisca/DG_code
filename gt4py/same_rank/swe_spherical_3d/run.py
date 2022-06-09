@@ -335,9 +335,8 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
             stencils.modal2nodal(vander.vander_gt, h, k1_h)
             stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
             stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
-            if np.max(np.abs(k1_h)) > 1e8 {
+            if np.max(np.abs(k1_h)) > 1e8:
                 raise Exception('Solution diverging')
-            }
             print('plotting')
             plotter.plot_solution((k1_h, k1_hu, k1_hv), init=False, plot_type=plot_type)
 
