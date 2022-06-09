@@ -10,7 +10,7 @@ from modal_conversion import nodal2modal_gt, modal2nodal_gt, integration
 from compute_mass import compute_mass
 from run import run
 from plotter import Plotter
-from gt4py_config import backend, dtype, r, n_qp_1D, runge_kutta, n
+from gt4py_config import backend, dtype, r, n_qp_1D, runge_kutta, nx, nz
 
 import plotly
 from scalene import scalene_profiler
@@ -40,7 +40,7 @@ elif eq_type == 'swe_sphere':
     radius=6.37122e6
 
 # number of elements in X and Y
-nx = n; ny = n
+ny = nx;
 
 hx = (b-a)/nx; hy = (d-c)/ny
 dx = np.min((hx, hy))
@@ -114,34 +114,38 @@ y_c=np.linspace(c+half_cell_y,d-half_cell_y,ny); # Cell centers in Y
 
 # all matrices are the same size but lower orders are padded!
 vander_start = time.perf_counter()
-vander = Vander(nx, ny, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d, backend=backend)
+vander = Vander(nx, ny, nz, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d, backend=backend)
 vander_end = time.perf_counter()
 
 neq, u0_nodal, coriolis = set_initial_conditions(x_c, y_c, a, b, c, d, radius, dim, n_qp, vander, pts2d_x, pts2d_y, eq_type)
 
 if eq_type == 'swe' or eq_type == "swe_sphere":
-    h0 = u0_nodal[0]
-    u0 = u0_nodal[1]
-    v0 = u0_nodal[2]
+    h0, u0, v0 = u0_nodal
+
+    # identical systems in z component
+    if nz > 1:
+        h0 = np.repeat(h0, nz, axis=2)
+        u0 = np.repeat(u0, nz, axis=2)
+        v0 = np.repeat(v0, nz, axis=2)
+        coriolis = np.repeat(coriolis, nz, axis=2)
 
     g = 9.80616
     alpha = np.max(np.sqrt(g*h0) + np.sqrt(u0**2 + v0**2))
 
-
     h0_nodal_gt = gt.storage.from_array(data=h0,
-        backend=backend, default_origin=(0,0,0), shape=(nx,ny,1), dtype=(dtype, (dim,)))
+        backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,)))
     hu0_nodal_gt = gt.storage.from_array(data=u0*h0,
-        backend=backend, default_origin=(0,0,0), shape=(nx,ny,1), dtype=(dtype, (dim,)))
+        backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,)))
     hv0_nodal_gt = gt.storage.from_array(data=v0*h0,
-        backend=backend, default_origin=(0,0,0), shape=(nx,ny,1), dtype=(dtype, (dim,)))
+        backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,)))
     coriolis_gt = gt.storage.from_array(data=coriolis,
-        backend=backend, default_origin=(0,0,0), shape=(nx,ny,1), dtype=(dtype, (n_qp,)))
+        backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (n_qp,)))
 
 plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 
 # if not debug:
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-# plotter.plot_solution((h0_nodal_gt,), init=True, plot_type=plotter.plot_type)
+plotter.plot_solution((h0_nodal_gt,), init=True, plot_type=plotter.plot_type)
 # time.sleep(2)
 
 h0_ref = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
@@ -149,33 +153,39 @@ h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
 hu0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hu0_nodal_gt)
 hv0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hv0_nodal_gt)
 
+print(f'{h0_modal_gt.shape = }')
+# quit()
+
 mass, inv_mass, cos_factor, sin_factor, cos_n, cos_s, cos_e, cos_w = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, pts, eq_type)
 
-inv_mass_gt = gt.storage.from_array(inv_mass, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (dim, dim)))
+if nz > 1:
+    inv_mass = np.repeat(inv_mass, nz, axis=2)
 
-wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (n_qp, )))
+inv_mass_gt = gt.storage.from_array(inv_mass, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (dim, dim)))
 
-wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (n_qp_1D, )))
+wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp, )))
 
-cos_gt = gt.storage.from_array(cos_factor, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (n_qp,)))
+wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp_1D, )))
 
-sin_gt = gt.storage.from_array(sin_factor, backend=backend, default_origin=(0,0,0), shape=(nx,ny, 1), dtype=(dtype, (n_qp,)))
+cos_gt = gt.storage.from_array(cos_factor, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp,)))
 
-cos_n_gt = gt.storage.from_array(cos_n, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, 1), dtype=(dtype, (n_qp_1D,)))
+sin_gt = gt.storage.from_array(sin_factor, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp,)))
 
-cos_s_gt = gt.storage.from_array(cos_s, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, 1), dtype=(dtype, (n_qp_1D,)))
+cos_n_gt = gt.storage.from_array(cos_n, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, nz), dtype=(dtype, (n_qp_1D,)))
 
-cos_e_gt = gt.storage.from_array(cos_e, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, 1), dtype=(dtype, (n_qp_1D,)))
+cos_s_gt = gt.storage.from_array(cos_s, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, nz), dtype=(dtype, (n_qp_1D,)))
 
-cos_w_gt = gt.storage.from_array(cos_w, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, 1), dtype=(dtype, (n_qp_1D,)))
+cos_e_gt = gt.storage.from_array(cos_e, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, nz), dtype=(dtype, (n_qp_1D,)))
+
+cos_w_gt = gt.storage.from_array(cos_w, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, nz), dtype=(dtype, (n_qp_1D,)))
 
 
 print(f'\n\n--- Backend = {backend} ---')
-print(f'Domain: {nx = }; {ny = }\nTimesteping: {dt = }; {niter = }')
+print(f'Domain: {nx = }; {ny = }; {nz = }\nTimesteping: {dt = }; {niter = }')
 print(f'Order: space {r+1}; time {runge_kutta}')
 print(f'Diffusion constant flux: {alpha = }')
 
-run((h0_modal_gt, hu0_modal_gt, hv0_modal_gt), vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, cos_gt, sin_gt, (cos_n_gt, cos_s_gt, cos_e_gt, cos_w_gt), coriolis_gt, radius, alpha, dt, niter, plotter)
+run((h0_modal_gt, hu0_modal_gt, hv0_modal_gt), vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, nz, cos_gt, sin_gt, (cos_n_gt, cos_s_gt, cos_e_gt, cos_w_gt), coriolis_gt, radius, alpha, dt, niter, plotter)
 
 u_final_nodal = modal2nodal_gt(vander.vander_gt, h0_modal_gt)
 

@@ -5,9 +5,10 @@ import gt4py as gt
 
 
 class Vander:
-    def __init__(self, nx, ny, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d, backend="gtc:numpy"):
+    def __init__(self, nx, ny, nz, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d, backend="gtc:numpy"):
         self.nx = nx
         self.ny = ny
+        self.nz = nz
         # self.V = np.zeros((dim, dim))
         self.phi_val_cell = np.zeros((n_qp, dim))
         self.phi_grad_cell_x = np.zeros((n_qp, dim))
@@ -77,27 +78,27 @@ class Vander:
 
         # TODO: wtsd2d_gt defined twice
         self.wtsd2d_gt = gt.storage.from_array(data=self.wts2d,
-            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp,)), default_origin=(0,0,0))
+            backend=backend, shape=(self.nx, self.ny, self.nz), dtype = (dtype, (n_qp,)), default_origin=(0,0,0))
         self.vander_gt = gt.storage.from_array(data=self.vander,
-            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (dim, dim)), default_origin=(0,0,0))
+            backend=backend, shape=(self.nx, self.ny, self.nz), dtype = (dtype, (dim, dim)), default_origin=(0,0,0))
         self.inv_vander_gt = gt.storage.from_array(data=self.inv_vander,
-            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (dim, dim)), default_origin=(0,0,0))
+            backend=backend, shape=(self.nx, self.ny, self.nz), dtype = (dtype, (dim, dim)), default_origin=(0,0,0))
 
         self.phi_gt = gt.storage.from_array(data=self.phi_val_cell,
-            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp, dim)), default_origin=(0,0,0))
+            backend=backend, shape=(self.nx, self.ny, self.nz), dtype = (dtype, (n_qp, dim)), default_origin=(0,0,0))
         self.grad_phi_x_gt = gt.storage.from_array(data=self.phi_grad_cell_x,
-            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp, dim)), default_origin=(0,0,0))
+            backend=backend, shape=(self.nx, self.ny, self.nz), dtype = (dtype, (n_qp, dim)), default_origin=(0,0,0))
         self.grad_phi_y_gt = gt.storage.from_array(data=self.phi_grad_cell_y,
-            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp, dim)), default_origin=(0,0,0))
+            backend=backend, shape=(self.nx, self.ny, self.nz), dtype = (dtype, (n_qp, dim)), default_origin=(0,0,0))
 
         self.phi_bd_N_gt = gt.storage.from_array(data=self.phi_val_bd_cell_n,
-            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp_1D,dim)), default_origin=(0,0,0))
+            backend=backend, shape=(self.nx, self.ny, self.nz), dtype = (dtype, (n_qp_1D,dim)), default_origin=(0,0,0))
         self.phi_bd_S_gt = gt.storage.from_array(data=self.phi_val_bd_cell_s,
-            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp_1D,dim)), default_origin=(0,0,0))
+            backend=backend, shape=(self.nx, self.ny, self.nz), dtype = (dtype, (n_qp_1D,dim)), default_origin=(0,0,0))
         self.phi_bd_E_gt = gt.storage.from_array(data=self.phi_val_bd_cell_e,
-            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp_1D,dim)), default_origin=(0,0,0))
+            backend=backend, shape=(self.nx, self.ny, self.nz), dtype = (dtype, (n_qp_1D,dim)), default_origin=(0,0,0))
         self.phi_bd_W_gt = gt.storage.from_array(data=self.phi_val_bd_cell_w,
-            backend=backend, shape=(self.nx, self.ny, 1), dtype = (dtype, (n_qp_1D,dim)), default_origin=(0,0,0))
+            backend=backend, shape=(self.nx, self.ny, self.nz), dtype = (dtype, (n_qp_1D,dim)), default_origin=(0,0,0))
         
 
     def norm_coeffs(self, r):

@@ -1,9 +1,10 @@
 import numpy as np
 import sys
 
-if len(sys.argv) == 5:
-    _, n, r, runge_kutta, backend = sys.argv
-    n = int(n)
+if len(sys.argv) == 6:
+    _, nx, nz, r, runge_kutta, backend = sys.argv
+    nx = int(nx)
+    nz = int(nz)
     r = int(r)
     runge_kutta = int(runge_kutta)
     if backend == 'cpu':
@@ -18,11 +19,12 @@ else:
 
     # === ORDER ===
     # spatial rank
-    r = 3
+    r = 2
     # runge-kutta
-    runge_kutta = 4
+    runge_kutta = 1
     
-    n = 20
+    nx = 20
+    nz = 1
 
 n_qp_1D = r+1
 dim=(r+1)**2
@@ -45,5 +47,6 @@ if backend == 'numpy':
 else:
     backend_opts = {
         "rebuild": False,
-        "verbose": True
+        "verbose": True,
+        "_validate_args": False
     }

@@ -7,13 +7,12 @@ from gt4py_config import dtype, backend, runge_kutta
 import stencils
 import boundary_conditions
 
-def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, ny, cos_fact, sin_fact, cos_bd, coriolis, radius, alpha, dt, niter, plotter):
+def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, ny, nz, cos_fact, sin_fact, cos_bd, coriolis, radius, alpha, dt, niter, plotter):
     determ = hx * hy / 4
     bd_det_x = hx / 2
     bd_det_y = hy / 2
     # radius=6.37122e6
     # radius = 1.0
-    nz = 1
     plot_freq = plotter.plot_freq
     plot_type = plotter.plot_type
 
@@ -181,7 +180,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 cos_fact, sin_fact, cos_bd, coriolis, tmp,
-                wts2d, wts1d, nx, ny, alpha, radius
+                wts2d, wts1d, nx, ny, nz, alpha, radius
             )
             # --- Timestepping ---
             stencils.rk_step1(rhs_h, h, dt, h)
@@ -198,7 +197,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 cos_fact, sin_fact, cos_bd, coriolis, tmp,
-                wts2d, wts1d, nx, ny, alpha, radius
+                wts2d, wts1d, nx, ny, nz, alpha, radius
             )
             # --- Timestepping ---
             stencils.rk_step1(k1_h, h, dt, rhs_h)
@@ -214,7 +213,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 cos_fact, sin_fact, cos_bd, coriolis, tmp,
-                wts2d, wts1d, nx, ny, alpha, radius
+                wts2d, wts1d, nx, ny, nz, alpha, radius
             )
             stencils.rk_step2(k1_h, k2_h, h, dt, h)
             stencils.rk_step2(k1_hu, k2_hu, hu, dt, hu)
@@ -230,7 +229,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 cos_fact, sin_fact, cos_bd, coriolis, tmp,
-                wts2d, wts1d, nx, ny, alpha, radius
+                wts2d, wts1d, nx, ny, nz, alpha, radius
             )
             # --- Timestepping ---
             stencils.rk_step1(k1_h, h, dt, rhs_h)
@@ -246,7 +245,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 cos_fact, sin_fact, cos_bd, coriolis, tmp,
-                wts2d, wts1d, nx, ny, alpha, radius
+                wts2d, wts1d, nx, ny, nz, alpha, radius
             )
             stencils.rk_step2_3(k1_h, k2_h, h, dt, rhs_h)
             stencils.rk_step2_3(k1_hu, k2_hu, hu, dt, rhs_hu)
@@ -261,7 +260,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 cos_fact, sin_fact, cos_bd, coriolis, tmp,
-                wts2d, wts1d, nx, ny, alpha, radius
+                wts2d, wts1d, nx, ny, nz, alpha, radius
             )
             stencils.rk_step3_3(k1_h, k2_h, k3_h, h, dt, h)
             stencils.rk_step3_3(k1_hu, k2_hu, k3_hu, hu, dt, hu)
@@ -277,7 +276,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 cos_fact, sin_fact, cos_bd, coriolis, tmp,
-                wts2d, wts1d, nx, ny, alpha, radius
+                wts2d, wts1d, nx, ny, nz, alpha, radius
             )
             # --- Timestepping ---
             stencils.rk_step1_4(k1_h, h, dt, rhs_h)
@@ -293,7 +292,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 cos_fact, sin_fact, cos_bd, coriolis, tmp,
-                wts2d, wts1d, nx, ny, alpha, radius
+                wts2d, wts1d, nx, ny, nz, alpha, radius
             )
             stencils.rk_step1_4(k2_h, h, dt, rhs_h)
             stencils.rk_step1_4(k2_hu, hu, dt, rhs_hu)
@@ -308,7 +307,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 cos_fact, sin_fact, cos_bd, coriolis, tmp,
-                wts2d, wts1d, nx, ny, alpha, radius
+                wts2d, wts1d, nx, ny, nz, alpha, radius
             )
             stencils.rk_step1(k3_h, h, dt, rhs_h)
             stencils.rk_step1(k3_hu, hu, dt, rhs_hu)
@@ -323,21 +322,21 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
                 (flux_n_h, flux_n_hv, flux_n_hu), (flux_s_h, flux_s_hu, flux_s_hv), (flux_e_h, flux_e_hv, flux_e_hu), (flux_w_h, flux_w_hv, flux_w_hu),
                 determ, bd_det_x, bd_det_y, vander, inv_mass,
                 cos_fact, sin_fact, cos_bd, coriolis, tmp,
-                wts2d, wts1d, nx, ny, alpha, radius
+                wts2d, wts1d, nx, ny, nz, alpha, radius
             )
             stencils.rk_step2_4(k1_h, k2_h, k3_h, k4_h,  h, dt, h)
             stencils.rk_step2_4(k1_hu, k2_hu, k3_hu, k4_hu, hu, dt, hu)
             stencils.rk_step2_4(k1_hv, k2_hv, k3_hv, k4_hv, hv, dt, hv)
 
         # --- Output --- 
-        # if i % plot_freq == 0:
-        #     print(f'Iteration {i}: time = {dt*i}s ({dt*i/3600:.1f} {dt*i/86400 :.1f} days)')
-        #     # k1_* serve as temps
-        #     stencils.modal2nodal(vander.vander_gt, h, k1_h)
-        #     stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
-        #     stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
-        #     print('plotting')
-        #     plotter.plot_solution((k1_h, k1_hu, k1_hv), init=False, plot_type=plot_type)
+        if i % plot_freq == 0:
+            print(f'Iteration {i}: time = {dt*i}s ({dt*i/3600:.1f} {dt*i/86400 :.1f} days)')
+            # k1_* serve as temps
+            stencils.modal2nodal(vander.vander_gt, h, k1_h)
+            stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
+            stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
+            print('plotting')
+            plotter.plot_solution((k1_h, k1_hu, k1_hv), init=False, plot_type=plot_type)
 
     loop_end = time.perf_counter()
 
@@ -352,7 +351,7 @@ def compute_rhs(
     flux_n, flux_s, flux_e, flux_w, 
     determ, bd_det_x, bd_det_y,
     vander, inv_mass, cos_fact, sin_fact, cos_bd, coriolis, tmp,
-    wts2d, wts1d, nx, ny, alpha, radius
+    wts2d, wts1d, nx, ny, nz, alpha, radius
 ):
         g = 9.80616
         h, hu, hv = cons_var
@@ -393,7 +392,7 @@ def compute_rhs(
         stencils.modal2bd(
             vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
             vander.phi_bd_W_gt, h_n, h_s, h_e, h_w, h,
-            origin=origins, domain=(nx,ny,1)
+            origin=origins, domain=(nx,ny,nz)
         )
         boundary_conditions.apply_pbc(h_n)
         boundary_conditions.apply_pbc(h_s)
@@ -410,7 +409,7 @@ def compute_rhs(
         stencils.modal2bd(
             vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
             vander.phi_bd_W_gt, hu_n, hu_s, hu_e, hu_w, hu,
-            origin=origins, domain=(nx,ny,1)
+            origin=origins, domain=(nx,ny,nz)
         )
         boundary_conditions.apply_pbc(hu_n)
         boundary_conditions.apply_pbc(hu_s)
@@ -420,7 +419,7 @@ def compute_rhs(
         stencils.modal2bd(
             vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
             vander.phi_bd_W_gt, hv_n, hv_s, hv_e, hv_w, hv,
-            origin=origins, domain=(nx,ny,1)
+            origin=origins, domain=(nx,ny,nz)
         )
         boundary_conditions.apply_pbc(hv_n)
         boundary_conditions.apply_pbc(hv_s)
@@ -431,7 +430,7 @@ def compute_rhs(
             h_n, h_s, h_e, h_w, hu_n, hu_s, hu_e, hu_w,
             hv_n, hv_s, hv_e, hv_w, f_n_h, f_s_h, f_e_h, f_w_h,
             f_n_hu, f_s_hu, f_e_hu, f_w_hu, f_n_hv, f_s_hv, f_e_hv, f_w_hv, g,
-            origin=(0,0,0), domain=(nx+2, ny+2, 1)
+            origin=(0,0,0), domain=(nx+2, ny+2, nz)
         )
 
         origins = {
@@ -441,19 +440,19 @@ def compute_rhs(
         stencils.compute_num_flux(
             h_n, h_s, h_e, h_w, f_n_h, f_s_h, f_e_h, f_w_h,
             flux_n_h, flux_s_h, flux_e_h, flux_w_h, cos_n, cos_s, alpha,
-            origin=origins, domain=(nx, ny, 1)
+            origin=origins, domain=(nx, ny, nz)
         )
 
         stencils.compute_num_flux(
             hu_n, hu_s, hu_e, hu_w, f_n_hu, f_s_hu, f_e_hu, f_w_hu,
             flux_n_hu, flux_s_hu, flux_e_hu, flux_w_hu, cos_n, cos_s, alpha,
-            origin=origins, domain=(nx, ny, 1)
+            origin=origins, domain=(nx, ny, nz)
         )
 
         stencils.compute_num_flux(
             hv_n, hv_s, hv_e, hv_w, f_n_hv, f_s_hv, f_e_hv, f_w_hv,
             flux_n_hv, flux_s_hv, flux_e_hv, flux_w_hv, cos_n, cos_s, alpha,
-            origin=origins, domain=(nx, ny, 1)
+            origin=origins, domain=(nx, ny, nz)
         )
 
         stencils.integrate_num_flux(
@@ -483,10 +482,6 @@ def compute_rhs(
         stencils.coriolis_stencil(
             vander.phi_gt, coriolis, hu_qp, hv_qp, cos_fact, rhs_hu, rhs_hv, wts2d, radius, determ
         )
-        # print(f"{rhs_hv = }")
-        # print(f"{coriolis = }")
 
         stencils.inv_mass_stencil(rhs_h, rhs_hu, rhs_hv, tmp, inv_mass, radius)
 
-        # # print(f"{inv_mass = }")
-        # quit()
