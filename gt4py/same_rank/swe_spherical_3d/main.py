@@ -154,9 +154,6 @@ h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
 hu0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hu0_nodal_gt)
 hv0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hv0_nodal_gt)
 
-print(f'{h0_modal_gt.shape = }')
-# quit()
-
 mass, inv_mass, cos_factor, sin_factor, cos_n, cos_s, cos_e, cos_w = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, pts, eq_type)
 
 if nz > 1:
