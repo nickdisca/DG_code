@@ -335,10 +335,10 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
             stencils.modal2nodal(vander.vander_gt, h, k1_h)
             if np.max(np.abs(k1_h)) > 1e8:
                 raise Exception('Solution diverging')
-            stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
-            stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
-            print('plotting')
-            plotter.plot_solution((k1_h, k1_hu, k1_hv), title=f'{i * dt:.1f}s ({i * dt / 3600:.1f} h {i * dt / 86400:.1f} days)', init=False, plot_type=plot_type)
+            # stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
+            # stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
+            # print('plotting')
+            # plotter.plot_solution((k1_h, k1_hu, k1_hv), title=f'{i * dt:.1f}s ({i * dt / 3600:.1f} h {i * dt / 86400:.1f} days)', init=False, plot_type=plot_type)
 
     loop_end = time.perf_counter()
 

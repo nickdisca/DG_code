@@ -1,0 +1,37 @@
+/users/kszenes/DG_code/gt4py/same_rank/sph_3d_fused/plotter.py:110: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.pause(0.005)
+
+
+--- Backend = dace:gpu ---
+Domain: nx = 100; ny = 100; nz = 40
+Timesteping: dt = 0.06794270496513809; niter = 100
+Order: space 4; time 4
+Diffusion constant flux: alpha = 416.1355270781924
+Iteration 0: time = 0.0s (0.0 0.0 days)
+--- Timings ---
+Loop: 29.410653086961247s
+Allocation: 0.8071553789777681s
+Vander: 2.639756825985387s
+
+
+Batch Job Summary Report (version 21.01.1) for Job "gpu_job.sh" (39112045) on daint
+
+Job information (1/3)
+-----------------------------------------------------------------------------------------------------
+             Submit            Eligible               Start                 End    Elapsed Time limit
+------------------- ------------------- ------------------- ------------------- ---------- ----------
+2022-06-10T15:50:13 2022-06-10T15:50:13 2022-06-10T15:50:47 2022-06-10T15:53:08   00:02:21 1-00:00:00
+-----------------------------------------------------------------------------------------------------
+
+Job information (2/3)
+-------------------------------------------------------------
+    Username      Account    Partition   NNodes        Energy
+------------ ------------ ------------ -------- -------------
+     kszenes      csstaff       normal        1     13.161 kJ
+
+Job information (3/3) - GPU utilization data
+----------------------------------------------------
+   Node name       Usage      Max mem Execution time
+------------ ----------- ------------ --------------
+    nid02999        32 %    11557 MiB       00:01:20
+
