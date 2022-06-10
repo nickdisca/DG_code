@@ -463,7 +463,7 @@ def compute_rhs(
             "flux_n_hu": (0,0,0), "flux_s_hu": (0,0,0), "flux_e_hu": (0,0,0), "flux_w_hu": (0,0,0),
             "flux_n_hv": (0,0,0), "flux_s_hv": (0,0,0), "flux_e_hv": (0,0,0), "flux_w_hv": (0,0,0),
             "phi_bd_N": (0,0,0), "phi_bd_S": (0,0,0), "phi_bd_E": (0,0,0), "phi_bd_W": (0,0,0),
-            "rhs_h": (0,0,0), "rhs_hu": (0,0,0), "rhs_hv": (0,0,0), "w": (0,0,0),
+            "rhs_h": (0,0,0), "rhs_hu": (0,0,0), "rhs_hv": (0,0,0), "tmp": (0,0,0), "w": (0,0,0),
             "inv_mass": (0,0,0), "cos_n": (0,0,0), "cos_s": (0,0,0)
         }
         stencils.fused_num_flux(
@@ -481,7 +481,7 @@ def compute_rhs(
             cos_n, cos_s, alpha,
 
             vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt, vander.phi_bd_W_gt,
-            rhs_h, rhs_hu, rhs_hv, wts1d, bd_det_x, bd_det_y, 
+            rhs_h, rhs_hu, rhs_hv, tmp, wts1d, bd_det_x, bd_det_y, 
             inv_mass, radius,
             origin=origins, domain=(nx,ny,nz)
         )

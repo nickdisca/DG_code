@@ -295,6 +295,7 @@ def fused_num_flux(
     rhs_h: gtscript.Field[(dtype, (dim,))],
     rhs_hu: gtscript.Field[(dtype, (dim,))],
     rhs_hv: gtscript.Field[(dtype, (dim,))],
+    tmp: gtscript.Field[(dtype, (dim,))],
 
     w: gtscript.Field[(dtype, (n_qp_1D,))],
 
@@ -339,13 +340,13 @@ def fused_num_flux(
         rhs_hv -= (phi_bd_W.T @ (flux_w_hv * w)) * bd_det_y
 
         # --- Inv Mass ---
-        # flux_n_h(u/v) used as tmp
-        flux_n_h = (inv_mass @ rhs_h) / radius
-        rhs_h = flux_n_h
-        flux_n_hu = (inv_mass @ rhs_hu) / radius
-        rhs_hu = flux_n_hu
-        flux_n_hv = (inv_mass @ rhs_hv) / radius
-        rhs_hv = flux_n_hv
+        # f_n_h(u/v) used as tmp
+        tmp = (inv_mass @ rhs_h) / radius
+        rhs_h = tmp
+        tmp = (inv_mass @ rhs_hu) / radius
+        rhs_hu = tmp
+        tmp = (inv_mass @ rhs_hv) / radius
+        rhs_hv = tmp
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def compute_num_flux(
