@@ -198,8 +198,6 @@ def integrate_num_flux(
         rhs -= (phi_bd_E.T @ flux_e) * bd_det_y
         rhs -= (phi_bd_W.T @ flux_w) * bd_det_y
 
-        # rhs = (inv_mass @ rhs) / radius
-
 @gtscript.stencil(backend=backend, **backend_opts)
 def source_stencil(
     phi: gtscript.Field[(dtype, (n_qp, dim))],

@@ -72,14 +72,14 @@ elif eq_type == 'swe_sphere':
     # alpha = 170.0 
     dt = 5.0
 
-niter = int(T / dt)
-niter = 10000
+# niter = int(T / dt)
+# niter = 10000
 
 # plotting
-plot_freq = int(niter / 10)
+# plot_freq = int(niter / 10)
 plot_type = "contour"
 
-plot_freq = 100
+# plot_freq = 100
 # %%
 # rdist_gt = degree_distribution("unif",nx,ny,r_max);
 
@@ -130,6 +130,9 @@ if eq_type == 'swe' or eq_type == "swe_sphere":
     alpha = np.max(np.sqrt(g*h0) + np.sqrt(u0**2 + v0**2))
     courant = 0.009
     dt = courant * min((radius * np.sin(hx) * np.sin(hy), radius * np.sin(hx) * np.cos(hy))) / ((r+1) * alpha)
+    # niter = int(T/dt)
+    niter = 10
+    plot_freq = 100
     # print(f'{dt = }')
     # quit()
 
@@ -146,7 +149,7 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 
 # if not debug:
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-plotter.plot_solution((h0_nodal_gt,), init=True, plot_type=plotter.plot_type)
+# plotter.plot_solution((h0_nodal_gt,), init=True, plot_type=plotter.plot_type)
 # time.sleep(2)
 
 h0_ref = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
@@ -160,21 +163,13 @@ if nz > 1:
     inv_mass = np.repeat(inv_mass, nz, axis=2)
 
 inv_mass_gt = gt.storage.from_array(inv_mass, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (dim, dim)))
-
 wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp, )))
-
 wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp_1D, )))
-
 cos_gt = gt.storage.from_array(cos_factor, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp,)))
-
 sin_gt = gt.storage.from_array(sin_factor, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp,)))
-
 cos_n_gt = gt.storage.from_array(cos_n, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, nz), dtype=(dtype, (n_qp_1D,)))
-
 cos_s_gt = gt.storage.from_array(cos_s, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, nz), dtype=(dtype, (n_qp_1D,)))
-
 cos_e_gt = gt.storage.from_array(cos_e, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, nz), dtype=(dtype, (n_qp_1D,)))
-
 cos_w_gt = gt.storage.from_array(cos_w, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, nz), dtype=(dtype, (n_qp_1D,)))
 
 

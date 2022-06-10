@@ -54,9 +54,9 @@ def compute_rhs(
         )
 
         # # --- Flux Integral ---
-        # origins = {
-        #     "_all_": (0,0,0),'u_n': (1,1,0), 'u_s': (1,1,0), 'u_e': (1,1,0), 'u_w': (1,1,0),
-        # }
+        origins = {
+            "_all_": (0,0,0),'u_n': (1,1,0), 'u_s': (1,1,0), 'u_e': (1,1,0), 'u_w': (1,1,0),
+        }
         # stencils.flux_stencil_swe(
         #     vander.phi_gt, h, hu, hv, h_qp, hu_qp, hv_qp, 
         #     fh_x, fh_y, fhu_x, fhu_y, fhv_x, fhv_y,
@@ -147,6 +147,12 @@ def compute_rhs(
         )
 
 
+        # --- Fused ---
+        stencils.fused_source_coriolis_stencil(
+            vander.phi_gt, inv_mass, h_qp, hu_qp, hv_qp, tmp, coriolis,
+            cos_fact, sin_fact, rhs_h, rhs_hu, rhs_hv, wts2d, g, radius, determ
+        )
+        # --- NOT FUSED ---
         # stencils.source_stencil(
         #     vander.phi_gt, h_qp, sin_fact, rhs_hv, wts2d, g, determ
         # )
@@ -157,7 +163,3 @@ def compute_rhs(
 
         # stencils.inv_mass_stencil(rhs_h, rhs_hu, rhs_hv, tmp, inv_mass, radius)
 
-        stencils.fused_source_coriolis_stencil(
-            vander.phi_gt, inv_mass, h_qp, hu_qp, hv_qp, tmp, coriolis,
-            cos_fact, sin_fact, rhs_h, rhs_hu, rhs_hv, wts2d, g, radius, determ
-        )

@@ -333,12 +333,12 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
             print(f'Iteration {i}: time = {dt*i:.1f}s ({dt*i/3600:.1f} {dt*i/86400 :.1f} days)')
             # # k1_* serve as temps
             stencils.modal2nodal(vander.vander_gt, h, k1_h)
-            stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
-            stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
             if np.max(np.abs(k1_h)) > 1e8:
                 raise Exception('Solution diverging')
+            # stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
+            # stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
             print('plotting')
-            plotter.plot_solution((k1_h, k1_hu, k1_hv), init=False, plot_type=plot_type)
+            # plotter.plot_solution((k1_h, k1_hu, k1_hv), init=False, plot_type=plot_type)
 
     loop_end = time.perf_counter()
 
@@ -387,6 +387,14 @@ def compute_rhs(
             rhs_h, rhs_hu, rhs_hv, cos_fact, g, determ, bd_det_x, bd_det_y
         )
 
+        stencils.source_stencil(
+            vander.phi_gt, h_qp, sin_fact, rhs_hv, wts2d, g, determ
+        )
+
+        stencils.coriolis_stencil(
+            vander.phi_gt, coriolis, hu_qp, hv_qp, cos_fact, rhs_hu, rhs_hv, wts2d, radius, determ
+        )
+
         # --- Boundary Integral ---
         origins = {
             "_all_": (0,0,0),'u_n': (1,1,0), 'u_s': (1,1,0), 'u_e': (1,1,0), 'u_w': (1,1,0)
@@ -396,37 +404,31 @@ def compute_rhs(
             vander.phi_bd_W_gt, h_n, h_s, h_e, h_w, h,
             origin=origins, domain=(nx,ny,nz)
         )
-        boundary_conditions.apply_pbc(h_n)
-        boundary_conditions.apply_pbc(h_s)
-        boundary_conditions.apply_pbc(h_e)
-        boundary_conditions.apply_pbc(h_w)
-
-        alpha_n = np.sqrt(g * h_n)
-        alpha_s = np.sqrt(g * h_s)
-        alpha_e = np.sqrt(g * h_e)
-        alpha_w = np.sqrt(g * h_w)
-
-        # print(f'{np.max(alpha_n) = }\t{np.min(alpha_n) = }')
-
         stencils.modal2bd(
             vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
             vander.phi_bd_W_gt, hu_n, hu_s, hu_e, hu_w, hu,
             origin=origins, domain=(nx,ny,nz)
         )
-        boundary_conditions.apply_pbc(hu_n)
-        boundary_conditions.apply_pbc(hu_s)
-        boundary_conditions.apply_pbc(hu_e)
-        boundary_conditions.apply_pbc(hu_w)
-
         stencils.modal2bd(
             vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
             vander.phi_bd_W_gt, hv_n, hv_s, hv_e, hv_w, hv,
             origin=origins, domain=(nx,ny,nz)
         )
+
+        boundary_conditions.apply_pbc(h_n)
+        boundary_conditions.apply_pbc(h_s)
+        boundary_conditions.apply_pbc(h_e)
+        boundary_conditions.apply_pbc(h_w)
+
         boundary_conditions.apply_pbc(hv_n)
         boundary_conditions.apply_pbc(hv_s)
         boundary_conditions.apply_pbc(hv_e)
         boundary_conditions.apply_pbc(hv_w)
+
+        boundary_conditions.apply_pbc(hu_n)
+        boundary_conditions.apply_pbc(hu_s)
+        boundary_conditions.apply_pbc(hu_e)
+        boundary_conditions.apply_pbc(hu_w)
 
         stencils.flux_bd_stencil_swe(
             h_n, h_s, h_e, h_w, hu_n, hu_s, hu_e, hu_w,
@@ -473,16 +475,6 @@ def compute_rhs(
             vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
             vander.phi_bd_W_gt, flux_n_hv, flux_s_hv, flux_e_hv, flux_w_hv, wts1d, rhs_hv,
             inv_mass, radius, bd_det_x, bd_det_y
-        )
-
-        # print(f"{rhs_hv = }")
-
-        stencils.source_stencil(
-            vander.phi_gt, h_qp, sin_fact, rhs_hv, wts2d, g, determ
-        )
-
-        stencils.coriolis_stencil(
-            vander.phi_gt, coriolis, hu_qp, hv_qp, cos_fact, rhs_hu, rhs_hv, wts2d, radius, determ
         )
 
         stencils.inv_mass_stencil(rhs_h, rhs_hu, rhs_hv, tmp, inv_mass, radius)
