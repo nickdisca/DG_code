@@ -23,10 +23,12 @@ class Plotter():
         # # self.fig = go.FigureWidget(fig)
         # self.fig = plt.figure(figsize=(6,6))
         self.fig, self.ax = plt.subplots(1, 3, figsize=(16, 8))
+        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         self.cbar = [None] * 3
 
 
-    def plot_solution(self,u,init=False, plot_type='contour',show=False, save=False):
+    def plot_solution(self,u,init=False, plot_type='contour', fname='final_step.png',title='',show=False, save=False):
+        self.fig.suptitle(title)
         z_component = 0
         x_u    = np.zeros(self.nx*self.r)
         y_u    = np.zeros(self.ny*self.r)
@@ -107,4 +109,4 @@ class Plotter():
             else:
                 plt.pause(0.005)
             if save:
-                plt.savefig("img/final_step.png", dpi=300)
+                plt.savefig('img/' + fname, dpi=300)
