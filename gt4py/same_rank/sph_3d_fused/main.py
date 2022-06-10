@@ -157,7 +157,7 @@ h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
 hu0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hu0_nodal_gt)
 hv0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hv0_nodal_gt)
 
-mass, inv_mass, cos_factor, sin_factor, cos_n, cos_s, cos_e, cos_w = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, pts, eq_type)
+mass, inv_mass, cos_factor, sin_factor, cos_n, cos_s = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, pts, eq_type)
 
 if nz > 1:
     inv_mass = np.repeat(inv_mass, nz, axis=2)
@@ -167,10 +167,8 @@ wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0),
 wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp_1D, )))
 cos_gt = gt.storage.from_array(cos_factor, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp,)))
 sin_gt = gt.storage.from_array(sin_factor, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp,)))
-cos_n_gt = gt.storage.from_array(cos_n, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, nz), dtype=(dtype, (n_qp_1D,)))
-cos_s_gt = gt.storage.from_array(cos_s, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, nz), dtype=(dtype, (n_qp_1D,)))
-cos_e_gt = gt.storage.from_array(cos_e, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, nz), dtype=(dtype, (n_qp_1D,)))
-cos_w_gt = gt.storage.from_array(cos_w, backend=backend, default_origin=(0,0,0), shape=(nx+2,ny+2, nz), dtype=(dtype, (n_qp_1D,)))
+cos_n_gt = gt.storage.from_array(cos_n, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp_1D,)))
+cos_s_gt = gt.storage.from_array(cos_s, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp_1D,)))
 
 
 print(f'\n\n--- Backend = {backend} ---')
@@ -178,7 +176,7 @@ print(f'Domain: {nx = }; {ny = }; {nz = }\nTimesteping: {dt = }; {niter = }')
 print(f'Order: space {r+1}; time {runge_kutta}')
 print(f'Diffusion constant flux: {alpha = }')
 
-run((h0_modal_gt, hu0_modal_gt, hv0_modal_gt), vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, nz, cos_gt, sin_gt, (cos_n_gt, cos_s_gt, cos_e_gt, cos_w_gt), coriolis_gt, radius, alpha, dt, niter, plotter)
+run((h0_modal_gt, hu0_modal_gt, hv0_modal_gt), vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, nz, cos_gt, sin_gt, (cos_n_gt, cos_s_gt), coriolis_gt, radius, alpha, dt, niter, plotter)
 
 u_final_nodal = modal2nodal_gt(vander.vander_gt, h0_modal_gt)
 

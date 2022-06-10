@@ -377,7 +377,7 @@ def compute_rhs(
         flux_e_h, flux_e_hu, flux_e_hv = flux_e
         flux_w_h, flux_w_hu, flux_w_hv = flux_w
 
-        cos_n, cos_s, cos_e, cos_w = cos_bd
+        cos_n, cos_s = cos_bd
 
         origins = {
             '_all_': (0,0,0),'h_n': (1,1,0), 'h_s': (1,1,0), 'h_e': (1,1,0), 'h_w': (1,1,0),
@@ -464,7 +464,7 @@ def compute_rhs(
             "flux_n_hv": (0,0,0), "flux_s_hv": (0,0,0), "flux_e_hv": (0,0,0), "flux_w_hv": (0,0,0),
             "phi_bd_N": (0,0,0), "phi_bd_S": (0,0,0), "phi_bd_E": (0,0,0), "phi_bd_W": (0,0,0),
             "rhs_h": (0,0,0), "rhs_hu": (0,0,0), "rhs_hv": (0,0,0), "w": (0,0,0),
-            "inv_mass": (0,0,0)
+            "inv_mass": (0,0,0), "cos_n": (0,0,0), "cos_s": (0,0,0)
         }
         stencils.fused_num_flux(
             h_n, h_s, h_e, h_w,
