@@ -335,10 +335,10 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
             stencils.modal2nodal(vander.vander_gt, h, k1_h)
             if np.max(np.abs(k1_h)) > 1e8:
                 raise Exception('Solution diverging')
-            # stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
-            # stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
+            stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
+            stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
             print('plotting')
-            # plotter.plot_solution((k1_h, k1_hu, k1_hv), init=False, plot_type=plot_type)
+            plotter.plot_solution((k1_h, k1_hu, k1_hv), init=False, plot_type=plot_type)
 
     loop_end = time.perf_counter()
 
@@ -379,41 +379,61 @@ def compute_rhs(
 
         cos_n, cos_s, cos_e, cos_w = cos_bd
 
-        # --- Flux Integral ---
-        stencils.flux_stencil_swe(
+        origins = {
+            '_all_': (0,0,0),'h_n': (1,1,0), 'h_s': (1,1,0), 'h_e': (1,1,0), 'h_w': (1,1,0),
+            'hu_n': (1,1,0), 'hu_s': (1,1,0), 'hu_e': (1,1,0), 'hu_w': (1,1,0),
+            'hv_n': (1,1,0), 'hv_s': (1,1,0), 'hv_e': (1,1,0), 'hv_w': (1,1,0)
+        }
+        # --- Internal Fused---
+        stencils.fused_internal_stencils(
             vander.phi_gt, h, hu, hv, h_qp, hu_qp, hv_qp, 
             fh_x, fh_y, fhu_x, fhu_y, fhv_x, fhv_y,
             vander.grad_phi_x_gt, vander.grad_phi_y_gt, wts2d,
-            rhs_h, rhs_hu, rhs_hv, cos_fact, g, determ, bd_det_x, bd_det_y
+            rhs_h, rhs_hu, rhs_hv, cos_fact, sin_fact, coriolis,
+            g, radius, determ, bd_det_x, bd_det_y,
+
+            vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt, vander.phi_bd_W_gt,
+            h_n, h_s, h_e, h_w,
+            hu_n, hu_s, hu_e, hu_w,
+            hv_n, hv_s, hv_e, hv_w,
         )
 
-        stencils.source_stencil(
-            vander.phi_gt, h_qp, sin_fact, rhs_hv, wts2d, g, determ
-        )
+        # # --- Internal NOT Fused--- 
+        # stencils.flux_stencil_swe(
+        #     vander.phi_gt, h, hu, hv, h_qp, hu_qp, hv_qp, 
+        #     fh_x, fh_y, fhu_x, fhu_y, fhv_x, fhv_y,
+        #     vander.grad_phi_x_gt, vander.grad_phi_y_gt, wts2d,
+        #     rhs_h, rhs_hu, rhs_hv, cos_fact, g, determ, bd_det_x, bd_det_y
+        # )
 
-        stencils.coriolis_stencil(
-            vander.phi_gt, coriolis, hu_qp, hv_qp, cos_fact, rhs_hu, rhs_hv, wts2d, radius, determ
-        )
+        # stencils.source_stencil(
+        #     vander.phi_gt, h_qp, sin_fact, rhs_hv, wts2d, g, determ
+        # )
 
-        # --- Boundary Integral ---
-        origins = {
-            "_all_": (0,0,0),'u_n': (1,1,0), 'u_s': (1,1,0), 'u_e': (1,1,0), 'u_w': (1,1,0)
-        }
-        stencils.modal2bd(
-            vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
-            vander.phi_bd_W_gt, h_n, h_s, h_e, h_w, h,
-            origin=origins, domain=(nx,ny,nz)
-        )
-        stencils.modal2bd(
-            vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
-            vander.phi_bd_W_gt, hu_n, hu_s, hu_e, hu_w, hu,
-            origin=origins, domain=(nx,ny,nz)
-        )
-        stencils.modal2bd(
-            vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
-            vander.phi_bd_W_gt, hv_n, hv_s, hv_e, hv_w, hv,
-            origin=origins, domain=(nx,ny,nz)
-        )
+        # stencils.coriolis_stencil(
+        #     vander.phi_gt, coriolis, hu_qp, hv_qp, cos_fact, rhs_hu, rhs_hv, wts2d, radius, determ
+        # )
+
+        # # --- Boundary NOT Fused ---
+        # origins = {
+        #     "_all_": (0,0,0),'u_n': (1,1,0), 'u_s': (1,1,0), 'u_e': (1,1,0), 'u_w': (1,1,0)
+        # }
+        # stencils.modal2bd(
+        #     vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
+        #     vander.phi_bd_W_gt, h_n, h_s, h_e, h_w, h,
+        #     origin=origins, domain=(nx,ny,nz)
+        # )
+        # stencils.modal2bd(
+        #     vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
+        #     vander.phi_bd_W_gt, hu_n, hu_s, hu_e, hu_w, hu,
+        #     origin=origins, domain=(nx,ny,nz)
+        # )
+        # stencils.modal2bd(
+        #     vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
+        #     vander.phi_bd_W_gt, hv_n, hv_s, hv_e, hv_w, hv,
+        #     origin=origins, domain=(nx,ny,nz)
+        # )
+        # ---
 
         boundary_conditions.apply_pbc(h_n)
         boundary_conditions.apply_pbc(h_s)
@@ -436,46 +456,76 @@ def compute_rhs(
             f_n_hu, f_s_hu, f_e_hu, f_w_hu, f_n_hv, f_s_hv, f_e_hv, f_w_hv, g,
             origin=(0,0,0), domain=(nx+2, ny+2, nz)
         )
-
+        # --- Num Flux Fused ---
         origins = {
-            "_all_": (1,1,0),'flux_n': (0,0,0), 'flux_s': (0,0,0), 'flux_e': (0,0,0), 'flux_w': (0,0,0)
+            "_all_": (1,1,0),
+            "flux_n_h": (0,0,0), "flux_s_h": (0,0,0), "flux_e_h": (0,0,0), "flux_w_h": (0,0,0),
+            "flux_n_hu": (0,0,0), "flux_s_hu": (0,0,0), "flux_e_hu": (0,0,0), "flux_w_hu": (0,0,0),
+            "flux_n_hv": (0,0,0), "flux_s_hv": (0,0,0), "flux_e_hv": (0,0,0), "flux_w_hv": (0,0,0),
+            "phi_bd_N": (0,0,0), "phi_bd_S": (0,0,0), "phi_bd_E": (0,0,0), "phi_bd_W": (0,0,0),
+            "rhs_h": (0,0,0), "rhs_hu": (0,0,0), "rhs_hv": (0,0,0), "w": (0,0,0),
+            "inv_mass": (0,0,0)
         }
+        stencils.fused_num_flux(
+            h_n, h_s, h_e, h_w,
+            hu_n, hu_s, hu_e, hu_w,
+            hv_n, hv_s, hv_e, hv_w,
 
-        stencils.compute_num_flux(
-            h_n, h_s, h_e, h_w, f_n_h, f_s_h, f_e_h, f_w_h,
-            flux_n_h, flux_s_h, flux_e_h, flux_w_h, cos_n, cos_s, alpha,
-            origin=origins, domain=(nx, ny, nz)
+            f_n_h, f_s_h, f_e_h, f_w_h,
+            f_n_hu, f_s_hu, f_e_hu, f_w_hu,
+            f_n_hv, f_s_hv, f_e_hv, f_w_hv,
+
+            flux_n_h, flux_s_h, flux_e_h, flux_w_h,
+            flux_n_hu, flux_s_hu, flux_e_hu, flux_w_hu,
+            flux_n_hv, flux_s_hv, flux_e_hv, flux_w_hv,
+            cos_n, cos_s, alpha,
+
+            vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt, vander.phi_bd_W_gt,
+            rhs_h, rhs_hu, rhs_hv, wts1d, bd_det_x, bd_det_y, 
+            inv_mass, radius,
+            origin=origins, domain=(nx,ny,nz)
         )
 
-        stencils.compute_num_flux(
-            hu_n, hu_s, hu_e, hu_w, f_n_hu, f_s_hu, f_e_hu, f_w_hu,
-            flux_n_hu, flux_s_hu, flux_e_hu, flux_w_hu, cos_n, cos_s, alpha,
-            origin=origins, domain=(nx, ny, nz)
-        )
+        # --- Num Flux NOT Fused ---
+        # origins = {
+        #     "_all_": (1,1,0),'flux_n': (0,0,0), 'flux_s': (0,0,0), 'flux_e': (0,0,0), 'flux_w': (0,0,0)
+        # }
 
-        stencils.compute_num_flux(
-            hv_n, hv_s, hv_e, hv_w, f_n_hv, f_s_hv, f_e_hv, f_w_hv,
-            flux_n_hv, flux_s_hv, flux_e_hv, flux_w_hv, cos_n, cos_s, alpha,
-            origin=origins, domain=(nx, ny, nz)
-        )
+        # stencils.compute_num_flux(
+        #     h_n, h_s, h_e, h_w, f_n_h, f_s_h, f_e_h, f_w_h,
+        #     flux_n_h, flux_s_h, flux_e_h, flux_w_h, cos_n, cos_s, alpha,
+        #     origin=origins, domain=(nx, ny, nz)
+        # )
 
-        stencils.integrate_num_flux(
-            vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
-            vander.phi_bd_W_gt, flux_n_h, flux_s_h, flux_e_h, flux_w_h, wts1d, rhs_h,
-            inv_mass, radius, bd_det_x, bd_det_y
-        )
+        # stencils.compute_num_flux(
+        #     hu_n, hu_s, hu_e, hu_w, f_n_hu, f_s_hu, f_e_hu, f_w_hu,
+        #     flux_n_hu, flux_s_hu, flux_e_hu, flux_w_hu, cos_n, cos_s, alpha,
+        #     origin=origins, domain=(nx, ny, nz)
+        # )
 
-        stencils.integrate_num_flux(
-            vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
-            vander.phi_bd_W_gt, flux_n_hu, flux_s_hu, flux_e_hu, flux_w_hu, wts1d, rhs_hu,
-            inv_mass, radius, bd_det_x, bd_det_y
-        )
+        # stencils.compute_num_flux(
+        #     hv_n, hv_s, hv_e, hv_w, f_n_hv, f_s_hv, f_e_hv, f_w_hv,
+        #     flux_n_hv, flux_s_hv, flux_e_hv, flux_w_hv, cos_n, cos_s, alpha,
+        #     origin=origins, domain=(nx, ny, nz)
+        # )
 
-        stencils.integrate_num_flux(
-            vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
-            vander.phi_bd_W_gt, flux_n_hv, flux_s_hv, flux_e_hv, flux_w_hv, wts1d, rhs_hv,
-            inv_mass, radius, bd_det_x, bd_det_y
-        )
+        # stencils.integrate_num_flux(
+        #     vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
+        #     vander.phi_bd_W_gt, flux_n_h, flux_s_h, flux_e_h, flux_w_h, wts1d, rhs_h,
+        #     inv_mass, radius, bd_det_x, bd_det_y
+        # )
 
-        stencils.inv_mass_stencil(rhs_h, rhs_hu, rhs_hv, tmp, inv_mass, radius)
+        # stencils.integrate_num_flux(
+        #     vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
+        #     vander.phi_bd_W_gt, flux_n_hu, flux_s_hu, flux_e_hu, flux_w_hu, wts1d, rhs_hu,
+        #     inv_mass, radius, bd_det_x, bd_det_y
+        # )
+
+        # stencils.integrate_num_flux(
+        #     vander.phi_bd_N_gt, vander.phi_bd_S_gt, vander.phi_bd_E_gt,
+        #     vander.phi_bd_W_gt, flux_n_hv, flux_s_hv, flux_e_hv, flux_w_hv, wts1d, rhs_hv,
+        #     inv_mass, radius, bd_det_x, bd_det_y
+        # )
+
+        # stencils.inv_mass_stencil(rhs_h, rhs_hu, rhs_hv, tmp, inv_mass, radius)
 

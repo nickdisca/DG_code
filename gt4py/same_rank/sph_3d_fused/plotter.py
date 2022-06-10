@@ -27,7 +27,7 @@ class Plotter():
 
 
     def plot_solution(self,u,init=False, plot_type='contour',show=False, save=False):
-        z_component = 1
+        z_component = 0
         x_u    = np.zeros(self.nx*self.r)
         y_u    = np.zeros(self.ny*self.r)
         unif   = np.linspace(-1,1,self.r)
