@@ -131,8 +131,8 @@ if eq_type == 'swe' or eq_type == "swe_sphere":
     courant = 0.009
     dt = courant * min((radius * np.sin(hx) * np.sin(hy), radius * np.sin(hx) * np.cos(hy))) / ((r+1) * alpha)
     # niter = int(T/dt)
-    niter = 100
-    plot_freq = 10
+    niter = 1000
+    plot_freq = 100
     # print(f'{dt = }')
     # quit()
 
@@ -149,8 +149,8 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 
 # if not debug:
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-# plotter.plot_solution((h0_nodal_gt,), init=True, plot_type=plotter.plot_type)
-# time.sleep(2)
+# plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, plot_type=plotter.plot_type)
+# time.sleep(20)
 
 h0_ref = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
 h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)

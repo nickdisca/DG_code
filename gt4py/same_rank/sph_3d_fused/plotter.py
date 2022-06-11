@@ -23,7 +23,7 @@ class Plotter():
         # # self.fig = go.FigureWidget(fig)
         # self.fig = plt.figure(figsize=(6,6))
         self.fig, self.ax = plt.subplots(1, 3, figsize=(16, 8))
-        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+        # plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         self.cbar = [None] * 3
 
 
@@ -37,6 +37,7 @@ class Plotter():
             x_u[i*self.r:(i+1)*self.r] = self.x_c[i]+self.hx*unif/2
         for j in range(self.ny) :
             y_u[j*self.r:(j+1)*self.r] = self.y_c[j]+self.hy*unif/2
+
 
         Y, X = np.meshgrid(y_u, x_u)  # Transposed to visualize properly
         for idx, cons_var in enumerate(u):

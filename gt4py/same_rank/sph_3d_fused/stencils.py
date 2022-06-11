@@ -534,90 +534,123 @@ def rk_step2_4(
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def apply_pbc_east(
-    h_n_left: gtscript.Field[(dtype, (n_qp_1D,))],
-    h_n_right: gtscript.Field[(dtype, (n_qp_1D,))],
-    h_s_left: gtscript.Field[(dtype, (n_qp_1D,))],
-    h_s_right: gtscript.Field[(dtype, (n_qp_1D,))],
     h_e_left: gtscript.Field[(dtype, (n_qp_1D,))],
     h_e_right: gtscript.Field[(dtype, (n_qp_1D,))],
     h_w_left: gtscript.Field[(dtype, (n_qp_1D,))],
     h_w_right: gtscript.Field[(dtype, (n_qp_1D,))],
 
-    hu_n_left: gtscript.Field[(dtype, (n_qp_1D,))],
-    hu_n_right: gtscript.Field[(dtype, (n_qp_1D,))],
-    hu_s_left: gtscript.Field[(dtype, (n_qp_1D,))],
-    hu_s_right: gtscript.Field[(dtype, (n_qp_1D,))],
     hu_e_left: gtscript.Field[(dtype, (n_qp_1D,))],
     hu_e_right: gtscript.Field[(dtype, (n_qp_1D,))],
     hu_w_left: gtscript.Field[(dtype, (n_qp_1D,))],
     hu_w_right: gtscript.Field[(dtype, (n_qp_1D,))],
 
-    hv_n_left: gtscript.Field[(dtype, (n_qp_1D,))],
-    hv_n_right: gtscript.Field[(dtype, (n_qp_1D,))],
-    hv_s_left: gtscript.Field[(dtype, (n_qp_1D,))],
-    hv_s_right: gtscript.Field[(dtype, (n_qp_1D,))],
     hv_e_left: gtscript.Field[(dtype, (n_qp_1D,))],
     hv_e_right: gtscript.Field[(dtype, (n_qp_1D,))],
     hv_w_left: gtscript.Field[(dtype, (n_qp_1D,))],
     hv_w_right: gtscript.Field[(dtype, (n_qp_1D,))],
 ):
     with computation(PARALLEL), interval(...):
-        h_n_left = h_n_right[-1,0,0]
-        h_s_left = h_s_right[-1,0,0]
+        # h_n_left = h_n_right[-1,0,0]
+        # h_s_left = h_s_right[-1,0,0]
         h_e_left = h_e_right[-1,0,0]
         h_w_left = h_w_right[-1,0,0]
 
-        hu_n_left = hu_n_right[-1,0,0]
-        hu_s_left = hu_s_right[-1,0,0]
+        # hu_n_left = hu_n_right[-1,0,0]
+        # hu_s_left = hu_s_right[-1,0,0]
         hu_e_left = hu_e_right[-1,0,0]
         hu_w_left = hu_w_right[-1,0,0]
 
-        hv_n_left = hv_n_right[-1,0,0]
-        hv_s_left = hv_s_right[-1,0,0]
+        # hv_n_left = hv_n_right[-1,0,0]
+        # hv_s_left = hv_s_right[-1,0,0]
         hv_e_left = hv_e_right[-1,0,0]
         hv_w_left = hv_w_right[-1,0,0]
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def apply_pbc_west(
-    h_n_left: gtscript.Field[(dtype, (n_qp_1D,))],
-    h_n_right: gtscript.Field[(dtype, (n_qp_1D,))],
-    h_s_left: gtscript.Field[(dtype, (n_qp_1D,))],
-    h_s_right: gtscript.Field[(dtype, (n_qp_1D,))],
     h_e_left: gtscript.Field[(dtype, (n_qp_1D,))],
     h_e_right: gtscript.Field[(dtype, (n_qp_1D,))],
     h_w_left: gtscript.Field[(dtype, (n_qp_1D,))],
     h_w_right: gtscript.Field[(dtype, (n_qp_1D,))],
 
-    hu_n_left: gtscript.Field[(dtype, (n_qp_1D,))],
-    hu_n_right: gtscript.Field[(dtype, (n_qp_1D,))],
-    hu_s_left: gtscript.Field[(dtype, (n_qp_1D,))],
-    hu_s_right: gtscript.Field[(dtype, (n_qp_1D,))],
     hu_e_left: gtscript.Field[(dtype, (n_qp_1D,))],
     hu_e_right: gtscript.Field[(dtype, (n_qp_1D,))],
     hu_w_left: gtscript.Field[(dtype, (n_qp_1D,))],
     hu_w_right: gtscript.Field[(dtype, (n_qp_1D,))],
 
-    hv_n_left: gtscript.Field[(dtype, (n_qp_1D,))],
-    hv_n_right: gtscript.Field[(dtype, (n_qp_1D,))],
-    hv_s_left: gtscript.Field[(dtype, (n_qp_1D,))],
-    hv_s_right: gtscript.Field[(dtype, (n_qp_1D,))],
     hv_e_left: gtscript.Field[(dtype, (n_qp_1D,))],
     hv_e_right: gtscript.Field[(dtype, (n_qp_1D,))],
     hv_w_left: gtscript.Field[(dtype, (n_qp_1D,))],
     hv_w_right: gtscript.Field[(dtype, (n_qp_1D,))],
 ):
     with computation(PARALLEL), interval(...):
-        h_n_right = h_n_left[+1,0,0]
-        h_s_right = h_s_left[+1,0,0]
+        # h_n_right = h_n_left[+1,0,0]
+        # h_s_right = h_s_left[+1,0,0]
         h_e_right = h_e_left[+1,0,0]
         h_w_right = h_w_left[+1,0,0]
 
-        hu_n_right = hu_n_left[+1,0,0]
-        hu_s_right = hu_s_left[+1,0,0]
+        # hu_n_right = hu_n_left[+1,0,0]
+        # hu_s_right = hu_s_left[+1,0,0]
         hu_e_right = hu_e_left[+1,0,0]
         hu_w_right = hu_w_left[+1,0,0]
 
-        hv_n_right = hv_n_left[+1,0,0]
-        hv_s_right = hv_s_left[+1,0,0]
+        # hv_n_right = hv_n_left[+1,0,0]
+        # hv_s_right = hv_s_left[+1,0,0]
         hv_e_right = hv_e_left[+1,0,0]
         hv_w_right = hv_w_left[+1,0,0]
+
+
+@gtscript.stencil(backend=backend, **backend_opts)
+def apply_pbc_north(
+    h_n_top: gtscript.Field[(dtype, (n_qp_1D,))],
+    h_n_bot: gtscript.Field[(dtype, (n_qp_1D,))],
+    h_s_top: gtscript.Field[(dtype, (n_qp_1D,))],
+    h_s_bot: gtscript.Field[(dtype, (n_qp_1D,))],
+
+    hu_n_top: gtscript.Field[(dtype, (n_qp_1D,))],
+    hu_n_bot: gtscript.Field[(dtype, (n_qp_1D,))],
+    hu_s_top: gtscript.Field[(dtype, (n_qp_1D,))],
+    hu_s_bot: gtscript.Field[(dtype, (n_qp_1D,))],
+
+    hv_n_top: gtscript.Field[(dtype, (n_qp_1D,))],
+    hv_n_bot: gtscript.Field[(dtype, (n_qp_1D,))],
+    hv_s_top: gtscript.Field[(dtype, (n_qp_1D,))],
+    hv_s_bot: gtscript.Field[(dtype, (n_qp_1D,))],
+
+):
+    with computation(PARALLEL), interval(...):
+        h_n_top = h_n_bot[0,+1,0]
+        h_s_top = h_s_bot[0,+1,0]
+
+        hu_n_top = hu_n_bot[0,+1,0]
+        hu_s_top = hu_s_bot[0,+1,0]
+
+        hv_n_top = hv_n_bot[0,+1,0]
+        hv_s_top = hv_s_bot[0,+1,0]
+
+@gtscript.stencil(backend=backend, **backend_opts)
+def apply_pbc_south(
+    h_n_top: gtscript.Field[(dtype, (n_qp_1D,))],
+    h_n_bot: gtscript.Field[(dtype, (n_qp_1D,))],
+    h_s_top: gtscript.Field[(dtype, (n_qp_1D,))],
+    h_s_bot: gtscript.Field[(dtype, (n_qp_1D,))],
+
+    hu_n_top: gtscript.Field[(dtype, (n_qp_1D,))],
+    hu_n_bot: gtscript.Field[(dtype, (n_qp_1D,))],
+    hu_s_top: gtscript.Field[(dtype, (n_qp_1D,))],
+    hu_s_bot: gtscript.Field[(dtype, (n_qp_1D,))],
+
+    hv_n_top: gtscript.Field[(dtype, (n_qp_1D,))],
+    hv_n_bot: gtscript.Field[(dtype, (n_qp_1D,))],
+    hv_s_top: gtscript.Field[(dtype, (n_qp_1D,))],
+    hv_s_bot: gtscript.Field[(dtype, (n_qp_1D,))],
+
+):
+    with computation(PARALLEL), interval(...):
+        h_n_bot = h_n_top[0,-1,0]
+        h_s_bot = h_s_top[0,-1,0]
+
+        hu_n_bot = hu_n_top[0,-1,0]
+        hu_s_bot = hu_s_top[0,-1,0]
+
+        hv_n_bot = hv_n_top[0,-1,0]
+        hv_s_bot = hv_s_top[0,-1,0]
