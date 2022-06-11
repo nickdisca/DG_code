@@ -152,10 +152,10 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 # plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, plot_type=plotter.plot_type)
 # time.sleep(20)
 
-h0_ref = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
-h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
-hu0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hu0_nodal_gt)
-hv0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hv0_nodal_gt)
+h0_ref = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt, backend)
+h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt, backend)
+hu0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hu0_nodal_gt, backend)
+hv0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hv0_nodal_gt, backend)
 
 mass, inv_mass, cos_factor, sin_factor, cos_n, cos_s = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, pts, eq_type)
 
@@ -178,7 +178,7 @@ print(f'Diffusion constant flux: {alpha = }')
 
 run((h0_modal_gt, hu0_modal_gt, hv0_modal_gt), vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, nz, cos_gt, sin_gt, (cos_n_gt, cos_s_gt), coriolis_gt, radius, alpha, dt, niter, plotter)
 
-u_final_nodal = modal2nodal_gt(vander.vander_gt, h0_modal_gt)
+u_final_nodal = modal2nodal_gt(vander.vander_gt, h0_modal_gt, backend)
 
 if backend == "cuda":
     u_final_nodal.device_to_host()
