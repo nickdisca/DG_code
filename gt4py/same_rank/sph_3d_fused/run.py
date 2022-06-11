@@ -335,10 +335,10 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
             stencils.modal2nodal(vander.vander_gt, h, k1_h)
             if np.max(np.abs(k1_h)) > 1e8:
                 raise Exception('Solution diverging')
-            # stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
-            # stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
-            # print('plotting')
-            # plotter.plot_solution((k1_h, k1_hu, k1_hv), title=f'{i * dt:.1f}s ({i * dt / 3600:.1f} h {i * dt / 86400:.1f} days)', init=False, plot_type=plot_type)
+            stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
+            stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
+            print('plotting')
+            plotter.plot_solution((k1_h, k1_hu, k1_hv), title=f'{i * dt:.1f}s ({i * dt / 3600:.1f} h {i * dt / 86400:.1f} days)', init=False, plot_type=plot_type)
 
     loop_end = time.perf_counter()
 
@@ -433,7 +433,38 @@ def compute_rhs(
         #     vander.phi_bd_W_gt, hv_n, hv_s, hv_e, hv_w, hv,
         #     origin=origins, domain=(nx,ny,nz)
         # )
-        # ---
+        # --- PBC Stencil ---
+        # origins_pbc = {
+        #     "h_n_left": (0,1,0), "h_n_right": (nx+1, 1, 0),
+        #     "h_s_left": (0,1,0), "h_s_right": (nx+1, 1, 0),
+        #     "h_e_left": (0,1,0), "h_e_right": (nx+1, 1, 0),
+        #     "h_w_left": (0,1,0), "h_w_right": (nx+1, 1, 0),
+
+        #     "hu_n_left": (0,1,0), "hu_n_right": (nx+1, 1, 0),
+        #     "hu_s_left": (0,1,0), "hu_s_right": (nx+1, 1, 0),
+        #     "hu_e_left": (0,1,0), "hu_e_right": (nx+1, 1, 0),
+        #     "hu_w_left": (0,1,0), "hu_w_right": (nx+1, 1, 0),
+
+        #     "hv_n_left": (0,1,0), "hv_n_right": (nx+1, 1, 0),
+        #     "hv_s_left": (0,1,0), "hv_s_right": (nx+1, 1, 0),
+        #     "hv_e_left": (0,1,0), "hv_e_right": (nx+1, 1, 0),
+        #     "hv_w_left": (0,1,0), "hv_w_right": (nx+1, 1, 0),
+        # }
+        # stencils.apply_pbc_east(
+        #     h_n, h_n, h_s, h_s, h_e, h_e, h_w, h_w,
+        #     hu_n, hu_n, hu_s, hu_s, hu_e, hu_e, hu_w, hu_w,
+        #     hv_n, hv_n, hv_s, hv_s, hv_e, hv_e, hv_w, hv_w,
+        #     origin=origins_pbc, domain=(1, ny, nz)
+        # )
+
+        # stencils.apply_pbc_west(
+        #     h_n, h_n, h_s, h_s, h_e, h_e, h_w, h_w,
+        #     hu_n, hu_n, hu_s, hu_s, hu_e, hu_e, hu_w, hu_w,
+        #     hv_n, hv_n, hv_s, hv_s, hv_e, hv_e, hv_w, hv_w,
+        #     origin=origins_pbc, domain=(1, ny, nz)
+        # )
+
+        # --- PBC function ---
 
         boundary_conditions.apply_pbc(h_n)
         boundary_conditions.apply_pbc(h_s)
@@ -449,6 +480,8 @@ def compute_rhs(
         boundary_conditions.apply_pbc(hu_s)
         boundary_conditions.apply_pbc(hu_e)
         boundary_conditions.apply_pbc(hu_w)
+        
+        # --- 
 
         stencils.flux_bd_stencil_swe(
             h_n, h_s, h_e, h_w, hu_n, hu_s, hu_e, hu_w,
