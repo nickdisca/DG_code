@@ -4,4 +4,4 @@ def apply_pbc(u):
     u[1:-1,-1] = u[1:-1,1] # south
     u[-1,1:-1] = u[1,1:-1] # east
     u[0,1:-1] = u[-2,1:-1] # west
-    return u
+    # return u
