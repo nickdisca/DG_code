@@ -132,7 +132,7 @@ if eq_type == 'swe' or eq_type == "swe_sphere":
     dt = courant * min((radius * np.sin(hx) * np.sin(hy), radius * np.sin(hx) * np.cos(hy))) / ((r+1) * alpha)
     # niter = int(T/dt)
     niter = 1000
-    plot_freq = 100
+    plot_freq = 100000
     # print(f'{dt = }')
     # quit()
 
@@ -149,13 +149,23 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 
 # if not debug:
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-# plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, plot_type=plotter.plot_type)
+# plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, plot_type=plotter.plot_type, fname='init.png')
 # time.sleep(20)
+h0_modal_gt = gt.storage.zeros(
+        backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,))
+)
+hu0_modal_gt = gt.storage.zeros(
+    backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,))
+)
+hv0_modal_gt = gt.storage.zeros(
+    backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,))
+)
 
-h0_ref = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt, backend)
-h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt, backend)
-hu0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hu0_nodal_gt, backend)
-hv0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hv0_nodal_gt, backend)
+modal2nodal(vander.inv_vander_gt, h0_nodal_gt, h0_modal_gt)
+modal2nodal(vander.inv_vander_gt, hu0_nodal_gt, hu0_modal_gt)
+modal2nodal(vander.inv_vander_gt, hv0_nodal_gt, hv0_modal_gt)
+
+plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, plot_type=plotter.plot_type, fname='init.png')
 
 mass, inv_mass, cos_factor, sin_factor, cos_n, cos_s = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, pts, eq_type)
 
@@ -178,13 +188,6 @@ print(f'Diffusion constant flux: {alpha = }')
 
 run((h0_modal_gt, hu0_modal_gt, hv0_modal_gt), vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, nz, cos_gt, sin_gt, (cos_n_gt, cos_s_gt), coriolis_gt, radius, alpha, dt, niter, plotter)
 
-u_final_nodal = modal2nodal_gt(vander.vander_gt, h0_modal_gt, backend)
-
-if backend == "cuda":
-    u_final_nodal.device_to_host()
-
-u_final = np.asarray(u_final_nodal)
-
 # Timinig
 print(f'Vander: {vander_end - vander_start}s')
 
@@ -194,8 +197,29 @@ if debug:
 else:
     init = False
 
-# comment
 modal2nodal(vander.vander_gt, h0_modal_gt, h0_nodal_gt)
 modal2nodal(vander.vander_gt, hu0_modal_gt, hu0_nodal_gt)
 modal2nodal(vander.vander_gt, hv0_modal_gt, hv0_nodal_gt)
-plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=init, title=f'{nx = }; {nz = } | {r = }; {runge_kutta = } | {dt = :.1f}; {niter = } | {backend = }', fname=f'nx{nx}_nz{nz}_p{r+1}_rk{runge_kutta}_T{int(dt*niter)}_{backend}.png', show=False, save=True)
+print(f'{type(hu0_nodal_gt) = }')
+
+# comment
+h0_nodal_gt.device_to_host()
+hu0_nodal_gt.device_to_host()
+hv0_nodal_gt.device_to_host()
+
+h_f = np.asarray(h0_nodal_gt)
+hu_f = np.asarray(hu0_nodal_gt)
+hv_f = np.asarray(hv0_nodal_gt)
+# h0_nodal_gt.synchronize()
+# hu0_nodal_gt.synchronize()
+# hv0_nodal_gt.synchronize()
+
+# h_f = modal2nodal_gt(vander.vander_gt, h0_modal_gt)
+# # hu_f = modal2nodal_gt(vander.vander_gt, hu0_modal_gt)
+
+# hu_f = np.einsum('ijklm,ijkm->ijkl', vander.vander_gt, np.asarray(hu0_modal_gt))
+
+# hv_f = modal2nodal_gt(vander.vander_gt, hv0_modal_gt)
+
+plotter.plot_solution((h_f, hu_f, hv_f), init=init, title=f'{nx = }; {nz = } | {r = }; {runge_kutta = } | {dt = :.1f}; {niter = } | {backend = }', fname=f'nx{nx}_nz{nz}_p{r+1}_rk{runge_kutta}_T{int(dt*niter)}_{backend}.png', show=False)
+# plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=init, title=f'{nx = }; {nz = } | {r = }; {runge_kutta = } | {dt = :.1f}; {niter = } | {backend = }', fname=f'nx{nx}_nz{nz}_p{r+1}_rk{runge_kutta}_T{int(dt*niter)}_{backend}.png', show=False)

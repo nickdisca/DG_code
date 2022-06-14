@@ -5,15 +5,14 @@ import gt4py as gt
 from boundary_conditions import apply_pbc
 from gt4py_config import dtype, backend, backend_opts, dim, n_qp
 
-def nodal2modal_gt(vander, in_nodal, backend=backend):
-    nx, ny, nz, _ = in_nodal.shape
-    vec = vander.shape[3]
+def nodal2modal_gt(vander, in_nodal):
+    nx, ny, nz, vec = in_nodal.shape
     out_modal = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (vec,)))
     nodal2modal_stencil(vander, in_nodal, out_modal)
     return out_modal
 
-def modal2nodal_gt(vander, in_modal, backend=backend):
+def modal2nodal_gt(vander, in_modal):
     nx, ny, nz, vec = in_modal.shape
     out_nodal = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (vec,)))

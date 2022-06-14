@@ -2,10 +2,11 @@ import numpy as np
 import numpy.polynomial.legendre as L
 from scipy.special import legendre
 import gt4py as gt
+from gt4py_config import backend
 
 
 class Vander:
-    def __init__(self, nx, ny, nz, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d, backend="gtc:numpy"):
+    def __init__(self, nx, ny, nz, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d, backend=backend):
         self.nx = nx
         self.ny = ny
         self.nz = nz

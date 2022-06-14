@@ -27,7 +27,7 @@ class Plotter():
         self.cbar = [None] * 3
 
 
-    def plot_solution(self,u,init=False, plot_type='contour', fname='final_step.png',title='',show=False, save=False):
+    def plot_solution(self,u,init=False, plot_type='contour', fname='final_step.png',title='',show=False):
         self.fig.suptitle(title)
         z_component = 0
         x_u    = np.zeros(self.nx*self.r)
@@ -107,7 +107,7 @@ class Plotter():
             if show:
                 plt.draw()
                 plt.show()
+            if fname:
+                plt.savefig('img/' + fname, dpi=300)
             else:
                 plt.pause(0.005)
-            if save:
-                plt.savefig('img/' + fname, dpi=300)
