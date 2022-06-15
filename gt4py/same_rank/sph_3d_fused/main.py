@@ -132,7 +132,7 @@ if eq_type == 'swe' or eq_type == "swe_sphere":
     dt = courant * min((radius * np.sin(hx) * np.sin(hy), radius * np.sin(hx) * np.cos(hy))) / ((r+1) * alpha)
     # niter = int(T/dt)
     niter = 1000
-    plot_freq = 100000
+    plot_freq = 100
     # print(f'{dt = }')
     # quit()
 
