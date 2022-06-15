@@ -3,7 +3,7 @@ from gt4py_config import dtype, backend, backend_opts, dim, n_qp, n_qp_1D
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def modal2nodal(
-    phi: gtscript.Field[(dtype, (dim, dim))],
+    phi: gtscript.Field[gtscript.K, (dtype, (dim, dim))],
     u_modal: gtscript.Field[(dtype, (dim,))],
     u_nodal: gtscript.Field[(dtype, (dim,))],
 ):
@@ -11,7 +11,7 @@ def modal2nodal(
         u_nodal = phi @ u_modal
 @gtscript.stencil(backend=backend, **backend_opts)
 def fused_internal_stencils(
-    phi: gtscript.Field[(dtype, (n_qp, dim))],
+    phi: gtscript.Field[gtscript.K, (dtype, (n_qp, dim))],
 
     h: gtscript.Field[(dtype, (dim,))],
     hu: gtscript.Field[(dtype, (dim,))],
@@ -28,16 +28,16 @@ def fused_internal_stencils(
     fhv_x: gtscript.Field[(dtype, (n_qp,))],
     fhv_y: gtscript.Field[(dtype, (n_qp,))],
 
-    phi_grad_x: gtscript.Field[(dtype, (n_qp, dim))],
-    phi_grad_y: gtscript.Field[(dtype, (n_qp, dim))],
-    w: gtscript.Field[(dtype, (n_qp,))],
+    phi_grad_x: gtscript.Field[gtscript.K, (dtype, (n_qp, dim))],
+    phi_grad_y: gtscript.Field[gtscript.K, (dtype, (n_qp, dim))],
+    w: gtscript.Field[gtscript.K, (dtype, (n_qp,))],
 
     rhs_h: gtscript.Field[(dtype, (dim,))],
     rhs_hu: gtscript.Field[(dtype, (dim,))],
     rhs_hv: gtscript.Field[(dtype, (dim,))],
 
-    cos_fact: gtscript.Field[(dtype, (dim,))], 
-    sin_fact: gtscript.Field[(dtype, (dim,))], 
+    cos_fact: gtscript.Field[gtscript.J, (dtype, (dim,))], 
+    sin_fact: gtscript.Field[gtscript.J, (dtype, (dim,))], 
     coriolis: gtscript.Field[(dtype, (dim,))], 
     
     g: float,
@@ -47,10 +47,10 @@ def fused_internal_stencils(
     bd_det_y: float,
 
     # Boundary
-    phi_bd_N: gtscript.Field[(dtype, (n_qp_1D, dim))],
-    phi_bd_S: gtscript.Field[(dtype, (n_qp_1D, dim))],
-    phi_bd_E: gtscript.Field[(dtype, (n_qp_1D, dim))],
-    phi_bd_W: gtscript.Field[(dtype, (n_qp_1D, dim))],
+    phi_bd_N: gtscript.Field[gtscript.K, (dtype, (n_qp_1D, dim))],
+    phi_bd_S: gtscript.Field[gtscript.K, (dtype, (n_qp_1D, dim))],
+    phi_bd_E: gtscript.Field[gtscript.K, (dtype, (n_qp_1D, dim))],
+    phi_bd_W: gtscript.Field[gtscript.K, (dtype, (n_qp_1D, dim))],
 
     h_n: gtscript.Field[(dtype, (n_qp_1D,))],
     h_s: gtscript.Field[(dtype, (n_qp_1D,))],
@@ -282,28 +282,28 @@ def fused_num_flux(
     flux_e_hv: gtscript.Field[(dtype, (n_qp_1D,))],
     flux_w_hv: gtscript.Field[(dtype, (n_qp_1D,))],
 
-    cos_n: gtscript.Field[(dtype, (n_qp_1D,))],
-    cos_s: gtscript.Field[(dtype, (n_qp_1D,))],
+    cos_n: gtscript.Field[gtscript.J, (dtype, (n_qp_1D,))],
+    cos_s: gtscript.Field[gtscript.J, (dtype, (n_qp_1D,))],
     alpha: float,
 
     # Integrate Num Flux
-    phi_bd_N: gtscript.Field[(dtype, (n_qp_1D, dim))],
-    phi_bd_S: gtscript.Field[(dtype, (n_qp_1D, dim))],
-    phi_bd_E: gtscript.Field[(dtype, (n_qp_1D, dim))],
-    phi_bd_W: gtscript.Field[(dtype, (n_qp_1D, dim))],
+    phi_bd_N: gtscript.Field[gtscript.K, (dtype, (n_qp_1D, dim))],
+    phi_bd_S: gtscript.Field[gtscript.K, (dtype, (n_qp_1D, dim))],
+    phi_bd_E: gtscript.Field[gtscript.K, (dtype, (n_qp_1D, dim))],
+    phi_bd_W: gtscript.Field[gtscript.K, (dtype, (n_qp_1D, dim))],
 
     rhs_h: gtscript.Field[(dtype, (dim,))],
     rhs_hu: gtscript.Field[(dtype, (dim,))],
     rhs_hv: gtscript.Field[(dtype, (dim,))],
     tmp: gtscript.Field[(dtype, (dim,))],
 
-    w: gtscript.Field[(dtype, (n_qp_1D,))],
+    w: gtscript.Field[gtscript.K, (dtype, (n_qp_1D,))],
 
     bd_det_x: float,
     bd_det_y: float,
 
     # Inv Mass
-    inv_mass: gtscript.Field[(dtype, (dim, dim))],
+    inv_mass: gtscript.Field[gtscript.J, (dtype, (dim, dim))],
     radius: float
 ):
     with computation(PARALLEL), interval(...):

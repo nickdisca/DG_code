@@ -22,7 +22,7 @@ def modal2nodal_gt(vander, in_modal):
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def nodal2modal_stencil(
-    vander: gtscript.Field[(dtype, (dim, dim))],
+    vander: gtscript.Field[gtscript.K, (dtype, (dim, dim))],
     in_nodal: gtscript.Field[(dtype, (dim,))],
     out_modal: gtscript.Field[(dtype, (dim,))]
 ):
@@ -31,7 +31,7 @@ def nodal2modal_stencil(
 
 @gtscript.stencil(backend=backend, **backend_opts)
 def modal2nodal_stencil(
-    vander_inv: gtscript.Field[(dtype, (dim, dim))],
+    vander_inv: gtscript.Field[gtscript.K, (dtype, (dim, dim))],
     in_modal: gtscript.Field[(dtype, (dim,))],
     out_nodal: gtscript.Field[(dtype, (dim,))]
 ):

@@ -169,17 +169,16 @@ plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, plot
 
 mass, inv_mass, cos_factor, sin_factor, cos_n, cos_s = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, pts, eq_type)
 
-if nz > 1:
-    inv_mass = np.repeat(inv_mass, nz, axis=2)
+# if nz > 1:
+#     inv_mass = np.repeat(inv_mass, nz, axis=2)
 
-inv_mass_gt = gt.storage.from_array(inv_mass, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (dim, dim)))
-wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp, )))
-wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp_1D, )))
-cos_gt = gt.storage.from_array(cos_factor, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp,)))
-sin_gt = gt.storage.from_array(sin_factor, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp,)))
-cos_n_gt = gt.storage.from_array(cos_n, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp_1D,)))
-cos_s_gt = gt.storage.from_array(cos_s, backend=backend, default_origin=(0,0,0), shape=(nx,ny, nz), dtype=(dtype, (n_qp_1D,)))
-
+inv_mass_gt = gt.storage.from_array(inv_mass, backend=backend, default_origin=(0,), shape=(ny,), dtype=(dtype, (dim, dim)), mask=[False, True, False])
+wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,), shape=(nz,), dtype=(dtype, (n_qp,)), mask=[False, False, True])
+wts1d_gt = gt.storage.from_array(wts, backend=backend, default_origin=(0,), shape=(nz,), dtype=(dtype, (n_qp_1D,)), mask=[False, False, True])
+cos_gt = gt.storage.from_array(cos_factor, backend=backend, default_origin=(0,), shape=(ny,), dtype=(dtype, (n_qp,)), mask=[False, True, False])
+sin_gt = gt.storage.from_array(sin_factor, backend=backend, default_origin=(0,), shape=(ny,), dtype=(dtype, (n_qp,)), mask=[False, True, False])
+cos_n_gt = gt.storage.from_array(cos_n, backend=backend, default_origin=(0,), shape=(ny,), dtype=(dtype, (n_qp_1D,)), mask=[False, True, False])
+cos_s_gt = gt.storage.from_array(cos_s, backend=backend, default_origin=(0,), shape=(ny,), dtype=(dtype, (n_qp_1D,)), mask=[False, True, False])
 
 print(f'\n\n--- Backend = {backend} ---')
 print(f'Domain: {nx = }; {ny = }; {nz = }\nTimesteping: {dt = }; {niter = }')
