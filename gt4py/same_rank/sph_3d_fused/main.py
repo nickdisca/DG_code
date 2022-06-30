@@ -131,10 +131,8 @@ if eq_type == 'swe' or eq_type == "swe_sphere":
     courant = 0.009
     dt = courant * min((radius * np.sin(hx) * np.sin(hy), radius * np.sin(hx) * np.cos(hy))) / ((r+1) * alpha)
     # niter = int(T/dt)
-    niter = 1000
-    plot_freq = 100
-    # print(f'{dt = }')
-    # quit()
+    niter = 100000
+    plot_freq = 10000
 
     h0_nodal_gt = gt.storage.from_array(data=h0,
         backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,)))
@@ -149,7 +147,7 @@ plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 
 # if not debug:
 #     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-# plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, plot_type=plotter.plot_type, fname='init.png')
+# plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, title=f'INIT: {nx = }; {nz = } | {r = }; {runge_kutta = } | {backend = }', plot_type=plotter.plot_type, fname=f'init_{backend}.png')
 # time.sleep(20)
 h0_modal_gt = gt.storage.zeros(
         backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,))
@@ -168,9 +166,6 @@ modal2nodal(vander.inv_vander_gt, hv0_nodal_gt, hv0_modal_gt)
 plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, plot_type=plotter.plot_type, fname='init.png')
 
 mass, inv_mass, cos_factor, sin_factor, cos_n, cos_s = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, pts, eq_type)
-
-# if nz > 1:
-#     inv_mass = np.repeat(inv_mass, nz, axis=2)
 
 inv_mass_gt = gt.storage.from_array(inv_mass, backend=backend, default_origin=(0,), shape=(ny,), dtype=(dtype, (dim, dim)), mask=[False, True, False])
 wts2d_gt = gt.storage.from_array(wts2d, backend=backend, default_origin=(0,), shape=(nz,), dtype=(dtype, (n_qp,)), mask=[False, False, True])
