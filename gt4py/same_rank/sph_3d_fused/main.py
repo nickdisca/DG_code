@@ -131,7 +131,7 @@ if eq_type == 'swe' or eq_type == "swe_sphere":
     courant = 0.009
     dt = courant * min((radius * np.sin(hx) * np.sin(hy), radius * np.sin(hx) * np.cos(hy))) / ((r+1) * alpha)
     # niter = int(T/dt)
-    niter = 100000
+    niter = 20
     plot_freq = 10000
 
     h0_nodal_gt = gt.storage.from_array(data=h0,
@@ -163,7 +163,7 @@ modal2nodal(vander.inv_vander_gt, h0_nodal_gt, h0_modal_gt)
 modal2nodal(vander.inv_vander_gt, hu0_nodal_gt, hu0_modal_gt)
 modal2nodal(vander.inv_vander_gt, hv0_nodal_gt, hv0_modal_gt)
 
-plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, plot_type=plotter.plot_type, fname='init.png')
+# plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, plot_type=plotter.plot_type, fname='init.png')
 
 mass, inv_mass, cos_factor, sin_factor, cos_n, cos_s = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, pts, eq_type)
 
@@ -215,5 +215,5 @@ hv_f = np.asarray(hv0_nodal_gt)
 
 # hv_f = modal2nodal_gt(vander.vander_gt, hv0_modal_gt)
 
-plotter.plot_solution((h_f, hu_f, hv_f), init=init, title=f'{nx = }; {nz = } | {r = }; {runge_kutta = } | {dt = :.1f}; {niter = } | {backend = }', fname=f'nx{nx}_nz{nz}_p{r+1}_rk{runge_kutta}_T{int(dt*niter)}_{backend}.png', show=False)
+# plotter.plot_solution((h_f, hu_f, hv_f), init=init, title=f'{nx = }; {nz = } | {r = }; {runge_kutta = } | {dt = :.1f}; {niter = } | {backend = }', fname=f'nx{nx}_nz{nz}_p{r+1}_rk{runge_kutta}_T{int(dt*niter)}_{backend}.png', show=False)
 # plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=init, title=f'{nx = }; {nz = } | {r = }; {runge_kutta = } | {dt = :.1f}; {niter = } | {backend = }', fname=f'nx{nx}_nz{nz}_p{r+1}_rk{runge_kutta}_T{int(dt*niter)}_{backend}.png', show=False)
