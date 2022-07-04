@@ -135,6 +135,7 @@ print(f'Domain: {nx = }; {ny = }\nTimesteping: {courant = } {dt = }; {niter = }'
 print(f'Diffusion constanc: {alpha = }')
 print(f'Order: space {r+1}; time {runge_kutta}')
 
+
 run(u0_modal_gt, vander, inv_mass_gt, wts2d_gt, wts1d_gt, dim, n_qp_1D, n_qp, hx, hy, nx, ny, alpha, dt, niter, plotter, mass)
 
 u_final_nodal = modal2nodal_gt(vander.phi_gt, u0_modal_gt)
@@ -148,9 +149,13 @@ u_final = np.asarray(u_final_nodal)
 print(f'Vander: {vander_end - vander_start}s')
 
 # Integrals
+# print('--- Energy ---')
+# initial_mass = np.sqrt(np.einsum('ijkl, ijkl', u0_m, np.einsum('ijklm,ijkm->ijkl', mass, u0_m)))
+# final_mass = np.sqrt(np.einsum('ijkl, ijkl', u0_modal_gt, np.einsum('ijklm,ijkm->ijkl', mass, u0_modal_gt)))
+
 print('--- Mass ---')
-initial_mass = np.sqrt(np.einsum('ijkl, ijkl', u0_m, np.einsum('ijklm,ijkm->ijkl', mass, u0_m)))
-final_mass = np.sqrt(np.einsum('ijkl, ijkl', u0_modal_gt, np.einsum('ijklm,ijkm->ijkl', mass, u0_modal_gt)))
+initial_mass = u0_m.sum()
+final_mass = u0_modal_gt.sum()
 print(f'{initial_mass = }; {final_mass = }')
 
 # Error

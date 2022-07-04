@@ -46,41 +46,41 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
 
     # --- boundary integrals ---
     ## NOTE Default origin is NOT (0,0,0)
-    # u_n = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
-    #     shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
-    # u_s = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
-    #     shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
-    # u_e = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
-    #     shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
-    # u_w = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
-    #     shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
-    # f_n = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
-    #     shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
-    # f_s = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
-    #     shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
-    # f_e = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
-    #     shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
-    # f_w = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
-    #     shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
-    # tmp = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
-    #     shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    u_n = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    u_s = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    u_e = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    u_w = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    f_n = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    f_s = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    f_e = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    f_w = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
+    tmp = gt.storage.zeros(backend=backend, default_origin=(1,1,0),
+        shape=(nx+2, ny+2, nz), dtype=(dtype, (n_qp1d,)))
 
-    u_n = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
-    u_s = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
-    u_e = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
-    u_w = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
-    f_n = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
-    f_s = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
-    f_e = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
-    f_w = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
-        shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
+    # u_n = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+    #     shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
+    # u_s = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+    #     shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
+    # u_e = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+    #     shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
+    # u_w = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+    #     shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
+    # f_n = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+    #     shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
+    # f_s = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+    #     shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
+    # f_e = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+    #     shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
+    # f_w = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
+    #     shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
 
     flux_n = gt.storage.zeros(backend=backend, default_origin=(0,0,0),
         shape=(nx, ny, nz), dtype=(dtype, (n_qp1d,)))
