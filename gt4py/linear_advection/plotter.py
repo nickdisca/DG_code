@@ -17,11 +17,6 @@ class Plotter():
         self.plot_freq = plot_freq
         self.plot_type = plot_type
 
-        # self.plots = []
-        # # self.figure = plt.figure(figsize=(12,8))
-        # # fig = go.Figure()
-        # # self.fig = go.FigureWidget(fig)
-        # self.fig = plt.figure(figsize=(6,6))
         self.fig, self.ax = plt.subplots()
 
 
@@ -46,7 +41,6 @@ class Plotter():
         # Z[np.abs(Z) < np.amax(Z)/1000.0] = 0.0   # Clip all values less than 1/1000 of peak
                     
         if plot_type == 'contour':
-            # self.fig.clear()
             CS = self.ax.contourf(X, Y, Z)
             if init:
                 self.cbar = self.fig.colorbar(CS)
@@ -59,51 +53,21 @@ class Plotter():
             if init:
                 self.ax = self.fig.add_subplot(projection='3d')
                 self.CS = self.ax.scatter(X.ravel(), Y.ravel(), Z.ravel(), c=Z.ravel())
-                # self.CS.xlabel("x")
-                # self.CS.ylabel("y")
             else:
                 self.CS.remove()
                 self.CS = self.ax.scatter(X.ravel(), Y.ravel(), Z.ravel(), c=Z.ravel())
-                # self.CS.set_3d_properties(zs=Z.ravel(), zdir='z')
 
-        elif plot_type == 'plotly':
-            X = X.ravel(); Y = Y.ravel(); Z = Z.ravel()
-            if init:
-                self.plots.append(go.Figure(data = go.Scatter3d(
-                    x=X, y=Y, z=Z, mode='markers', marker=dict(
-                        size=8,
-                        color=Z,
-                        colorscale='Viridis'
-                    ))))
-                # self.fig.show(renderer='browser')
-            else:
-                self.plots.append(go.Figure(data = go.Scatter3d(
-                    x=X, y=Y, z=Z, mode='markers', marker=dict(
-                        size=8,
-                        color=Z,
-                        colorscale='Viridis'
-                    ))))
-                # self.fig.data[0].z = Z
-                # go.Scatter3d(
-                #     x=X, y=Y, z=Z, mode='markers', marker=dict(
-                #         size=8,
-                #         color=Z,
-                #         colorscale='Viridis'))
-            
-            
         elif plot_type == 'surf':
             fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-            # CS = ax.plot_surface(X, Y, Z)
-            # fig, ax = plt.subplots()
             CS = ax.plot_surface(X, Y, Z)
         else:
-            print("Plot type not recognised!")
-        # self.cbar.draw_all()
+            raise Exception('Plot type not recognised')
+
         if show:
             print('plt.show')
-            # plt.draw()
             plt.show()
         else:
             plt.pause(0.005)
+
         if save:
             plt.savefig("img/final_step.svg", dpi=150)

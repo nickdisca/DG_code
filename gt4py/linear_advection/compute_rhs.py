@@ -12,11 +12,6 @@ def compute_rhs(
             vander.phi_gt, uM_gt, u_qp, fx, fy, vander.grad_phi_x_gt,
             vander.grad_phi_y_gt, wts2d, rhs, determ, bd_det_x, bd_det_y
         )
-        # stencils.flux_stencil(
-        #     vander.phi_gt, uM_gt, u_qp, vander.grad_phi_x_gt,
-        #     vander.grad_phi_y_gt, wts2d, rhs, determ, bd_det_x, bd_det_y
-        # )
-
         # --- Boundary Integral ---
         origins = {
             "_all_": (0,0,0),'u_n': (1,1,0), 'u_s': (1,1,0), 'u_e': (1,1,0), 'u_w': (1,1,0)
