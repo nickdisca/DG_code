@@ -2,7 +2,6 @@ import numpy as np
 import gt4py.gtscript as gtscript
 import gt4py as gt
 
-from boundary_conditions import apply_pbc
 from gt4py_config import dtype, backend, backend_opts, dim, n_qp
 
 def nodal2modal_gt(vander, in_nodal):

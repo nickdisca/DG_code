@@ -46,20 +46,6 @@ class Plotter():
                 if hasattr(self, 'cbar'):
                     self.cbar.remove()
                 self.cbar = self.fig.colorbar(CS)
-        elif plot_type == 'scatter':
-            self.fig.clear()
-            if init:
-                self.ax = self.fig.add_subplot(projection='3d')
-                self.CS = self.ax.scatter(X.ravel(), Y.ravel(), Z.ravel(), c=Z.ravel())
-            else:
-                self.CS.remove()
-                self.CS = self.ax.scatter(X.ravel(), Y.ravel(), Z.ravel(), c=Z.ravel())
-
-        elif plot_type == 'surf':
-            fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-            CS = ax.plot_surface(X, Y, Z)
-        else:
-            raise Exception('Plot type not recognised')
 
         if show:
             print('plt.show')

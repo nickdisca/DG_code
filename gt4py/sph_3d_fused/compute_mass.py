@@ -5,15 +5,11 @@ import boundary_conditions
 def compute_mass(phi,wts2d,nx,ny,r,hx,hy,y_c,pts2d_y,pts,eq_type) :
     n_qp = len(pts2d_y)
     n_qp_1D =  int(np.sqrt(n_qp))
-    # determ  = hx*hy/4
-    # mass = np.zeros((nx, ny))
-    # cos_factor = np.zeros((nx, ny))
-    # sin_factor = np.zeros((nx, ny))
-    # inv_mass = np.zeros((nx, ny))
 
     # Internal
     cos_factor = np.ones((ny, n_qp))
     sin_factor = np.zeros((ny, n_qp))
+
     # Boundary
     cos_n = np.zeros((ny, n_qp_1D))
     cos_s = np.zeros((ny, n_qp_1D))
@@ -31,8 +27,6 @@ def compute_mass(phi,wts2d,nx,ny,r,hx,hy,y_c,pts2d_y,pts,eq_type) :
     inv_mass = np.zeros((ny, dim, dim))
     for j in range(ny):
         cos_term = cos_factor[j]
-        # r_loc=rdist[i,j]
-        # dim = int((r_loc+1)*(r_loc+1))
         matrix = np.zeros((dim,dim))
         for m in range(dim):
             for n in range(dim):

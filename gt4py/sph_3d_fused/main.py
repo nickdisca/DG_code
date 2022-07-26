@@ -12,9 +12,6 @@ from run import run
 from plotter import Plotter
 from gt4py_config import backend, dtype, r, n_qp_1D, runge_kutta, nx, nz
 
-import plotly
-from scalene import scalene_profiler
-
 from stencils import modal2nodal
 # silence warning
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
@@ -23,7 +20,6 @@ debug = False
 
 # %%
 # Radius of the earth (for spherical geometry)
-
 
 # Equation type
 eq_type="swe_sphere"
@@ -51,16 +47,8 @@ dim=(r+1)**2
 # Type of quadrature rule (Gauss-Legendre or Gauss-Legendre-Lobatto)
 quad_type="leg"
 
-# Number of quadrature points in one dimension
-# n_qp_1D=4
-
 # Number of quadrature points
 n_qp=n_qp_1D*n_qp_1D
-
-
-# timestep
-# courant = 0.1
-# dt = courant * dx / (r + 1)
 
 if eq_type == 'linear':
     T = 1
@@ -72,17 +60,10 @@ elif eq_type == 'swe_sphere':
     # alpha = 170.0 
     dt = 5.0
 
-# niter = int(T / dt)
-# niter = 10000
-
-# plotting
-# plot_freq = int(niter / 10)
+# Timestepping and plotting set lower down
 plot_type = "contour"
 
-# plot_freq = 100
 # %%
-# rdist_gt = degree_distribution("unif",nx,ny,r_max);
-
 if debug:
     nx = 2; ny = 2
     niter = 1
@@ -130,9 +111,11 @@ if eq_type == 'swe' or eq_type == "swe_sphere":
     alpha = np.max(np.sqrt(g*h0) + np.sqrt(u0**2 + v0**2))
     courant = 0.009
     dt = courant * min((radius * np.sin(hx) * np.sin(hy), radius * np.sin(hx) * np.cos(hy))) / ((r+1) * alpha)
+
+    # Timestepping and plotting set here!!!
     # niter = int(T/dt)
-    niter = 20
-    plot_freq = 10000
+    niter = 10000
+    plot_freq = 10
 
     h0_nodal_gt = gt.storage.from_array(data=h0,
         backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,)))
@@ -145,10 +128,6 @@ if eq_type == 'swe' or eq_type == "swe_sphere":
 
 plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
 
-# if not debug:
-#     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-# plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, title=f'INIT: {nx = }; {nz = } | {r = }; {runge_kutta = } | {backend = }', plot_type=plotter.plot_type, fname=f'init_{backend}.png')
-# time.sleep(20)
 h0_modal_gt = gt.storage.zeros(
         backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,))
 )
@@ -163,6 +142,7 @@ modal2nodal(vander.inv_vander_gt, h0_nodal_gt, h0_modal_gt)
 modal2nodal(vander.inv_vander_gt, hu0_nodal_gt, hu0_modal_gt)
 modal2nodal(vander.inv_vander_gt, hv0_nodal_gt, hv0_modal_gt)
 
+# --- Plot Initial conditions ---
 # plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, plot_type=plotter.plot_type, fname='init.png')
 
 mass, inv_mass, cos_factor, sin_factor, cos_n, cos_s = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, pts, eq_type)
@@ -196,7 +176,7 @@ modal2nodal(vander.vander_gt, hu0_modal_gt, hu0_nodal_gt)
 modal2nodal(vander.vander_gt, hv0_modal_gt, hv0_nodal_gt)
 print(f'{type(hu0_nodal_gt) = }')
 
-# comment
+# --- Plot final solution ---
 h0_nodal_gt.device_to_host()
 hu0_nodal_gt.device_to_host()
 hv0_nodal_gt.device_to_host()
@@ -204,16 +184,5 @@ hv0_nodal_gt.device_to_host()
 h_f = np.asarray(h0_nodal_gt)
 hu_f = np.asarray(hu0_nodal_gt)
 hv_f = np.asarray(hv0_nodal_gt)
-# h0_nodal_gt.synchronize()
-# hu0_nodal_gt.synchronize()
-# hv0_nodal_gt.synchronize()
-
-# h_f = modal2nodal_gt(vander.vander_gt, h0_modal_gt)
-# # hu_f = modal2nodal_gt(vander.vander_gt, hu0_modal_gt)
-
-# hu_f = np.einsum('ijklm,ijkm->ijkl', vander.vander_gt, np.asarray(hu0_modal_gt))
-
-# hv_f = modal2nodal_gt(vander.vander_gt, hv0_modal_gt)
 
 # plotter.plot_solution((h_f, hu_f, hv_f), init=init, title=f'{nx = }; {nz = } | {r = }; {runge_kutta = } | {dt = :.1f}; {niter = } | {backend = }', fname=f'nx{nx}_nz{nz}_p{r+1}_rk{runge_kutta}_T{int(dt*niter)}_{backend}.png', show=False)
-# plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=init, title=f'{nx = }; {nz = } | {r = }; {runge_kutta = } | {dt = :.1f}; {niter = } | {backend = }', fname=f'nx{nx}_nz{nz}_p{r+1}_rk{runge_kutta}_T{int(dt*niter)}_{backend}.png', show=False)
