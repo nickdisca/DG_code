@@ -12,8 +12,6 @@ from run import run
 from plotter import Plotter
 from gt4py_config import backend, dtype, r, n_qp_1D, runge_kutta, n
 
-import plotly
-from scalene import scalene_profiler
 
 # silence warning
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
@@ -39,15 +37,11 @@ nx = n; ny = n
 hx = (b-a)/nx; hy = (d-c)/ny
 
 # polynomial degree of DG
-# r = 2
 # cardinality
 dim=(r+1)**2
 
 # Type of quadrature rule (Gauss-Legendre or Gauss-Legendre-Lobatto)
 quad_type="leg"
-
-# Number of quadrature points in one dimension
-# n_qp_1D=4
 
 # Number of quadrature points
 n_qp=n_qp_1D*n_qp_1D
@@ -67,13 +61,9 @@ niter = int(T / dt)
 
 # plotting
 plot_freq = int(niter / 10)
-# plot_freq = 1
 plot_type = "contour"
 
-# plot_freq = 1
 # %%
-# rdist_gt = degree_distribution("unif",nx,ny,r_max);
-
 if debug:
     nx = 2; ny = 2
     niter = 1
@@ -162,9 +152,6 @@ print(f'{initial_mass = }; {final_mass = }')
 print('--- Error ---')
 l2_error = np.sqrt(np.einsum('ijkl, ijkl', (u0_m - u0_modal_gt), np.einsum('ijklm,ijkm->ijkl', mass, (u0_m - u0_modal_gt))))
 print(f'L2 error: Absolute {l2_error}; Relative {l2_error / initial_mass}\n')
-
-# l_infty_error = np.max(np.abs(u0_qp - u0_modal_gt)) / np.max(np.abs(u0_qp))
-# print(f'{l_infty_error = }\n')
 
 # Plot final time
 if debug:

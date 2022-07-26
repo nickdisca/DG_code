@@ -9,8 +9,3 @@ srun python main.py 20 $rank $runge cpu
 srun python main.py 40 $rank $runge cpu
 srun python main.py 80 $rank $runge cpu
 srun python main.py 160 $rank $runge cpu
-# srun python main.py 320 $rank $runge cpu
-# srun python main.py 640 $rank $runge cpu
-# srun python main.py 1280 $rank $runge cpu
-# srun python main.py 2560 $rank $runge cpu
-# srun python main.py 5120 $rank $runge cpu

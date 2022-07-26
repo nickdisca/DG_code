@@ -1,18 +1,62 @@
 import numpy as np
 import pandas as pd
 
-order1 = pd.read_csv('space_1_time_1.dat', sep=' ')
-order2 = pd.read_csv('space_2_time_2.dat', sep=' ')
-order3 = pd.read_csv('space_3_time_3.dat', sep=' ')
+order = pd.read_csv('space_1_time_1.csv', sep=' ')
+print('=== Space 1 Time 1 ===')
+print("N\tAbsolute\tRelative")
+for i in range(order.shape[0] - 1):
+    abs_order = np.log2(order['l2_abs'][i] / order['l2_abs'][i+1])
+    rel_order = np.log2(order['l2_rel'][i] / order['l2_rel'][i+1])
+    n = order['n'][i]
+    print(f"{n}\t{abs_order:.3f}\t\t{rel_order:.3f}")
 
-print('=== Order 1: ===')
-for i in range(order1.shape[0] - 1):
-    print(np.log2(order1['l2_error'][i] / order1['l2_error'][i+1]))
+# order = pd.read_csv('space_1_time_2.csv', sep=' ')
+# print('\n=== Space 1 Time 2 ===')
+# print("Absolute\tRelative")
+# for i in range(order.shape[0] - 1):
+#     abs_order = np.log2(order['l2_abs'][i] / order['l2_abs'][i+1])
+#     rel_order = np.log2(order['l2_rel'][i] / order['l2_rel'][i+1])
+#     print(f'{abs_order:.3f}\t\t{rel_order:.3f}')
 
-print('\n=== Order 2: ===')
-for i in range(order2.shape[0] - 1):
-    print(np.log2(order2['l2_error'][i] / order2['l2_error'][i+1]))
+order = pd.read_csv('space_2_time_2.csv', sep=' ')
+print('\n=== Space 2 Time 2 ===')
+print("N\tAbsolute\tRelative")
+for i in range(order.shape[0] - 1):
+    abs_order = np.log2(order['l2_abs'][i] / order['l2_abs'][i+1])
+    rel_order = np.log2(order['l2_rel'][i] / order['l2_rel'][i+1])
+    n = order['n'][i]
+    print(f"{n}\t{abs_order:.3f}\t\t{rel_order:.3f}")
 
-print('\n=== Order 3: ===')
-for i in range(order3.shape[0] - 1):
-    print(np.log2(order3['l2_error'][i] / order3['l2_error'][i+1]))
+# order = pd.read_csv('space_3_time_1.csv', sep=' ')
+# print('\n=== Space 3 Time 1 ===')
+# print("Absolute\tRelative")
+# for i in range(order.shape[0] - 1):
+#     abs_order = np.log2(order['l2_abs'][i] / order['l2_abs'][i+1])
+#     rel_order = np.log2(order['l2_rel'][i] / order['l2_rel'][i+1])
+#     print(f'{abs_order:.3f}\t\t{rel_order:.3f}')
+
+# order = pd.read_csv('space_3_time_2.csv', sep=' ')
+# print('\n=== Space 3 Time 2 ===')
+# print("Absolute\tRelative")
+# for i in range(order.shape[0] - 1):
+#     abs_order = np.log2(order['l2_abs'][i] / order['l2_abs'][i+1])
+#     rel_order = np.log2(order['l2_rel'][i] / order['l2_rel'][i+1])
+#     print(f'{abs_order:.3f}\t\t{rel_order:.3f}')
+
+order = pd.read_csv('space_3_time_3.csv', sep=' ')
+print('\n=== Space 3 Time 3 ===')
+print("N\tAbsolute\tRelative")
+for i in range(order.shape[0] - 1):
+    abs_order = np.log2(order['l2_abs'][i] / order['l2_abs'][i+1])
+    rel_order = np.log2(order['l2_rel'][i] / order['l2_rel'][i+1])
+    n = order['n'][i]
+    print(f"{n}\t{abs_order:.3f}\t\t{rel_order:.3f}")
+
+order = pd.read_csv('space_4_time_4.csv', sep=' ')
+print('\n=== Space 4 Time 4 ===')
+print("N\tAbsolute\tRelative")
+for i in range(order.shape[0] - 1):
+    abs_order = np.log2(order['l2_abs'][i] / order['l2_abs'][i+1])
+    rel_order = np.log2(order['l2_rel'][i] / order['l2_rel'][i+1])
+    n = order['n'][i]
+    print(f"{n}\t{abs_order:.3f}\t\t{rel_order:.3f}")

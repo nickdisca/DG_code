@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 # from mpl_toolkits.mplot3d import Axes3D
 
-import plotly.express as px
-import plotly.graph_objects as go
 class Plotter():
     def __init__(self, x_c, y_c, r, nx, ny, neq, hx, hy, plot_freq, plot_type):
         self.x_c = x_c
