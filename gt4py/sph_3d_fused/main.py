@@ -171,12 +171,11 @@ if debug:
 else:
     init = False
 
+# --- Plot final solution ---
 modal2nodal(vander.vander_gt, h0_modal_gt, h0_nodal_gt)
 modal2nodal(vander.vander_gt, hu0_modal_gt, hu0_nodal_gt)
 modal2nodal(vander.vander_gt, hv0_modal_gt, hv0_nodal_gt)
-print(f'{type(hu0_nodal_gt) = }')
 
-# --- Plot final solution ---
 h0_nodal_gt.device_to_host()
 hu0_nodal_gt.device_to_host()
 hv0_nodal_gt.device_to_host()

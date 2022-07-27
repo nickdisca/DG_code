@@ -9,6 +9,7 @@ def modal2nodal(
 ):
     with computation(PARALLEL), interval(...):
         u_nodal = phi @ u_modal
+
 @gtscript.stencil(backend=backend, **backend_opts)
 def fused_internal_stencils(
     phi: gtscript.Field[gtscript.K, (dtype, (n_qp, dim))],
