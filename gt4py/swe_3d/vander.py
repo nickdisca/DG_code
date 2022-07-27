@@ -33,13 +33,11 @@ class Vander:
         self.vander = L.legvander2d(self.unif2d_x,self.unif2d_y,[r,r])
         self.vander = self.vander * coeffs
         self.inv_vander = np.linalg.inv(self.vander)
-        # self.V[:matrix_dim,:matrix_dim,r] = legvander2d * coeffs
 
         # Values and grads of basis functions in internal quadrature points, i.e.
         # phi_val(i,j)=Phi_j(x_i) for i=1:dim_qp,j=1:dim. The x_i are the quadrature points,
         self.phi_val_cell = np.polynomial.legendre.legvander2d(pts2d_x,pts2d_y,[r, r])
         self.phi_val_cell = self.phi_val_cell * coeffs
-        # self.phi_val_cell[:, :matrix_dim, r] = legvander2d * coeffs
 
         temp_vander_x = np.polynomial.legendre.legvander(pts2d_x,r)
         temp_vander_y = np.polynomial.legendre.legvander(pts2d_y,r)
@@ -76,7 +74,6 @@ class Vander:
         n_qp_1D = len(self.pts)
         n_qp, dim = self.phi_val_cell.shape
 
-        # TODO: wtsd2d_gt defined twice
         self.wtsd2d_gt = gt.storage.from_array(data=self.wts2d,
             backend=backend, shape=(self.nx, self.ny, self.nz), dtype = (dtype, (n_qp,)), default_origin=(0,0,0))
         self.vander_gt = gt.storage.from_array(data=self.vander,

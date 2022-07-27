@@ -154,7 +154,6 @@ def compute_num_flux(
     alpha: float
 ):
     with computation(PARALLEL), interval(...):
-        # BUG: alpha needs to be at end
         flux_n = 0.5 * (f_n + f_s[0,+1,0]) - (u_s[0,+1,0] - u_n) * 0.5 * alpha
         flux_s = -0.5 * (f_s + f_n[0,-1,0]) - (u_n[0,-1,0] - u_s) * 0.5 * alpha
         flux_e = 0.5 * (f_e + f_w[+1,0,0]) - (u_w[+1,0,0] - u_e) * 0.5 * alpha

@@ -12,9 +12,6 @@ from run import run
 from plotter import Plotter
 from gt4py_config import backend, dtype, r, n_qp_1D, runge_kutta, nx, nz
 
-import plotly
-from scalene import scalene_profiler
-
 # silence warning
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
@@ -22,20 +19,15 @@ debug = False
 
 # %%
 # Radius of the earth (for spherical geometry)
-# radius=6.37122e6
 radius=1
 
 # Equation type
 eq_type="swe"
 
 # domain
-if eq_type == 'linear':
-    a = 0; b = 1; c = 0; d =1
-elif eq_type == 'swe':
-    a = 0; b = 1e7; c = 0; d = 1e7
+a = 0; b = 1e7; c = 0; d = 1e7
 
 # number of elements in X and Y
-
 nx = nx; ny = nx; nz = nz
 
 hx = (b-a)/nx; hy = (d-c)/ny
@@ -47,25 +39,18 @@ dim=(r+1)**2
 # Type of quadrature rule (Gauss-Legendre or Gauss-Legendre-Lobatto)
 quad_type="leg"
 
-# Number of quadrature points in one dimension
-# n_qp_1D=4
-
 # Number of quadrature points
 n_qp=n_qp_1D*n_qp_1D
 
 
 # timestep
-# dt = 1e-4
 courant = 0.0001
 
 dt = courant * dx / (r + 1)
 alpha = courant * dx / dt
 
-if eq_type == 'linear':
-    T = 1
-elif eq_type == 'swe':
-    day_in_sec = 3600 * 24
-    T = 1 * day_in_sec
+day_in_sec = 3600 * 24
+T = 1 * day_in_sec
 niter = int(T / dt)
 
 # plotting
@@ -74,8 +59,6 @@ plot_type = "contour"
 
 plot_freq = 100
 # %%
-# rdist_gt = degree_distribution("unif",nx,ny,r_max);
-
 if debug:
     nx = 2; ny = 2
     niter = 1
@@ -107,34 +90,29 @@ vander_start = time.perf_counter()
 vander = Vander(nx, ny, nz, dim, r, n_qp, pts2d_x, pts2d_y, pts, wts2d, backend=backend)
 vander_end = time.perf_counter()
 
+# --- Set initial conditions ---
 neq, u0_nodal = set_initial_conditions(x_c, y_c, a, b, c, d, dim, vander, eq_type)
+h0, u0, v0 = u0_nodal
+# identical systems in z component
+if nz > 1:
+    h0 = np.repeat(h0, nz, axis=2)
+    u0 = np.repeat(u0, nz, axis=2)
+    v0 = np.repeat(v0, nz, axis=2)
 
-if eq_type == 'swe':
-    h0, u0, v0 = u0_nodal
-
-    # identical systems in z component
-    if nz > 1:
-        h0 = np.repeat(h0, nz, axis=2)
-        u0 = np.repeat(u0, nz, axis=2)
-        v0 = np.repeat(v0, nz, axis=2)
-
-    h0_nodal_gt = gt.storage.from_array(data=h0,
-        backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,)))
-    hu0_nodal_gt = gt.storage.from_array(data=u0*h0,
-        backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,)))
-    hv0_nodal_gt = gt.storage.from_array(data=v0*h0,
-        backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,)))
+h0_nodal_gt = gt.storage.from_array(data=h0,
+    backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,)))
+hu0_nodal_gt = gt.storage.from_array(data=u0*h0,
+    backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,)))
+hv0_nodal_gt = gt.storage.from_array(data=v0*h0,
+    backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,)))
 
 plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
-
-# if not debug:
-#     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-# plotter.plot_solution(h0_nodal_gt, init=True, plot_type=plotter.plot_type)
 
 h0_ref = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
 h0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, h0_nodal_gt)
 hu0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hu0_nodal_gt)
 hv0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, hv0_nodal_gt)
+# --- End ---
 
 mass, inv_mass = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, eq_type)
 
@@ -168,4 +146,5 @@ if debug:
     init = True
 else:
     init = False
+
 # plotter.plot_solution(u_final_nodal, init=init, show=False, save=True)
