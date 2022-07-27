@@ -9,7 +9,6 @@ class Vander:
         self.nx = nx
         self.ny = ny
         self.nz = nz
-        # self.V = np.zeros((dim, dim))
         self.phi_val_cell = np.zeros((n_qp, dim))
         self.phi_grad_cell_x = np.zeros((n_qp, dim))
         self.phi_grad_cell_y = np.zeros((n_qp, dim))
