@@ -6,7 +6,7 @@ function [x_phi] = map2phi_bd(x,r,x_e,y_e,d1,d2,hx,hy)
 %convention: 1=bottom, 2=right, 3=top, 4=left
 
 %dimension: (num_x_points+num_y_points)x(num_elements)x(num_faces)
-x_phi=nan(2*(r+1),d1*d2,4);
+x_phi=zeros(2*(r+1),d1*d2,4);
 
 for i=1:d1
     for j=1:d2

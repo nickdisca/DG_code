@@ -17,6 +17,7 @@ if eq_type=="adv_sphere" || eq_type=="swe_sphere"
     fact_bd=cos(y_qp_bd);
     complem_fact=sin(y_qp);
     radius=6.37122e6;
+%     radius=1;
 end
 
 end

@@ -3,7 +3,7 @@ function [x_phi] = map2phi_static(x,r,x_e,y_e,d1,d2,hx,hy)
 %and returns a matrix containing the x and y coordinates stacked
 
 %dimension: (number_of_points_x+number_of_points_y) x (num_elements)
-x_phi=NaN*zeros(2*(r+1)^2,d1*d2);
+x_phi=zeros(2*(r+1)^2,d1*d2);
 
 for i=1:d1
     for j=1:d2
