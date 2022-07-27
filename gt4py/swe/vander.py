@@ -38,7 +38,6 @@ class Vander:
         # phi_val(i,j)=Phi_j(x_i) for i=1:dim_qp,j=1:dim. The x_i are the quadrature points,
         self.phi_val_cell = np.polynomial.legendre.legvander2d(pts2d_x,pts2d_y,[r, r])
         self.phi_val_cell = self.phi_val_cell * coeffs
-        # self.phi_val_cell[:, :matrix_dim, r] = legvander2d * coeffs
 
         temp_vander_x = np.polynomial.legendre.legvander(pts2d_x,r)
         temp_vander_y = np.polynomial.legendre.legvander(pts2d_y,r)

@@ -12,8 +12,6 @@ from run import run
 from plotter import Plotter
 from gt4py_config import backend, dtype, r, n_qp_1D, runge_kutta, n
 
-import plotly
-from scalene import scalene_profiler
 
 # silence warning
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
@@ -22,7 +20,6 @@ debug = False
 
 # %%
 # Radius of the earth (for spherical geometry)
-# radius=6.37122e6
 radius=1
 
 # Equation type
@@ -46,8 +43,6 @@ dim=(r+1)**2
 # Type of quadrature rule (Gauss-Legendre or Gauss-Legendre-Lobatto)
 quad_type="leg"
 
-# Number of quadrature points in one dimension
-# n_qp_1D=4
 
 # Number of quadrature points
 n_qp=n_qp_1D*n_qp_1D
@@ -55,7 +50,6 @@ n_qp=n_qp_1D*n_qp_1D
 
 # timestep
 courant = 0.0001
-# courant = 0.0000001
 
 dt = courant * dx / (r + 1)
 alpha = 1 * courant * dx / dt
@@ -72,7 +66,6 @@ plot_type = "contour"
 
 plot_freq = 100
 # %%
-# rdist_gt = degree_distribution("unif",nx,ny,r_max);
 
 if debug:
     nx = 2; ny = 2
