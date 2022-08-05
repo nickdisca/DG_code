@@ -1,6 +1,6 @@
 # Problem
 
-This directory contains the source code for the DG solver for the Shallow Water Equations on the sphere. It was developed on the latitude-longitude grid and implemented using the following conservative form
+This directory contains files related to our DG solver for the Shallow Water Equations on the sphere. It was developed on the latitude-longitude grid and implemented using the following conservative form
 
 $$
     \begin{cases}
