@@ -10,7 +10,8 @@ $$
     \end{cases}
 $$
 
-![Rossby-Haurwitz simulation](https://user-images.githubusercontent.com/58524567/183116586-03cabfea-a8a3-4b22-b080-5bddd647b1bf.gif)
+![Rossby-Haurwitz wave](https://user-images.githubusercontent.com/58524567/183117994-13e4c36b-0ffe-4a3f-8241-4acef8ed4859.gif)
+
 
 
 # Utilisation
