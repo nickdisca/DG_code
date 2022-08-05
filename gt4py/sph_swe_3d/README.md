@@ -24,7 +24,7 @@ The simulation an be executed from the command line using:
 ```
 python main.py 20 1 3 4 numpy
 ```
-- 20 being the number of longitudinal elements (half this number will be chosen for the number of latitudinal elements)
+- 20 being the number of longitudinal elements (half this number will be chosen for the number of latitudinal direction)
 - 1 being number of identical vertical levels
 - 3 being the polynomial degree (this leads to a 4th order scheme in space)
 - 4 being the order of Runge-Kutta method
