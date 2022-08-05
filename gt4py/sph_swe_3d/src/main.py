@@ -60,8 +60,6 @@ elif eq_type == 'swe_sphere':
     # alpha = 170.0 
     dt = 5.0
 
-# Timestepping and plotting set lower down
-plot_type = "contour"
 
 # %%
 if debug:
@@ -126,7 +124,7 @@ if eq_type == 'swe' or eq_type == "swe_sphere":
     coriolis_gt = gt.storage.from_array(data=coriolis,
         backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (n_qp,)))
 
-plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
+plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq)
 
 h0_modal_gt = gt.storage.zeros(
         backend=backend, default_origin=(0,0,0), shape=(nx,ny,nz), dtype=(dtype, (dim,))
@@ -143,7 +141,7 @@ modal2nodal(vander.inv_vander_gt, hu0_nodal_gt, hu0_modal_gt)
 modal2nodal(vander.inv_vander_gt, hv0_nodal_gt, hv0_modal_gt)
 
 # --- Plot Initial conditions ---
-# plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), init=True, plot_type=plotter.plot_type, fname='init.png')
+# plotter.plot_solution((h0_nodal_gt, hu0_nodal_gt, hv0_nodal_gt), fname='init.png')
 
 mass, inv_mass, cos_factor, sin_factor, cos_n, cos_s = compute_mass(vander.phi_val_cell, wts2d, nx, ny, r, hx, hy, y_c, pts2d_y, pts, eq_type)
 
@@ -184,4 +182,4 @@ h_f = np.asarray(h0_nodal_gt)
 hu_f = np.asarray(hu0_nodal_gt)
 hv_f = np.asarray(hv0_nodal_gt)
 
-# plotter.plot_solution((h_f, hu_f, hv_f), init=init, title=f'{nx = }; {nz = } | {r = }; {runge_kutta = } | {dt = :.1f}; {niter = } | {backend = }', fname=f'nx{nx}_nz{nz}_p{r+1}_rk{runge_kutta}_T{int(dt*niter)}_{backend}.png', show=False)
+# plotter.plot_solution((h_f, hu_f, hv_f), title=f'{nx = }; {nz = } | {r = }; {runge_kutta = } | {dt = :.1f}; {niter = } | {backend = }', fname=f'nx{nx}_nz{nz}_p{r+1}_rk{runge_kutta}_T{int(dt*niter)}_{backend}.png)

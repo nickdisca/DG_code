@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-# from mpl_toolkits.mplot3d import Axes3D
+import os
 
 class Plotter():
-    def __init__(self, x_c, y_c, r, nx, ny, neq, hx, hy, plot_freq, plot_type):
+    def __init__(self, x_c, y_c, r, nx, ny, neq, hx, hy, plot_freq):
         self.x_c = x_c
         self.y_c = y_c
         self.r = r
@@ -13,12 +13,11 @@ class Plotter():
         self.hx = hx
         self.hy = hy
         self.plot_freq = plot_freq
-        self.plot_type = plot_type
 
         self.fig, self.ax = plt.subplots()
 
 
-    def plot_solution(self,u,init=False, plot_type='contour',show=False, save=False):
+    def plot_solution(self,u,fname=None):
         nx, ny, nz, vec = u.shape
         u.reshape((nx, ny, vec))
         x_u    = np.zeros(self.nx*self.r)
@@ -38,20 +37,13 @@ class Plotter():
                     Z[i*self.r:(i+1)*self.r,j*self.r:(j+1)*self.r] = u[i,j,0,:].reshape(self.r,self.r)
         # Z[np.abs(Z) < np.amax(Z)/1000.0] = 0.0   # Clip all values less than 1/1000 of peak
                     
-        if plot_type == 'contour':
-            CS = self.ax.contourf(X, Y, Z)
-            if init:
-                self.cbar = self.fig.colorbar(CS)
-            else:
-                if hasattr(self, 'cbar'):
-                    self.cbar.remove()
-                self.cbar = self.fig.colorbar(CS)
+        CS = self.ax.contourf(X, Y, Z)
+        if hasattr(self, 'cbar'):
+            self.cbar.remove()
+        self.cbar = self.fig.colorbar(CS)
+        plt.pause(0.005)
 
-        if show:
-            print('plt.show')
-            plt.show()
-        else:
-            plt.pause(0.005)
-
-        if save:
-            plt.savefig("img/final_step.svg", dpi=150)
+        if fname:
+            if not os.path.isdir("../img"):
+                os.makedirs("../img")
+            plt.savefig(f"../img/{fname}.png", dpi=150)

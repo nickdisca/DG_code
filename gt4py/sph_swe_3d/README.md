@@ -10,7 +10,7 @@ $$
     \end{cases}
 $$
 
-# Example
+# Demo
 
 The following figure illustrates an 8-day simulation of the Rossby-Haurwitz wave (Williamson et al., [1992](https://doi.org/10.1016/S0021-9991(05)80016-6)) using our 4th order DG scheme.
 Each plot depicts the evolution of variable, namely the water height and longitudinal and latitudinal velocities.

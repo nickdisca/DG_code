@@ -1,5 +1,4 @@
 import numpy as np
-import boundary_conditions
 
 # Function to compute mass matrix and its inverse
 def compute_mass(phi,wts2d,nx,ny,r,hx,hy,y_c,pts2d_y,pts,eq_type) :

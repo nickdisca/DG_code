@@ -49,7 +49,7 @@ n_qp=n_qp_1D*n_qp_1D
 
 # timestep
 # dt = 1e-4
-courant = 0.01
+courant = 0.2
 
 dx = np.min((hx, hy))
 dt = courant * dx / (r + 1)
@@ -61,7 +61,6 @@ niter = int(T / dt)
 
 # plotting
 plot_freq = int(niter / 10)
-plot_type = "contour"
 
 # %%
 if debug:
@@ -101,11 +100,9 @@ neq, u0_nodal = set_initial_conditions(x_c, y_c, a, b, c, d, dim, vander, "linea
 u0_nodal_gt = gt.storage.from_array(data=u0_nodal,
     backend=backend, default_origin=(0,0,0), shape=(nx,ny,1), dtype=(dtype, (dim,)))
 
-plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq, plot_type)
+plotter = Plotter(x_c, y_c, r+1, nx, ny, neq, hx, hy, plot_freq)
 
-# if not debug:
-#     plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
-# plotter.plot_solution(u0_nodal_gt, init=True, plot_type=plotter.plot_type)
+plotter.plot_solution(u0_nodal_gt, fname="init")
 
 u0_modal_gt = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
 u0_m = nodal2modal_gt(vander.inv_vander_gt, u0_nodal_gt)
@@ -158,4 +155,4 @@ if debug:
     init = True
 else:
     init = False
-# plotter.plot_solution(u_final_nodal, init=True, show=True, save=False)
+# plotter.plot_solution(u_final_nodal, fname='final_timestep')

@@ -5,7 +5,6 @@ import gt4py as gt
 from gt4py_config import dtype, backend, runge_kutta
 
 import stencils
-import boundary_conditions
 from compute_rhs import compute_rhs
 
 def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, ny, nz, cos_fact, sin_fact, cos_bd, coriolis, radius, alpha, dt, niter, plotter):
@@ -13,7 +12,6 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
     bd_det_x = hx / 2
     bd_det_y = hy / 2
     plot_freq = plotter.plot_freq
-    plot_type = plotter.plot_type
 
     if type(uM_gt) == tuple:
         h, hu, hv = uM_gt
@@ -338,7 +336,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
             stencils.modal2nodal(vander.vander_gt, hu, k1_hu)
             stencils.modal2nodal(vander.vander_gt, hv, k1_hv)
             print('plotting')
-            plotter.plot_solution((k1_h, k1_hu, k1_hv), title=f'{i * dt:.1f}s ({i * dt / 3600:.1f} h {i * dt / 86400:.1f} days)', init=False,  plot_type=plot_type)
+            plotter.plot_solution((k1_h, k1_hu, k1_hv), title=f'{i * dt:.1f}s ({i * dt / 3600:.1f} h {i * dt / 86400:.1f} days)', fname=f'simulation_{dt*i}')
 
     loop_end = time.perf_counter()
 

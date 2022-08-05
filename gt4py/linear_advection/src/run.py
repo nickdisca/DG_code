@@ -16,7 +16,6 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
     radius = 1
     nz = 1
     plot_freq = plotter.plot_freq
-    plot_type = plotter.plot_type
 
     # === Memory allocation ===
     alloc_start = time.perf_counter()
@@ -159,7 +158,7 @@ def run(uM_gt, vander, inv_mass, wts2d, wts1d, dim, n_qp1d, n_qp2d, hx, hy, nx, 
         if i % plot_freq == 0:
             print(f'Iteration {i} done')
             stencils.modal2nodal(vander.vander_gt, uM_gt, u_nodal)
-            plotter.plot_solution(u_nodal, init=False, plot_type=plot_type)
+            plotter.plot_solution(u_nodal, fname=f"simulation_{dt*i:.1f}")
         # === OUTPUT DONE ===
 
     loop_end = time.perf_counter()

@@ -6,7 +6,8 @@ $$
 \frac{\partial u}{\partial t} + \nabla \cdot (\beta u) = 0 \qquad \text{with} \qquad \beta = [1, 1]^T
 $$
 
-# Example
+# Demo
+
 The following figure illustrates the numerical solution of the linear advection problem using our 4th order DG scheme.
 The plot depicts a 1 second simulation on the unit sphere with periodic boundary conditions and a cosine bell as initial conditions.
 
