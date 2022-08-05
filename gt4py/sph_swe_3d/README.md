@@ -1,6 +1,6 @@
 # Problem
 
-This directory contains the source code for the DG solver for the Shallow Water Equations on the sphere:
+This directory contains the source code for the DG solver for the Shallow Water Equations on the sphere. It was developed on the latitude-longitude grid and implemented using the following conservative form
 
 $$
     \begin{cases}
@@ -9,6 +9,11 @@ $$
         \partial_t (h v \cos\theta) + \cfrac{1}{R}\left[ \partial_\lambda \left(h u v\right) + \partial_\theta \left(\left(h v^2 + \cfrac{g h^2}{2}\right) \cos\theta\right) \right] = \cfrac{g h^2 \sin \theta}{2 R} - f h u \cos\theta
     \end{cases}
 $$
+
+# Example
+
+The following figure illustrates an 8-day simulation of the Rossby-Haurwitz wave (Williamson et al., [1992](https://doi.org/10.1016/S0021-9991(05)80016-6)) using our 4th order DG scheme.
+Each plot depicts the evolution of variable, namely the water height and longitudinal and latitudinal velocities.
 
 ![Rossby-Haurwitz wave](https://user-images.githubusercontent.com/58524567/183117994-13e4c36b-0ffe-4a3f-8241-4acef8ed4859.gif)
 
