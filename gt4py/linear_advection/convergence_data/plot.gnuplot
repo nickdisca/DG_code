@@ -1,11 +1,11 @@
-set terminal qt enhanced font ',20'
-unset grid
+set terminal qt enhanced size 700,500 font ',16'
 set title 'Absolute Error vs Mesh Size'
-set xlabel 'h'
-set ylabel 'Error'
+set xlabel 'Mesh Size'
+set ylabel '||u(x,y,1) - u_0(x,y)||_{L^2}'
 set logscale
-set key bottom right
-p 'space_1_time_1.csv' u 2:3 w lp t 'space 1 time 1',\
-  'space_2_time_2.csv' u 2:3 w lp t 'space 2 time 2', \
-  'space_3_time_3.csv' u 2:3 w lp t 'space 3 time 3', \
-  'space_4_time_4.csv' u 2:3 w lp t 'space 4 time 4', \
+set xrange [0.00625:0.05]
+set key bottom right Left reverse box
+p 'space_1_time_1.csv' u 2:3 w lp t 'p=0 ',\
+  'space_2_time_2.csv' u 2:3 w lp t 'p=1 ', \
+  'space_3_time_3.csv' u 2:3 w lp t 'p=2 ', \
+  'space_4_time_4.csv' u 2:3 w lp t 'p=3 ', \

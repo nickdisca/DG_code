@@ -5,6 +5,8 @@ set xlabel 'Mesh Size'
 set ylabel '||u(x,y,1) - u_0(x,y)||_{L^2}'
 set logscale
 set key bottom right
+set key bottom right Left reverse box lw 0.2 spacing 1.4
+set xrange [0.00625:0.05]
 f(x) = 0.1*x
 g(x) = 0.0015*x**2
 p 'space_4_time_1.csv' u 2:3 w lp t 'p=0',\
